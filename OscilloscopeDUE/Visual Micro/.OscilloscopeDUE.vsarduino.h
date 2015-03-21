@@ -70,7 +70,6 @@ extern "C" void __cxa_pure_virtual() {;}
 
 void setup(void);
 void loop(void);
-void loop2();
 
 #include <OscilloscopeDUE.ino>
 #endif
