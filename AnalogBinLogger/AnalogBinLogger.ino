@@ -2717,5 +2717,5 @@ void loop()
 {
 	//draw_Glav_Menu();
 	//swichMenu();
-	//menu_ADC();
+	menu_ADC();
 }
