@@ -87,7 +87,7 @@ void adcInit(metadata_t* meta);
 void adcInit1(metadata_t* meta);
 void adcStart();
 void adcStop();
-void binaryToCsv1();
+void binaryToCsv();
 void checkOverrun();
 void dumpData();
 void logData();
@@ -95,40 +95,10 @@ void logData1();
 void start_ADC(void);
 void Draw_menu_ADC1();
 void menu_ADC();
-int bcd2bin(int temp);
-void clock_read();
-void clock_print_serial();
-void drawDisplay();
-void drawMark(int h);
-void drawSec(int s);
-void drawMin(int m);
-void drawHour(int h, int m);
-void printDate();
-void clearDate();
-void AnalogClock();
-void draw_Glav_Menu();
-void swichMenu();
-void print_up();
-void klav123();
-void updateStr(int val);
 void waitForIt(int x1, int y1, int x2, int y2);
-void reset_klav();
 void setup(void);
 //
-void drawUpButton(int x, int y);
-void drawDownButton(int x, int y);
-void showDOW(byte dow);
-int bin_to_bcd(int temp);
-byte validateDate(byte d, byte m, word y);
-byte validateDateForMonth(byte d, byte m, word y);
-void setClock();
-char uCase(char c);
-void buttonWait(int x, int y);
-byte calcDOW(byte d, byte m, int y);
-void waitForTouchRelease();
 
 #include <AnalogBinLogger.ino>
 #include <AnalogBinLogger.h>
-#include <setTimeDate.ino>
-#include <utils.ino>
 #endif
