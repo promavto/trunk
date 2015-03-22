@@ -68,8 +68,18 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portInputRegister(P)
 #define portModeRegister(P)
 
+inline uint8_t queueNext(uint8_t ht);
+void error_P(const char* msg);
+void fatalBlink();
+void adcInit(metadata_t* meta);
+void logData();
+void Start_Oscilloscope();
+void Draw_menu_ADC1();
+void menu_ADC();
+void waitForIt(int x1, int y1, int x2, int y2);
 void setup(void);
 void loop(void);
 
 #include <OscilloscopeDUE.ino>
+#include <AnalogBinLogger.h>
 #endif
