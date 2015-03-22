@@ -31,7 +31,7 @@
 #include <RTClib.h>
 #include <avr/pgmspace.h>
 
-//#define  ledPin12  12                               // Назначение светодиодов на плате
+#define  ledPin12  12                               // Назначение светодиодов на плате
 boolean ledStatus = false;
 int end_measure = 0;
 
@@ -75,31 +75,31 @@ UTFT_Buttons  myButtons(&myGLCD, &myTouch);
 boolean default_colors = true;
 uint8_t menu_redraw_required = 0;
 
-//----------------------Конец  Настройки дисплея -------------------------------- 
+//----------------------Конец  Настройки дисплея --------------------------------
 
  //***************** Назначение переменных для хранения текстов*****************************************************
 
-//
-//char  txt_menu1_1[]          = "PE\x81\x86""CTPATOP";                                                       // "РЕГИСТРАТОР"
-//char  txt_menu1_2[]          = "CAMO\x89\x86""CE\x8C";                                                      // "САМОПИСЕЦ"
-//char  txt_menu1_3[]          = "PE\x81\x86""CT.+ CAMO\x89.";                                                // "РЕГИСТ. + САМОП."
-//char  txt_menu1_4[]          = "\x89O\x82K\x88\x94\x8D""EH\x86""E \x89K";                                   // "ПОДКЛЮЧЕНИЕ ПК"
-//char  txt_menu2_1[]          = "MENU 2-1";//"\x86H\x8BO C\x8D""ET\x8D\x86KOB";                              // ИНФО СЧЕТЧИКОВ
-//char  txt_menu2_2[]          = "MENU 2-2";//"\x86H\x8BO N \xA3o\xA0\xAC\x9C.";                              //
-//char  txt_menu2_3[]          = "MENU 2-3";//"Setup XBee";                                                   //
-//char  txt_menu2_4[]          = "MENU 2-4";//"menu2_4";                                                      //
-//char  txt_menu3_1[]          = "MENU 3-1";//"CTEPET\x92 \x8B""A\x87\x89\x91";                               //
-//char  txt_menu3_2[]          = "MENU 3-2";//"\x8A""c\xA4.N ""\xA4""e\xA0""e\xA5o\xA2""a";                   // Уст. № телефона
-//char  txt_menu3_3[]          = "MENU 3-3";//"\x8A""c\xA4.Level Gaz";                                        //
-//char  txt_menu3_4[]          = "MENU 3-4";//"\x8A""c\xA4.Level Temp";                                       //
-//char  txt_menu4_1[]          = "MENU 4-1";//"C\x96poc \x99""a""\xA2\xA2\xABx";                              // Сброс данных
-//char  txt_menu4_2[]          = "MENU 4-2";//"\x8A""c\xA4.N \xA3o\xA0\xAC\x9C.";                             // Уст. № польз
-//char  txt_menu4_3[]          = "MENU 4-3";//"\x89""apo\xA0\xAC \xA3o\xA0\xAC\x9C.";                         // Пароль польз.
-//char  txt_menu4_4[]          = "MENU 4-4";//"\x89""apo\xA0\xAC a\x99\xA1\x9D\xA2.";                         // Пароль админ.
-//char  txt_menu5_1[]          = "MENU 5-1";//"\x86H\x8BO ZigBee";                                            // Инфо ZigBee
-//char  txt_menu5_2[]          = "MENU 5-2";//"Set Adr Coord H";                                              //
-//char  txt_menu5_3[]          = "MENU 5-3";//"Set Adr Coord L";                                              // 
-//char  txt_menu5_4[]          = "MENU 5-4";//"Set Adr Network";                                              // 
+
+char  txt_menu1_1[]          = "PE\x81\x86""CTPATOP";                                                       // "РЕГИСТРАТОР"
+char  txt_menu1_2[]          = "CAMO\x89\x86""CE\x8C";                                                      // "САМОПИСЕЦ"
+char  txt_menu1_3[]          = "PE\x81\x86""CT.+ CAMO\x89.";                                                // "РЕГИСТ. + САМОП."
+char  txt_menu1_4[]          = "\x89O\x82K\x88\x94\x8D""EH\x86""E \x89K";                                   // "ПОДКЛЮЧЕНИЕ ПК"
+char  txt_menu2_1[]          = "MENU 2-1";//"\x86H\x8BO C\x8D""ET\x8D\x86KOB";                              // ИНФО СЧЕТЧИКОВ
+char  txt_menu2_2[]          = "MENU 2-2";//"\x86H\x8BO N \xA3o\xA0\xAC\x9C.";                              //
+char  txt_menu2_3[]          = "MENU 2-3";//"Setup XBee";                                                   //
+char  txt_menu2_4[]          = "MENU 2-4";//"menu2_4";                                                      //
+char  txt_menu3_1[]          = "MENU 3-1";//"CTEPET\x92 \x8B""A\x87\x89\x91";                               //
+char  txt_menu3_2[]          = "MENU 3-2";//"\x8A""c\xA4.N ""\xA4""e\xA0""e\xA5o\xA2""a";                   // Уст. № телефона
+char  txt_menu3_3[]          = "MENU 3-3";//"\x8A""c\xA4.Level Gaz";                                        //
+char  txt_menu3_4[]          = "MENU 3-4";//"\x8A""c\xA4.Level Temp";                                       //
+char  txt_menu4_1[]          = "MENU 4-1";//"C\x96poc \x99""a""\xA2\xA2\xABx";                              // Сброс данных
+char  txt_menu4_2[]          = "MENU 4-2";//"\x8A""c\xA4.N \xA3o\xA0\xAC\x9C.";                             // Уст. № польз
+char  txt_menu4_3[]          = "MENU 4-3";//"\x89""apo\xA0\xAC \xA3o\xA0\xAC\x9C.";                         // Пароль польз.
+char  txt_menu4_4[]          = "MENU 4-4";//"\x89""apo\xA0\xAC a\x99\xA1\x9D\xA2.";                         // Пароль админ.
+char  txt_menu5_1[]          = "MENU 5-1";//"\x86H\x8BO ZigBee";                                            // Инфо ZigBee
+char  txt_menu5_2[]          = "MENU 5-2";//"Set Adr Coord H";                                              //
+char  txt_menu5_3[]          = "MENU 5-3";//"Set Adr Coord L";                                              // 
+char  txt_menu5_4[]          = "MENU 5-4";//"Set Adr Network";                                              // 
 
 
 char  txt_info1[]            = "B""\x97""o""\x99"" ""\x99""a""\xA2\xA2\xAB""x";                             // Ввод данных
@@ -170,7 +170,6 @@ const float SAMPLE_RATE = 10000;  // Must be 0.25 or greater.
 // constant instead of being calculated from SAMPLE_RATE.  SAMPLE_RATE is not
 // used in the code below.  For example, setting SAMPLE_INTERVAL = 2.0e-4
 // will result in a 200 microsecond sample interval.
-//const float SAMPLE_INTERVAL = 2.0e-4;
 const float SAMPLE_INTERVAL = 1.0/SAMPLE_RATE;
 
 // Setting ROUND_SAMPLE_INTERVAL non-zero will cause the sample interval to
@@ -204,8 +203,6 @@ uint8_t const ADC_REF = (1 << REFS0);  // Vcc Reference.
 // The program creates a contiguous file with FILE_BLOCK_COUNT 512 byte blocks.
 // This file is flash erased using special SD commands.  The file will be
 // truncated if logging is stopped early.
-
-
 const uint32_t FILE_BLOCK_COUNT = 256000;
 
 // log file base name.  Must be six characters or less.
@@ -219,10 +216,10 @@ const uint32_t FILE_BLOCK_COUNT = 256000;
 // Digital pin to indicate an error, set to -1 if not used.
 // The led blinks for fatal errors. The led goes on solid for SD write
 // overrun errors and logging continues.
-const int8_t ERROR_LED_PIN = 12;
+const int8_t ERROR_LED_PIN = 13;
 
 // SD chip select pin.
-const uint8_t SD_CS_PIN = 53;
+const uint8_t SD_CS_PIN = SS;
 //------------------------------------------------------------------------------
 // Buffer definitions.
 //
@@ -344,8 +341,7 @@ ISR(ADC_vect)
 	return;
   }
   // Start ADC
-  if (PIN_COUNT > 1) 
-  {
+  if (PIN_COUNT > 1) {
 	ADMUX = adcmux[adcindex];
 	ADCSRB = adcsrb[adcindex];
 	ADCSRA = adcsra[adcindex];

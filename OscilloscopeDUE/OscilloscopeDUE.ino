@@ -229,10 +229,10 @@ volatile bool isrBufNeeded = true;
 volatile uint16_t isrOver = 0;
 
 //// ADC configuration for each pin.
-volatile uint8_t adcmux[PIN_COUNT];
-volatile uint8_t adcsra[PIN_COUNT];
-volatile uint8_t adcsrb[PIN_COUNT];
-volatile uint8_t adcindex = 1;
+//volatile uint8_t adcmux[PIN_COUNT];
+//volatile uint8_t adcsra[PIN_COUNT];
+//volatile uint8_t adcsrb[PIN_COUNT];
+//volatile uint8_t adcindex = 1;
 
 // Insure no timer events are missed.
 volatile bool timerError = false;
@@ -272,196 +272,196 @@ char  txt_info29[]            = "";
 char  txt_info30[]            = ""; 
 
 
-ISR(ADC_vect) 
-{
-	uint8_t d;
-  // Read ADC data.
-#if RECORD_EIGHT_BITS
- // uint8_t d = ADCH;
-#else  // RECORD_EIGHT_BITS
-  // This will access ADCL first. 
- // uint16_t d = ADC;
-#endif  // RECORD_EIGHT_BITS
-
-  if (isrBufNeeded && emptyHead == emptyTail) {
-	// no buffers - count overrun
-	if (isrOver < 0XFFFF) isrOver++;
-	
-	// Avoid missed timer error.
-	timerFlag = false;
-	return;
-  }
-  // Start ADC
- /* if (PIN_COUNT > 1) {
-	ADMUX = adcmux[adcindex];
-	ADCSRB = adcsrb[adcindex];
-	ADCSRA = adcsra[adcindex];
-	if (adcindex == 0) timerFlag = false;
-	adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
-  } else {
-	timerFlag = false;
-  }*/
-  // Check for buffer needed.
-  if (isrBufNeeded) {   
-	// Remove buffer from empty queue.
-	isrBuf = emptyQueue[emptyTail];
-	emptyTail = queueNext(emptyTail);
-	isrBuf->count = 0;
-	isrBuf->overrun = isrOver;
-	isrBufNeeded = false;    
-  }
-  // Store ADC data.
-  isrBuf->data[isrBuf->count++] = d;
-
-  // Check for buffer full.
-  if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK) {
-	// Put buffer isrIn full queue.  
-	uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
-	fullQueue[tmp] = (block_t*)isrBuf;
-	fullHead = queueNext(tmp);
-   
-	// Set buffer needed and clear overruns.
-	isrBufNeeded = true;
-	isrOver = 0;
-  }
-}
-ISR(TIMER1_COMPB_vect) 
-{
-  // Make sure ADC ISR responded to timer event.
-  if (timerFlag) timerError = true;
-  timerFlag = true;
-}
-
-void error_P(const char* msg) 
-{
-  sd.errorPrint_P(msg);
-  fatalBlink();
-}
-void fatalBlink() {
-  while (true) {
-	if (ERROR_LED_PIN >= 0) {
-	  digitalWrite(ERROR_LED_PIN, HIGH);
-	  delay(200);
-	  digitalWrite(ERROR_LED_PIN, LOW);
-	  delay(200);
-	}
-  }
-}
-
-void adcInit(metadata_t* meta) 
-{
-  uint8_t adps;  // prescaler bits for ADCSRA 
-  uint32_t ticks = F_CPU*SAMPLE_INTERVAL + 0.5;  // Sample interval cpu cycles.
-// Исправить
- /* if (ADC_REF & ~((1 << REFS0) | (1 << REFS1))) {
-	error("Invalid ADC reference");
-  }*/
-#ifdef ADC_PRESCALER
-  if (ADC_PRESCALER > 7 || ADC_PRESCALER < 2) {
-	//error("Invalid ADC prescaler");
-  }
-  adps = ADC_PRESCALER;
-#else  // ADC_PRESCALER
-  // Allow extra cpu cycles to change ADC settings if more than one pin.
-  int32_t adcCycles = (ticks - ISR_TIMER0)/PIN_COUNT;
-					  - (PIN_COUNT > 1 ? ISR_SETUP_ADC : 0);
-					  
-  for (adps = 7; adps > 0; adps--) 
-  {
-	 if (adcCycles >= (MIN_ADC_CYCLES << adps)) break;
-  }
-#endif  // ADC_PRESCALER
-  meta->adcFrequency = F_CPU >> adps;
-  if (meta->adcFrequency > (RECORD_EIGHT_BITS ? 2000000 : 1000000)) {
-	//error("Sample Rate Too High");
-  }
-#if ROUND_SAMPLE_INTERVAL
-  // Round so interval is multiple of ADC clock.
-  ticks += 1 << (adps - 1);
-  ticks >>= adps;
-  ticks <<= adps;
-#endif  // ROUND_SAMPLE_INTERVAL
-
-  if (PIN_COUNT > sizeof(meta->pinNumber)/sizeof(meta->pinNumber[0])) {
-	error("Too many pins");
-  }
-  meta->pinCount = PIN_COUNT;
-  meta->recordEightBits = RECORD_EIGHT_BITS;
-  
-  for (int i = 0; i < PIN_COUNT; i++) {
-	uint8_t pin = PIN_LIST[i];
-	//if (pin >= NUM_ANALOG_INPUTS) error("Invalid Analog pin number");
-	meta->pinNumber[i] = pin;
-	
-   // Set ADC reference and low three bits of analog pin number.   
+//ISR(ADC_vect) 
+//{
+//	uint8_t d;
+//  // Read ADC data.
+//#if RECORD_EIGHT_BITS
+// // uint8_t d = ADCH;
+//#else  // RECORD_EIGHT_BITS
+//  // This will access ADCL first. 
+// // uint16_t d = ADC;
+//#endif  // RECORD_EIGHT_BITS
+//
+//  if (isrBufNeeded && emptyHead == emptyTail) {
+//	// no buffers - count overrun
+//	if (isrOver < 0XFFFF) isrOver++;
+//	
+//	// Avoid missed timer error.
+//	timerFlag = false;
+//	return;
+//  }
+//  // Start ADC
+// /* if (PIN_COUNT > 1) {
+//	ADMUX = adcmux[adcindex];
+//	ADCSRB = adcsrb[adcindex];
+//	ADCSRA = adcsra[adcindex];
+//	if (adcindex == 0) timerFlag = false;
+//	adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
+//  } else {
+//	timerFlag = false;
+//  }*/
+//  // Check for buffer needed.
+//  if (isrBufNeeded) {   
+//	// Remove buffer from empty queue.
+//	isrBuf = emptyQueue[emptyTail];
+//	emptyTail = queueNext(emptyTail);
+//	isrBuf->count = 0;
+//	isrBuf->overrun = isrOver;
+//	isrBufNeeded = false;    
+//  }
+//  // Store ADC data.
+//  isrBuf->data[isrBuf->count++] = d;
+//
+//  // Check for buffer full.
+//  if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK) {
+//	// Put buffer isrIn full queue.  
+//	uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
+//	fullQueue[tmp] = (block_t*)isrBuf;
+//	fullHead = queueNext(tmp);
+//   
+//	// Set buffer needed and clear overruns.
+//	isrBufNeeded = true;
+//	isrOver = 0;
+//  }
+//}
+//ISR(TIMER1_COMPB_vect) 
+//{
+//  // Make sure ADC ISR responded to timer event.
+//  if (timerFlag) timerError = true;
+//  timerFlag = true;
+//}
+//
+//void error_P(const char* msg) 
+//{
+//  sd.errorPrint_P(msg);
+//  fatalBlink();
+//}
+//void fatalBlink() {
+//  while (true) {
+//	if (ERROR_LED_PIN >= 0) {
+//	  digitalWrite(ERROR_LED_PIN, HIGH);
+//	  delay(200);
+//	  digitalWrite(ERROR_LED_PIN, LOW);
+//	  delay(200);
+//	}
+//  }
+//}
+//
+//void adcInit(metadata_t* meta) 
+//{
+//  uint8_t adps;  // prescaler bits for ADCSRA 
+//  uint32_t ticks = F_CPU*SAMPLE_INTERVAL + 0.5;  // Sample interval cpu cycles.
+//
+//  if (ADC_REF & ~((1 << REFS0) | (1 << REFS1))) {
+//	error("Invalid ADC reference");
+//  }
+//#ifdef ADC_PRESCALER
+//  if (ADC_PRESCALER > 7 || ADC_PRESCALER < 2) {
+//	//error("Invalid ADC prescaler");
+//  }
+//  adps = ADC_PRESCALER;
+//#else  // ADC_PRESCALER
+//  // Allow extra cpu cycles to change ADC settings if more than one pin.
+//  int32_t adcCycles = (ticks - ISR_TIMER0)/PIN_COUNT;
+//					  - (PIN_COUNT > 1 ? ISR_SETUP_ADC : 0);
+//					  
+//  for (adps = 7; adps > 0; adps--) 
+//  {
+//	 if (adcCycles >= (MIN_ADC_CYCLES << adps)) break;
+//  }
+//#endif  // ADC_PRESCALER
+//  meta->adcFrequency = F_CPU >> adps;
+//  if (meta->adcFrequency > (RECORD_EIGHT_BITS ? 2000000 : 1000000)) {
+//	//error("Sample Rate Too High");
+//  }
+//#if ROUND_SAMPLE_INTERVAL
+//  // Round so interval is multiple of ADC clock.
+//  ticks += 1 << (adps - 1);
+//  ticks >>= adps;
+//  ticks <<= adps;
+//#endif  // ROUND_SAMPLE_INTERVAL
+//
+//  if (PIN_COUNT > sizeof(meta->pinNumber)/sizeof(meta->pinNumber[0])) {
+//	error("Too many pins");
+//  }
+//  meta->pinCount = PIN_COUNT;
+//  meta->recordEightBits = RECORD_EIGHT_BITS;
+//  
+//  for (int i = 0; i < PIN_COUNT; i++) {
+//	uint8_t pin = PIN_LIST[i];
+//	//if (pin >= NUM_ANALOG_INPUTS) error("Invalid Analog pin number");
+//	meta->pinNumber[i] = pin;
+//	
+//   // Set ADC reference and low three bits of analog pin number.   
 //	adcmux[i] = (pin & 7) | ADC_REF;
-	if (RECORD_EIGHT_BITS) adcmux[i] |= 1 << ADLAR;
-	
-	// If this is the first pin, trigger on timer/counter 1 compare match B.
-	adcsrb[i] = i == 0 ? (1 << ADTS2) | (1 << ADTS0) : 0;
-#ifdef MUX5
-	if (pin > 7) adcsrb[i] |= (1 << MUX5);
-#endif  // MUX5
-	adcsra[i] = (1 << ADEN) | (1 << ADIE) | adps;
-	adcsra[i] |= i == 0 ? 1 << ADATE : 1 << ADSC;
-  }
-
-  // Setup timer1
-  TCCR1A = 0;
-  uint8_t tshift;
-  if (ticks < 0X10000) {
-	// no prescale, CTC mode
-	TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS10);
-	tshift = 0;
-  } else if (ticks < 0X10000*8) {
-	// prescale 8, CTC mode
-	TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS11);
-	tshift = 3;
-  } else if (ticks < 0X10000*64) {
-	// prescale 64, CTC mode
-	TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS11) | (1 << CS10);
-	tshift = 6;
-  } else if (ticks < 0X10000*256) {
-	// prescale 256, CTC mode
-	TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS12);
-	tshift = 8;
-  } else if (ticks < 0X10000*1024) {
-	// prescale 1024, CTC mode
-	TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS12) | (1 << CS10);
-	tshift = 10;
-  } else {
-	error("Sample Rate Too Slow");
-  }
-  // divide by prescaler
-  ticks >>= tshift;
-  // set TOP for timer reset
-  ICR1 = ticks - 1;
-  // compare for ADC start
-  OCR1B = 0;
-  
-  // multiply by prescaler
-  ticks <<= tshift;
-  
-  // Sample interval in CPU clock ticks.
-  meta->sampleInterval = ticks;
-  meta->cpuFrequency = F_CPU;
-  float sampleRate = (float)meta->cpuFrequency/meta->sampleInterval;
-  Serial.print(F("Sample pins:"));
-  for (unsigned int i = 0; i < meta->pinCount; i++) 
-  {
-	Serial.print(' ');
-	Serial.print(meta->pinNumber[i], DEC);
-  }
-  Serial.println(); 
-  Serial.print(F("ADC bits: "));
-  Serial.println(meta->recordEightBits ? 8 : 10);
-  Serial.print(F("ADC clock kHz: "));
-  Serial.println(meta->adcFrequency/1000);
-  Serial.print(F("Sample Rate: "));
-  Serial.println(sampleRate);  
-  Serial.print(F("Sample interval usec: "));
-  Serial.println(1000000.0/sampleRate, 4); 
-}
+//	if (RECORD_EIGHT_BITS) adcmux[i] |= 1 << ADLAR;
+//	
+//	// If this is the first pin, trigger on timer/counter 1 compare match B.
+//	adcsrb[i] = i == 0 ? (1 << ADTS2) | (1 << ADTS0) : 0;
+//#ifdef MUX5
+//	if (pin > 7) adcsrb[i] |= (1 << MUX5);
+//#endif  // MUX5
+//	adcsra[i] = (1 << ADEN) | (1 << ADIE) | adps;
+//	adcsra[i] |= i == 0 ? 1 << ADATE : 1 << ADSC;
+//  }
+//
+//  // Setup timer1
+//  TCCR1A = 0;
+//  uint8_t tshift;
+//  if (ticks < 0X10000) {
+//	// no prescale, CTC mode
+//	TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS10);
+//	tshift = 0;
+//  } else if (ticks < 0X10000*8) {
+//	// prescale 8, CTC mode
+//	TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS11);
+//	tshift = 3;
+//  } else if (ticks < 0X10000*64) {
+//	// prescale 64, CTC mode
+//	TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS11) | (1 << CS10);
+//	tshift = 6;
+//  } else if (ticks < 0X10000*256) {
+//	// prescale 256, CTC mode
+//	TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS12);
+//	tshift = 8;
+//  } else if (ticks < 0X10000*1024) {
+//	// prescale 1024, CTC mode
+//	TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS12) | (1 << CS10);
+//	tshift = 10;
+//  } else {
+//	error("Sample Rate Too Slow");
+//  }
+//  // divide by prescaler
+//  ticks >>= tshift;
+//  // set TOP for timer reset
+//  ICR1 = ticks - 1;
+//  // compare for ADC start
+//  OCR1B = 0;
+//  
+//  // multiply by prescaler
+//  ticks <<= tshift;
+//  
+//  // Sample interval in CPU clock ticks.
+//  meta->sampleInterval = ticks;
+//  meta->cpuFrequency = F_CPU;
+//  float sampleRate = (float)meta->cpuFrequency/meta->sampleInterval;
+//  Serial.print(F("Sample pins:"));
+//  for (unsigned int i = 0; i < meta->pinCount; i++) 
+//  {
+//	Serial.print(' ');
+//	Serial.print(meta->pinNumber[i], DEC);
+//  }
+//  Serial.println(); 
+//  Serial.print(F("ADC bits: "));
+//  Serial.println(meta->recordEightBits ? 8 : 10);
+//  Serial.print(F("ADC clock kHz: "));
+//  Serial.println(meta->adcFrequency/1000);
+//  Serial.print(F("Sample Rate: "));
+//  Serial.println(sampleRate);  
+//  Serial.print(F("Sample interval usec: "));
+//  Serial.println(1000000.0/sampleRate, 4); 
+//}
 
 
 uint32_t const ERASE_SIZE = 262144L;

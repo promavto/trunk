@@ -1,4 +1,4 @@
-// UTFT_Demo_320x240_Serial (C)2013 Henning Karlsen
+// UTFT_Demo_320x240_Serial (C)2014 Henning Karlsen
 // web: http://www.henningkarlsen.com/electronics
 //
 // This program is a demo of how to use most of the functions
@@ -15,10 +15,14 @@
 // Declare which fonts we will be using
 extern uint8_t SmallFont[];
 
-UTFT myGLCD(TFT01_22SP,9,8,12,11,10);   // Remember to change the model parameter to suit your display module!
+// Usage: myGLCD(<model code>, SDA, SCL, CS, RST[, RS]);
+//UTFT myGLCD(TFT01_22SP,9,8,12,11,10);            // ElecFreaks TFT01-2.2SP
+//UTFT myGLCD(TFT01_24SP,9,8,12,11,10);            // ElecFreaks TFT01-2.4SP
+UTFT myGLCD(TFT22SHLD,3,4,7,5,6);                  // ElecFreaks TFT2.2SP Shield
 
 void setup()
 {
+// Just get some random numbers
   randomSeed(analogRead(0));
   
 // Setup the LCD
