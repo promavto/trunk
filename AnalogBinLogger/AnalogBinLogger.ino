@@ -1019,7 +1019,7 @@ void logData()
   uint32_t count = 0;
   uint32_t maxLatency = 0;
 
-  // Start logging interrupts.  Начало регистрации прерываний.
+  //+++++++++++++++++++  Start logging interrupts.  Начало регистрации прерываний. ++++++++++++++
   adcStart();
   while (1) 
   {
@@ -1080,6 +1080,9 @@ void logData()
 	  if (fullHead == fullTail) break;
 	}
   }
+
+  //--------------------------------------------------------------------------------------------
+
   if (!sd.card()->writeStop()) 
   {
 	error("writeStop failed");
