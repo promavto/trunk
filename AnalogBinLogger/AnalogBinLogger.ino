@@ -110,6 +110,45 @@ int ret                = 0;                // Признак прерывания операции
 
 
 //=====================================================================================
+
+ //+++++++++++++++++++++++++ Настройки осциллографа (Самописца) +++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ // Declare variables
+char buf[12];
+int x_osc,y_osc;
+int Input = 0;
+byte Sample[320];
+byte OldSample[320];
+float StartSample = 0; 
+float EndSample = 0;
+int Max = 0;
+int Min = 500;
+int mode = 0;
+int dTime = 1;
+int tmode = 0;
+int Trigger = 0;
+int SampleSize = 0;
+float SampleTime = 0;
+int dgvh;
+int hpos = 105; //set 0v on horizontal  grid
+int vsens = 5; // vertical sensitivity чувствительность по вертикали
+int port = 0;
+// variables for DVM
+int sum = 0;                    // sum of samples taken сумма проб, взятых
+
+// Define various ADC prescaler
+const unsigned char PS_16 = (1 << ADPS2);
+const unsigned char PS_32 = (1 << ADPS2) | (1 << ADPS0);
+const unsigned char PS_64 = (1 << ADPS2) | (1 << ADPS1);
+const unsigned char PS_128 = (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
+
+
+ //-----------------------------------------------------------------------------------------------------------------
+
+
+
+
+
  //***************** Назначение переменных для хранения текстов*****************************************************
 
 
@@ -603,7 +642,8 @@ void adcInit(metadata_t* meta)
  }
 //------------------------------------------------------------------------------
 // enable ADC and timer1 interrupts
-void adcStart() {
+void adcStart() 
+{
   // initialize ISR
   isrBufNeeded = true;
   isrOver = 0;
@@ -1111,7 +1151,7 @@ void menu_ADC()
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
 						{
-						    waitForIt(30, 120, 290, 160);
+							waitForIt(30, 120, 290, 160);
 							 dumpData();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
@@ -1592,8 +1632,8 @@ void swichMenu() // Тексты меню в строках "txt....."
 				   if (pressed_button==but1 && m2 == 1)
 					   {
 						//   Serial.print("Menu 1-1");
-						     Draw_menu_ADC1();
-	                         menu_ADC();
+							 Draw_menu_ADC1();
+							 menu_ADC();
 							 myGLCD.clrScr();
 							 myButtons.drawButtons();;
 							 print_up();
@@ -1602,8 +1642,8 @@ void swichMenu() // Тексты меню в строках "txt....."
 				   if (pressed_button==but2 && m2 == 1)
 					   {
 						  //  Serial.print("Menu 1-2");
-						    Draw_menu_Osc();
-						    menu_Oscilloscope();
+							Draw_menu_Osc();
+							menu_Oscilloscope();
 							myGLCD.clrScr();
 							myButtons.drawButtons();
 							print_up();
@@ -2351,7 +2391,12 @@ void menu_Oscilloscope()
 					if ((y>=20) && (y<=60))    // Button: 1
 						{
 							waitForIt(30, 20, 290, 60);
-	
+							myGLCD.clrScr();
+							DrawGrid();
+							buttons();
+							ADCSRA &= ~PS_128;  //
+							ADCSRA |= PS_128;    // set our own prescaler 
+							oscilloscope();
 						}
 					if ((y>=70) && (y<=110))   // Button: 2
 						{
@@ -2360,13 +2405,13 @@ void menu_Oscilloscope()
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
 						{
-						    waitForIt(30, 120, 290, 160);
+							waitForIt(30, 120, 290, 160);
 						
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
 						{
 							waitForIt(30, 170, 290, 210);
-	
+							Draw_menu_Osc();
 							break;
 						}
 				}
@@ -2374,11 +2419,176 @@ void menu_Oscilloscope()
 	   }
 
 }
+void trigger()
+{
+	while (Input < Trigger)
+	{
+		Input = analogRead(port)*5/10;
+	}
+}
 void oscilloscope()
 {
+	while(1) 
+	{
+		 DrawGrid();
+		 touch();
+		 trigger();
+
+		// Collect the analog data into an array
+ 
+		StartSample = micros();
+		for( int xpos = 0;	xpos < 240; xpos ++) 
+		{
+			Sample[xpos] = analogRead(port)*5/102;
+			delayMicroseconds(dTime);
+
+		}
+
+		EndSample = micros();
+  
+		// Display the collected analog data from array
+		for( int xpos = 0; xpos < 239;
+		xpos ++)
+		{
+		// Erase previous display Стереть предыдущий экран
+		myGLCD.setColor( 0, 0, 0);
+		myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
+		if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
+		//Draw the new data
+		myGLCD.setColor( 255, 255, 255);
+		myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
+		}
+		// Determine sample voltage peak to peak
+		Max = Sample[ 100];
+		Min = Sample[ 100];
+		for( int xpos = 0;	xpos < 240; xpos ++)
+		{
+		OldSample[xpos] = Sample[ xpos];
+	/*	if (Sample[ xpos] > Max) Max = Sample[ xpos];
+		if (Sample[ xpos] < Min) Min = Sample[ xpos];*/
+		}
+		// display the sample time, delay time and trigger level
+		myGLCD.setBackColor( 0, 0, 255);
+		myGLCD.setFont( SmallFont);
+		myGLCD.setColor (255, 255,255);
+		//myGLCD.setBackColor( 0, 0,255);
+		
+		myGLCD.print("Delay", 260, 5);
+		myGLCD.print("     ", 270, 20);
+		myGLCD.print(itoa ( dTime, buf, 10), 270, 20);
+		myGLCD.print("Trig.", 260, 60);
+		myGLCD.print("   ", 270, 75);
+		myGLCD.print(itoa( Trigger, buf, 10), 270, 75);
+		SampleTime =( EndSample/1000-StartSample/1000);
+		myGLCD.print("mSec.", 260, 170);
+		myGLCD.print("      ", 260, 190);
+		myGLCD.printNumF(SampleTime, 1, 260, 190);
+	/*	if (port == 0)myGLCD.print("Pulse", 260, 120);
+		if (port == 1)myGLCD.print("Temp", 260, 120);
+		if (port == 2)myGLCD.print("GSR", 260, 120);
+		myGLCD.print( itoa( port, buf, 10), 270, 135);*/
+
+	/*	myGLCD.setBackColor( 0, 0, 0);
+		myGLCD.setFont( BigFont);
+		myGLCD.print("Pulse", 10, 175);
+		myGLCD.print("Temp", 100, 175);
+		myGLCD.print("GSR", 180, 175);
+		myGLCD.setColor (0, 255, 0);
+
+		myGLCD.print(itoa( analogRead(A0)*4.15/10.23, buf, 10), 10, 200);
+		myGLCD.print(itoa( analogRead(A1)*4.15/10.23, buf, 10),100, 200);
+		myGLCD.print(itoa( analogRead(A2)*4.15/10.23, buf, 10),180 ,200);*/
+	}
+
 
 }
 
+//--------draw buttons sub
+void buttons()
+{
+   myGLCD.setColor(0, 0, 255);
+   myGLCD.fillRoundRect (250, 1, 310, 50);
+   myGLCD.fillRoundRect (250, 55, 310, 105);
+   myGLCD.fillRoundRect (250, 110, 310, 160);
+   myGLCD.fillRoundRect (250, 165, 310, 215);
+}
+//-------touchscreen position sub
+void touch()
+{
+  while (myTouch.dataAvailable())
+  {
+	  delay(10);
+	  myTouch.read();
+	  x_osc=myTouch.getX();
+	  y_osc=myTouch.getY();
+
+	  if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
+	  {
+		  if ((y_osc>=1) && (y_osc<=50))  // Delay row
+			  {
+				waitForIt(250, 1, 310, 50);
+				mode ++ ;
+				// Select delay times you can change values to suite your needs
+				if (mode == 0) dTime = 1;
+				if (mode == 1) dTime = 10;
+				if (mode == 2) dTime = 20;
+				if (mode == 3) dTime = 50;
+				if (mode == 4) dTime = 100;
+				if (mode == 5) dTime = 200;
+				if (mode == 6) dTime = 300;
+				if (mode == 7) dTime = 500;
+				if (mode == 8) dTime = 1000;
+				if (mode == 9) dTime = 5000;
+				if (mode == 10) dTime = 10000;
+				if (mode > 10) mode = 0;   
+				 Serial.println(dTime);
+
+			  }
+		 if ((y_osc>=55) && (y_osc<=105))  // Trigger  row
+			 {
+				waitForIt(250, 55, 310, 105);
+				tmode ++;
+				if (tmode == 1) Trigger = 0;
+				if (tmode == 2) Trigger = 10;
+				if (tmode == 3) Trigger = 20;
+				if (tmode == 4) Trigger = 30;
+				if (tmode == 5) Trigger = 50;
+				if (tmode > 5)tmode = 0;
+				Serial.println(Trigger);
+			 }
+		 if ((y_osc>=110) && (y_osc<=160))  // Port select   row
+			 {
+				waitForIt(250, 110, 310, 160);
+				return;
+			 }
+
+	  }
+   }
+}
+//----------wait for touch sub 
+void waitForIt_osc(int x1, int y1, int x2, int y2)
+{
+  while (myTouch.dataAvailable())
+  myTouch.read();
+}
+void DrawGrid()
+{
+
+  myGLCD.setColor( 0, 200, 0);
+  for(  dgvh = 0; dgvh < 4; dgvh ++)
+  {
+	  myGLCD.drawLine( dgvh * 50, 0, dgvh * 50, 150);
+	  myGLCD.drawLine(  0, dgvh * 50, 245 ,dgvh * 50);
+  }
+  myGLCD.drawLine( 200, 0, 200, 150);
+  myGLCD.drawLine( 245, 0, 245, 150);
+  myGLCD.setColor(255, 255, 255);
+  
+  myGLCD.drawRoundRect (250, 1, 310, 50);
+  myGLCD.drawRoundRect (250, 55, 310, 105);
+  myGLCD.drawRoundRect (250, 110, 310, 160);
+  myGLCD.drawRoundRect (250, 165, 310, 215);
+}
 
 //------------------------------------------------------------------------------
 void setup(void) 
@@ -2408,7 +2618,8 @@ void setup(void)
 	myGLCD.setBackColor(0, 0, 255);
 
 	myTouch.InitTouch();
-	myTouch.setPrecision(PREC_HI);
+	myTouch.setPrecision(PREC_MEDIUM);
+	//myTouch.setPrecision(PREC_HI);
 	myButtons.setTextFont(BigFont);
 	myButtons.setSymbolFont(Dingbats1_XL);
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
