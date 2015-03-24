@@ -16,6 +16,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="AnalogBinLogger.ino" />
+    <None Include="setTimeDate.ino" />
+    <None Include="utils.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Visual Micro\.AnalogBinLogger.vsarduino.h">

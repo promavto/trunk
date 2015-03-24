@@ -131,7 +131,7 @@ int SampleSize = 0;
 float SampleTime = 0;
 int dgvh;
 int hpos = 105; //set 0v on horizontal  grid
-int vsens = 5; // vertical sensitivity чувствительность по вертикали
+int vsens = 10; // vertical sensitivity чувствительность по вертикали
 int port = 0;
 // variables for DVM
 int sum = 0;                    // sum of samples taken сумма проб, взятых
@@ -238,7 +238,8 @@ void dateTime(uint16_t* date, uint16_t* time) // Программа записи времени и даты
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
 // numbers may be repeated.
-const uint8_t PIN_LIST[] = {0, 1, 2, 3};
+const uint8_t PIN_LIST[] = {0};
+//const uint8_t PIN_LIST[] = {0, 1, 2, 3};
 //------------------------------------------------------------------------------
 // Sample rate in samples per second.
 const float SAMPLE_RATE = 10000;  // Must be 0.25 or greater.
@@ -442,7 +443,8 @@ ISR(ADC_vect)
 	timerFlag = false;
   }
   // Check for buffer needed.
-  if (isrBufNeeded) {   
+  if (isrBufNeeded) 
+  {   
 	// Remove buffer from empty queue.
 	isrBuf = emptyQueue[emptyTail];
 	emptyTail = queueNext(emptyTail);
@@ -454,12 +456,12 @@ ISR(ADC_vect)
   isrBuf->data[isrBuf->count++] = d;
 
   // Check for buffer full.
-  if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK) {
+  if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK) 
+  {
 	// Put buffer isrIn full queue.  
 	uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
 	fullQueue[tmp] = (block_t*)isrBuf;
 	fullHead = queueNext(tmp);
-   
 	// Set buffer needed and clear overruns.
 	isrBufNeeded = true;
 	isrOver = 0;
@@ -829,7 +831,8 @@ void dumpData()
 			return;
 		}
 	binFile.rewind();
-	if (binFile.read(&buf , 512) != 512) {
+	if (binFile.read(&buf , 512) != 512) 
+	{
 	error("Read metadata failed");
 	}
 	Serial.println();
@@ -847,13 +850,17 @@ void dumpData()
 				Serial.print(F("OVERRUN,"));
 				Serial.println(buf.overrun);
 			}
-		for (uint16_t i = 0; i < buf.count; i++) {
-		Serial.print(buf.data[i], DEC);
-		if ((i+1)%PIN_COUNT) {
-		Serial.print(',');
-		} else {
-		Serial.println();
-		}
+		for (uint16_t i = 0; i < buf.count; i++) 
+		{
+			Serial.print(buf.data[i], DEC);
+			if ((i+1)%PIN_COUNT) 
+				{
+					Serial.print(',');
+				}
+			else 
+			{
+				Serial.println();
+			}
 		}
 	}
 	Serial.println(F("Done"));
@@ -865,6 +872,127 @@ void dumpData()
 	Draw_menu_ADC1();
 }
 //------------------------------------------------------------------------------
+void dumpData_Osc() 
+{
+	Serial.println();
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.print(txt_info12,CENTER, 40);
+	block_t buf;
+	int xpos = 0;
+	if (!binFile.isOpen()) 
+		{
+			Serial.println(F("No current binary file"));
+			return;
+		}
+	binFile.rewind();
+	if (binFile.read(&buf , 512) != 512) 
+	{
+		error("Read metadata failed");
+	}
+	Serial.println();
+	//Serial.println(F("Type any character to stop"));
+	myGLCD.setColor(VGA_LIME);
+	myGLCD.print(txt_info15,CENTER, 200);
+	myGLCD.setColor(255, 255, 255);
+	DrawGrid();
+	delay(1000);
+	myGLCD.clrScr();
+				DrawGrid();
+	while (!myTouch.dataAvailable() && binFile.read(&buf , 512) == 512) 
+	{
+		//waitForIt(1, 1, 319, 239);
+		if (buf.count == 0) break;
+		if (buf.overrun) 
+			{
+				Serial.print(F("OVERRUN,"));
+				Serial.println(buf.overrun);
+			}
+
+			//for (int i=0;i<239;i++)
+			//{
+   //            OldSample[xpos] = buf.data[i]*5/100;
+			//}
+
+
+
+
+		for (uint16_t i = 0; i < buf.count; i++) 
+		{
+	
+			Sample[xpos] = buf.data[i]*5/100;
+
+		// Erase previous display Стереть предыдущий экран
+				myGLCD.setColor( 0, 0, 0);
+				myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
+				if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
+				//Draw the new data
+				myGLCD.setColor( 255, 255, 255);
+				myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
+			xpos++;
+			if(xpos >= 239)
+			{
+				xpos = 0;
+				myGLCD.clrScr();
+				DrawGrid();
+				for( int xpos_old = 0;	xpos_old < 240; xpos_old ++)
+					{
+						OldSample[xpos_old] = Sample[ xpos_old];
+	
+					}
+			}
+
+			Serial.print(buf.data[i], DEC);
+			if ((i+1)%PIN_COUNT) 
+				{
+					Serial.print(',');
+				}
+			else 
+				{
+					Serial.println();
+				}
+
+
+	/*				for( int xpos = 0;	xpos < 240; xpos ++) 
+		{
+			Sample[xpos] = analogRead(port)*5/102;
+			delayMicroseconds(dTime);
+
+		}*/
+
+
+		//// Display the collected analog data from array
+		//for( int xpos = 0; xpos < 239;	xpos ++)
+		//	{
+		//		// Erase previous display Стереть предыдущий экран
+		//		myGLCD.setColor( 0, 0, 0);
+		//		myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
+		//		if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
+		//		//Draw the new data
+		//		myGLCD.setColor( 255, 255, 255);
+		//		myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
+		//	}
+		//// Determine sample voltage peak to peak
+		//Max = Sample[ 100];
+		//Min = Sample[ 100];
+		//for( int xpos = 0;	xpos < 240; xpos ++)
+		//	{
+		//	OldSample[xpos] = Sample[ xpos];
+		///*	if (Sample[ xpos] > Max) Max = Sample[ xpos];
+		//	if (Sample[ xpos] < Min) Min = Sample[ xpos];*/
+		//	}
+
+
+		}
+	}
+	Serial.println(F("Done"));
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.print(txt_info9,CENTER, 80);
+	myGLCD.setColor(255, 255, 255);
+	delay(500);
+	while (myTouch.dataAvailable()){}
+	Draw_menu_ADC1();
+}
 // log data
 // max number of blocks to erase per erase call
 uint32_t const ERASE_SIZE = 262144L;
@@ -2401,7 +2529,7 @@ void menu_Oscilloscope()
 					if ((y>=70) && (y<=110))   // Button: 2
 						{
 							waitForIt(30, 70, 290, 110);
-			
+							dumpData_Osc();
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
 						{
@@ -2439,7 +2567,7 @@ void oscilloscope()
 		StartSample = micros();
 		for( int xpos = 0;	xpos < 240; xpos ++) 
 		{
-			Sample[xpos] = analogRead(port)*5/102;
+			Sample[xpos] = analogRead(port)*5/100;
 			delayMicroseconds(dTime);
 
 		}
@@ -2447,26 +2575,25 @@ void oscilloscope()
 		EndSample = micros();
   
 		// Display the collected analog data from array
-		for( int xpos = 0; xpos < 239;
-		xpos ++)
-		{
-		// Erase previous display Стереть предыдущий экран
-		myGLCD.setColor( 0, 0, 0);
-		myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
-		if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
-		//Draw the new data
-		myGLCD.setColor( 255, 255, 255);
-		myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
-		}
+		for( int xpos = 0; xpos < 239;	xpos ++)
+			{
+				// Erase previous display Стереть предыдущий экран
+				myGLCD.setColor( 0, 0, 0);
+				myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
+				if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
+				//Draw the new data
+				myGLCD.setColor( 255, 255, 255);
+				myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
+			}
 		// Determine sample voltage peak to peak
 		Max = Sample[ 100];
 		Min = Sample[ 100];
 		for( int xpos = 0;	xpos < 240; xpos ++)
-		{
-		OldSample[xpos] = Sample[ xpos];
-	/*	if (Sample[ xpos] > Max) Max = Sample[ xpos];
-		if (Sample[ xpos] < Min) Min = Sample[ xpos];*/
-		}
+			{
+			OldSample[xpos] = Sample[ xpos];
+		/*	if (Sample[ xpos] > Max) Max = Sample[ xpos];
+			if (Sample[ xpos] < Min) Min = Sample[ xpos];*/
+			}
 		// display the sample time, delay time and trigger level
 		myGLCD.setBackColor( 0, 0, 255);
 		myGLCD.setFont( SmallFont);
@@ -2598,7 +2725,7 @@ void setup(void)
 	pinMode(ERROR_LED_PIN, OUTPUT);
   }
   Serial.begin(9600);
-   Serial.print(F("Start Setup: "));
+   Serial.println(F("Start Setup: "));
   
   // Read the first sample pin to init the ADC.
   analogRead(PIN_LIST[0]);

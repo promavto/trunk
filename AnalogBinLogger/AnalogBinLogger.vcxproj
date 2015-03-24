@@ -67,6 +67,12 @@
     <None Include="AnalogBinLogger.ino">
       <FileType>CppCode</FileType>
     </None>
+    <None Include="setTimeDate.ino">
+      <FileType>CppCode</FileType>
+    </None>
+    <None Include="utils.ino">
+      <FileType>CppCode</FileType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnalogBinLogger.h">

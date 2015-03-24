@@ -89,6 +89,7 @@ void adcStop();
 void binaryToCsv();
 void checkOverrun();
 void dumpData();
+void dumpData_Osc();
 void logData();
 void Draw_menu_ADC1();
 void menu_ADC();
