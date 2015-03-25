@@ -90,6 +90,7 @@ void binaryToCsv();
 void checkOverrun();
 void dumpData();
 void dumpData_Osc();
+void Data_Oscill();
 void logData();
 void Draw_menu_ADC1();
 void menu_ADC();

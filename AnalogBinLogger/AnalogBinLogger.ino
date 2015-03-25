@@ -456,7 +456,7 @@ ISR(ADC_vect)
 	}
   // Store ADC data.
   isrBuf->data[isrBuf->count++] = d;
-
+  
   // Check for buffer full. Проверка, буфер полон?
   if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK) 
 	{
@@ -958,7 +958,264 @@ void dumpData_Osc()
 	myGLCD.setColor(255, 255, 255);
 	delay(500);
 	while (myTouch.dataAvailable()){}
-	Draw_menu_ADC1();
+}
+void Data_Oscill()
+{
+	uint32_t bgnBlock, endBlock;
+	// Allocate extra buffer space.
+	block_t block[BUFFER_BLOCK_COUNT];
+	uint32_t bn = 1;
+	uint32_t t0 = millis();
+	uint32_t t1 = t0;
+	uint32_t overruns = 0;
+	//uint32_t count = 0;
+	uint32_t maxLatency = 0;
+	int xpos = 0;
+
+
+  
+	Serial.println();
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.print(txt_info12, CENTER, 2);
+
+	// Initialize ADC and timer1.
+	adcInit((metadata_t*) &block[0]);
+
+	myGLCD.clrScr();
+
+
+	//	  // Read ADC data.
+	//#if RECORD_EIGHT_BITS
+	//  uint8_t d = ADCH;
+	//#else  // RECORD_EIGHT_BITS
+	//  // This will access ADCL first. 
+	//  uint16_t d = ADC;
+	//#endif  // RECORD_EIGHT_BITS
+
+	// // if (isrBufNeeded && emptyHead == emptyTail) 
+	//	//{
+	//	//	// no buffers - count overrun нет буферов - рассчитывайте перерасход памяти
+	//	//	if (isrOver < 0XFFFF) isrOver++;
+	//	//	// Avoid missed timer error.
+	//	//	timerFlag = false;
+	//	//	return;
+	//	//}
+
+	//  // Start ADC
+	//  if (PIN_COUNT > 1) 
+	//	{
+	//		ADMUX  = adcmux[adcindex];
+	//		ADCSRB = adcsrb[adcindex];
+	//		ADCSRA = adcsra[adcindex];
+	//		if (adcindex == 0) timerFlag = false;
+	//		adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
+	//	}
+	//  else 
+	//	{
+	//		timerFlag = false;
+	//	}
+	//  // Check for buffer needed. Необходимо проверить буфер
+	//  if (isrBufNeeded) 
+	//	{   
+	//		// Remove buffer from empty queue.  Удалить буфер из пустого очереди.
+	//		isrBuf = emptyQueue[emptyTail];
+	//		emptyTail = queueNext(emptyTail);
+	//		isrBuf->count = 0;
+	//		isrBuf->overrun = isrOver;
+	//		isrBufNeeded = false;    
+	//	}
+	  // Store ADC data.
+	//  isrBuf->data[isrBuf->count++] = d;
+
+	adcStart();
+
+	  while(!myTouch.dataAvailable()) 
+	{
+		DrawGrid();
+	/*	touch();*/
+		//  trigger();
+
+		// Collect the analog data into an array
+ 
+		StartSample = micros();
+		for( int xpos = 0;
+		xpos < 240; xpos ++) { Sample[ xpos] = analogRead(A0)*5/102;
+		delayMicroseconds(dTime);
+		}
+		EndSample = micros();
+  
+		// Display the collected analog data from array
+		for( int xpos = 0; xpos < 239;
+		xpos ++)
+		{
+		// Erase previous display
+		myGLCD.setColor( 0, 0, 0);
+
+		myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
+		if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
+		//Draw the new data
+		myGLCD.setColor( 255, 255, 255);
+		myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
+		}
+
+		for( int xpos = 0;
+		xpos < 240; xpos ++)
+		{
+		OldSample[ xpos] = Sample[ xpos];
+		}
+	
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//  while (!myTouch.dataAvailable()) 
+	//{
+	//	//myGLCD.clrScr();
+	//	////waitForIt(1, 1, 319, 239);
+	//	//if (buf.count == 0) break;
+	//	//if (buf.overrun) 
+	//	//	{
+	//	//		Serial.print(F("OVERRUN,"));
+	//	//		Serial.println(buf.overrun);
+	//	//	}
+	//	//  
+	//	//for (uint16_t i = 0; i < buf.count; i++) 
+	//	//{
+	//			Sample[xpos] = d*5/100;
+	//			xpos++;
+	//		if(xpos == 240)
+	//			{
+	//				for (int xpos1 = 0; xpos1<240; xpos1++)
+	//					{
+	//						myGLCD.setColor( 0, 0, 0);       		// Erase previous display Стереть предыдущий экран
+	//						myGLCD.drawLine (xpos1 + 1, 255-OldSample[ xpos1 + 1]* vsens-hpos, xpos1 + 2, 255-OldSample[ xpos1 + 2]* vsens-hpos);
+	//						if (xpos1 == 0) myGLCD.drawLine (xpos1 + 1, 1, xpos1 + 1, 239);
+	//						myGLCD.setColor( 255, 255, 255);  	//Draw the new data
+	//						myGLCD.drawLine (xpos1, 255-Sample[ xpos1]* vsens-hpos, xpos1 + 1, 255-Sample[ xpos1 + 1]* vsens-hpos);
+	//						OldSample[xpos1] = Sample[xpos1];
+	//						
+	//					}
+	//		
+	//				xpos = 0;
+	//				DrawGrid();
+	//				//count1++;
+	//				//myGLCD.printNumI(count/PIN_COUNT, RIGHT, 220);// 
+	//				//myGLCD.setColor(VGA_LIME);
+	//				//myGLCD.printNumI(count1*240, LEFT, 220);// 
+	//			}
+
+	//		//if ((i+1)%PIN_COUNT) 
+	//		//	{
+	//		////		Serial.print(',');
+	//		//	}
+	//		//else 
+	//		//	{
+	//		////		Serial.println();
+	//		//	}
+	//	//}
+	//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//adcStart();
+	//while (1) 
+	//	{
+	//	if (fullHead != fullTail) 
+	//		{
+	//			// Get address of block to write.  Получить адрес блока, чтобы написать
+	//			block_t* pBlock = fullQueue[fullTail];
+	//  
+	//			// Write block to SD. Написать блок SD
+	//			uint32_t usec = micros();
+	//			//++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+	//			if (!sd.card()->writeData((uint8_t*)pBlock)) 
+	//				{
+	//					error("write data failed");
+	//				}
+	////			Serial.println(writeData((uint8_t*)pBlock));
+
+
+	//			//-----------------------------------------------
+	//			usec = micros() - usec;
+	//			t1 = millis();
+	//			if (usec > maxLatency) maxLatency = usec;
+	//			count += pBlock->count;
+	//  
+	//			// Add overruns and possibly light LED. 
+	//			if (pBlock->overrun) 
+	//			{
+	//				overruns += pBlock->overrun;
+	//				if (ERROR_LED_PIN >= 0) 
+	//					{
+	//						digitalWrite(ERROR_LED_PIN, HIGH);
+	//					}
+	//			}
+	//			// Move block to empty queue.
+	//			emptyQueue[emptyHead] = pBlock;
+	//			emptyHead = queueNext(emptyHead);
+	//			fullTail = queueNext(fullTail);
+	//			bn++;
+	//			//if (bn == FILE_BLOCK_COUNT) 
+	//			//{
+	//			//// File full so stop ISR calls.
+	//			//adcStop();
+	//			//break;
+	//			//}
+	//		}
+	///*	if (timerError) 
+	//		{
+	//			error("Missed timer event - rate too high");
+	//		}*/
+	//	if (myTouch.dataAvailable())
+	//	//if (Serial.available()) 
+	//		{
+	//			// Stop ISR calls.
+	//			adcStop();
+	//			if (isrBuf != 0 && isrBuf->count >= PIN_COUNT) {
+	//			// Truncate to last complete sample.
+	//			isrBuf->count = PIN_COUNT*(isrBuf->count/PIN_COUNT);
+	//			// Put buffer in full queue.
+	//			fullQueue[fullHead] = isrBuf;
+	//			fullHead = queueNext(fullHead);
+	//			isrBuf = 0;
+	//			}
+	//			if (fullHead == fullTail) break;
+	//		}
+	//	}
+adcStop();
+while (myTouch.dataAvailable()){}
 }
 // log data
 // max number of blocks to erase per erase call
@@ -1015,12 +1272,12 @@ void logData()
 	binFile.close();
 	if (!binFile.createContiguous(sd.vwd(),	TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) 
 		{
-	    	error("createContiguous failed");
+			error("createContiguous failed");
 		}
 	// Get the address of the file on the SD.
 	if (!binFile.contiguousRange(&bgnBlock, &endBlock)) 
 		{
-    		error("contiguousRange failed");
+			error("contiguousRange failed");
 		}
 	// Use SdFat's internal buffer.
 	uint8_t* cache = (uint8_t*)sd.vol()->cacheClear();
@@ -1044,7 +1301,7 @@ void logData()
 	// Start a multiple block write.
 	if (!sd.card()->writeStart(bgnBlock, FILE_BLOCK_COUNT)) 
 		{
-    		error("writeBegin failed");
+			error("writeBegin failed");
 		}
 	// Write metadata.
 	if (!sd.card()->writeData((uint8_t*)&block[0])) 
@@ -1099,7 +1356,7 @@ void logData()
 				uint32_t usec = micros();
 				if (!sd.card()->writeData((uint8_t*)pBlock)) 
 					{
-	     				error("write data failed");
+						error("write data failed");
 					}
 				usec = micros() - usec;
 				t1 = millis();
@@ -2511,9 +2768,8 @@ void menu_Oscilloscope()
 							myGLCD.clrScr();
 							DrawGrid();
 							buttons();
-							ADCSRA &= ~PS_128;  //
-							ADCSRA |= PS_128;    // set our own prescaler 
-							oscilloscope();
+					        Data_Oscill();
+							Draw_menu_Osc();
 						}
 					if ((y>=70) && (y<=110))   // Button: 2
 						{
@@ -2524,12 +2780,17 @@ void menu_Oscilloscope()
 					if ((y>=120) && (y<=160))  // Button: 3
 						{
 							waitForIt(30, 120, 290, 160);
-						
+							myGLCD.clrScr();
+							DrawGrid();
+							buttons();
+							ADCSRA &= ~PS_128;  //
+							ADCSRA |= PS_128;    // set our own prescaler 
+							oscilloscope();
+							Draw_menu_Osc();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
 						{
 							waitForIt(30, 170, 290, 210);
-							Draw_menu_Osc();
 							break;
 						}
 				}
@@ -2546,7 +2807,8 @@ void trigger()
 }
 void oscilloscope()
 {
-	while(1) 
+		adcStart();
+	while(!myTouch.dataAvailable()) 
 	{
 		 DrawGrid();
 		 touch();
@@ -2616,7 +2878,8 @@ void oscilloscope()
 		myGLCD.print(itoa( analogRead(A1)*4.15/10.23, buf, 10),100, 200);
 		myGLCD.print(itoa( analogRead(A2)*4.15/10.23, buf, 10),180 ,200);*/
 	}
-
+adcStop();
+while (myTouch.dataAvailable()){}
 
 }
 
@@ -2744,7 +3007,7 @@ void setup(void)
 	AD9850.reset();                    //reset module
 	delay(1000);
 	AD9850.powerDown();                //set signal output to LOW
-	AD9850.set_frequency(0,0,500);    //set power=UP, phase=0, 1kHz frequency 
+	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
 
 	Wire.begin();
 	if (!RTC.begin())
