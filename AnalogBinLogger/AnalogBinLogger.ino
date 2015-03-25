@@ -909,39 +909,23 @@ void dumpData_Osc()
 				Serial.println(buf.overrun);
 			}
 
-			//for (int i=0;i<239;i++)
-			//{
-   //            OldSample[xpos] = buf.data[i]*5/100;
-			//}
-
-
-
-
 		for (uint16_t i = 0; i < buf.count; i++) 
 		{
 	
 			Sample[xpos] = buf.data[i]*5/100;
-
-		// Erase previous display Стереть предыдущий экран
-				myGLCD.setColor( 0, 0, 0);
+				myGLCD.setColor( 0, 0, 0);       		// Erase previous display Стереть предыдущий экран
 				myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
 				if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
-				//Draw the new data
-				myGLCD.setColor( 255, 255, 255);
+				myGLCD.setColor( 255, 255, 255);  	//Draw the new data
 				myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
-			xpos++;
+				OldSample[xpos] = Sample[xpos];
+				xpos++;
 			if(xpos >= 239)
-			{
-				xpos = 0;
-				myGLCD.clrScr();
-				DrawGrid();
-				for( int xpos_old = 0;	xpos_old < 240; xpos_old ++)
-					{
-						OldSample[xpos_old] = Sample[ xpos_old];
-	
-					}
-			}
-
+				{
+					xpos = 0;
+				//	myGLCD.clrScr();
+					DrawGrid();
+				}
 			Serial.print(buf.data[i], DEC);
 			if ((i+1)%PIN_COUNT) 
 				{
