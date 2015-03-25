@@ -393,7 +393,7 @@ inline uint8_t queueNext(uint8_t ht) {return (ht + 1) & (QUEUE_DIM -1);}
 // Interrupt Service Routines
 
 // Pointer to current buffer.
-block_t* isrBuf;
+block_t* isrBuf;  //”казатель на текущий буфер
 
 // Need new buffer if true.
 volatile bool isrBufNeeded = true;
