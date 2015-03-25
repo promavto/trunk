@@ -117,8 +117,11 @@ int ret                = 0;                // Признак прерывания операции
 char buf[12];
 int x_osc,y_osc;
 int Input = 0;
-byte Sample[320];
-byte OldSample[320];
+//byte Sample[320];
+//byte OldSample[320];
+int Sample[320];
+int OldSample[320];
+unsigned long LongFile = 0;
 float StartSample = 0; 
 float EndSample = 0;
 int Max = 0;
@@ -135,21 +138,19 @@ int vsens = 10; // vertical sensitivity чувствительность по вертикали
 int port = 0;
 // variables for DVM
 int sum = 0;                    // sum of samples taken сумма проб, взятых
-
+uint32_t count = 0;
+uint32_t count1 = 0;
 // Define various ADC prescaler
 const unsigned char PS_16 = (1 << ADPS2);
 const unsigned char PS_32 = (1 << ADPS2) | (1 << ADPS0);
 const unsigned char PS_64 = (1 << ADPS2) | (1 << ADPS1);
 const unsigned char PS_128 = (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
-
-
- //-----------------------------------------------------------------------------------------------------------------
-
+//-----------------------------------------------------------------------------------------------------------------
 
 
 
 
- //***************** Назначение переменных для хранения текстов*****************************************************
+//***************** Назначение переменных для хранения текстов*****************************************************
 
 
 char  txt_menu1_1[]          = "PE\x81\x86""CTPATOP";                                                       // "РЕГИСТРАТОР"
@@ -158,8 +159,8 @@ char  txt_menu1_3[]          = "PE\x81\x86""CT.+ CAMO\x89.";                    
 char  txt_menu1_4[]          = "\x89O\x82K\x88\x94\x8D""EH\x86""E \x89K";                                   // "ПОДКЛЮЧЕНИЕ ПК"
 char  txt_menu2_1[]          = "MENU 2-1";//"\x86H\x8BO C\x8D""ET\x8D\x86KOB";                              // ИНФО СЧЕТЧИКОВ
 char  txt_menu2_2[]          = "MENU 2-2";//"\x86H\x8BO N \xA3o\xA0\xAC\x9C.";                              //
-char  txt_menu2_3[]          = "MENU 2-3";//"Setup XBee";                                                   //
-char  txt_menu2_4[]          = "MENU 2-4";//"menu2_4";                                                      //
+char  txt_menu2_3[]          = "MENU 2-3";//                                                   //
+char  txt_menu2_4[]          = "MENU 2-4";//                                                    //
 char  txt_menu3_1[]          = "MENU 3-1";//"CTEPET\x92 \x8B""A\x87\x89\x91";                               //
 char  txt_menu3_2[]          = "MENU 3-2";//"\x8A""c\xA4.N ""\xA4""e\xA0""e\xA5o\xA2""a";                   // Уст. № телефона
 char  txt_menu3_3[]          = "MENU 3-3";//"\x8A""c\xA4.Level Gaz";                                        //
@@ -169,7 +170,7 @@ char  txt_menu4_2[]          = "MENU 4-2";//"\x8A""c\xA4.N \xA3o\xA0\xAC\x9C."; 
 char  txt_menu4_3[]          = "MENU 4-3";//"\x89""apo\xA0\xAC \xA3o\xA0\xAC\x9C.";                         // Пароль польз.
 char  txt_menu4_4[]          = "MENU 4-4";//"\x89""apo\xA0\xAC a\x99\xA1\x9D\xA2.";                         // Пароль админ.
 char  txt_menu5_1[]          = "MENU 5-1";//"\x86H\x8BO ZigBee";                                            // Инфо ZigBee
-char  txt_menu5_2[]          = "MENU 5-2";//"Set Adr Coord H";                                              //
+char  txt_menu5_2[]          = "MENU 5-2";//"";                                              //
 char  txt_menu5_3[]          = "MENU 5-3";//"Set Adr Coord L";                                              // 
 char  txt_menu5_4[]          = "MENU 5-4";//"Set Adr Network";                                              // 
 
@@ -185,8 +186,8 @@ char  txt_ADC_menu1[]        = "Record data";                                   
 char  txt_ADC_menu2[]        = "Convert to CSV";                                             //
 char  txt_ADC_menu3[]        = "Dump to Serial";                                  //
 char  txt_ADC_menu4[]        = "EXIT";                                  //
-char  txt_osc_menu1[]        = "Menu 1";                                      //
-char  txt_osc_menu2[]        = "Menu 2";                                             //
+char  txt_osc_menu1[]        = "Oscilloscope";                                      //
+char  txt_osc_menu2[]        = "View File";                                             //
 char  txt_osc_menu3[]        = "Menu 3";                                  //
 char  txt_osc_menu4[]        = "EXIT";           
 
@@ -213,12 +214,9 @@ char  txt_info24[]            = "ADC clock kHz:";
 char  txt_info25[]            = "Sample Rate:"; 
 char  txt_info26[]            = "Sample interval:"; 
 char  txt_info27[]            = "Creating new file"; 
-char  txt_info28[]            = ""; 
+char  txt_info28[]            = "Start record"; 
 char  txt_info29[]            = ""; 
 char  txt_info30[]            = ""; 
-
-
-
 
 
 void dateTime(uint16_t* date, uint16_t* time) // Программа записи времени и даты файла
@@ -424,48 +422,52 @@ ISR(ADC_vect)
   uint16_t d = ADC;
 #endif  // RECORD_EIGHT_BITS
 
-  if (isrBufNeeded && emptyHead == emptyTail) {
-	// no buffers - count overrun
-	if (isrOver < 0XFFFF) isrOver++;
-	
-	// Avoid missed timer error.
-	timerFlag = false;
-	return;
-  }
+  if (isrBufNeeded && emptyHead == emptyTail) 
+	{
+		// no buffers - count overrun нет буферов - рассчитывайте перерасход памяти
+		if (isrOver < 0XFFFF) isrOver++;
+		// Avoid missed timer error.
+		timerFlag = false;
+		return;
+	}
+
   // Start ADC
-  if (PIN_COUNT > 1) {
-	ADMUX = adcmux[adcindex];
-	ADCSRB = adcsrb[adcindex];
-	ADCSRA = adcsra[adcindex];
-	if (adcindex == 0) timerFlag = false;
-	adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
-  } else {
-	timerFlag = false;
-  }
-  // Check for buffer needed.
+  if (PIN_COUNT > 1) 
+	{
+		ADMUX  = adcmux[adcindex];
+		ADCSRB = adcsrb[adcindex];
+		ADCSRA = adcsra[adcindex];
+		if (adcindex == 0) timerFlag = false;
+		adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
+	}
+  else 
+	{
+		timerFlag = false;
+	}
+  // Check for buffer needed. Необходимо проверить буфер
   if (isrBufNeeded) 
-  {   
-	// Remove buffer from empty queue.
-	isrBuf = emptyQueue[emptyTail];
-	emptyTail = queueNext(emptyTail);
-	isrBuf->count = 0;
-	isrBuf->overrun = isrOver;
-	isrBufNeeded = false;    
-  }
+	{   
+		// Remove buffer from empty queue.  Удалить буфер из пустого очереди.
+		isrBuf = emptyQueue[emptyTail];
+		emptyTail = queueNext(emptyTail);
+		isrBuf->count = 0;
+		isrBuf->overrun = isrOver;
+		isrBufNeeded = false;    
+	}
   // Store ADC data.
   isrBuf->data[isrBuf->count++] = d;
 
-  // Check for buffer full.
+  // Check for buffer full. Проверка, буфер полон?
   if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK) 
-  {
-	// Put buffer isrIn full queue.  
-	uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
-	fullQueue[tmp] = (block_t*)isrBuf;
-	fullHead = queueNext(tmp);
-	// Set buffer needed and clear overruns.
-	isrBufNeeded = true;
-	isrOver = 0;
-  }
+	{
+		// Put buffer isrIn full queue.   Положите буфер isrIn полной очереди
+		uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.  Избежать дополнительных
+		fullQueue[tmp] = (block_t*)isrBuf;
+		fullHead = queueNext(tmp);
+		// Set buffer needed and clear overruns. Установить необходимый буффер и очистить перерасход
+		isrBufNeeded = true;
+		isrOver = 0;
+	}
 }
 //------------------------------------------------------------------------------
 // timer1 interrupt to clear OCF1B
@@ -879,6 +881,7 @@ void dumpData_Osc()
 	myGLCD.setBackColor(0, 0, 0);
 	myGLCD.print(txt_info12,CENTER, 40);
 	block_t buf;
+	count1 = 0;
 	int xpos = 0;
 	if (!binFile.isOpen()) 
 		{
@@ -895,12 +898,17 @@ void dumpData_Osc()
 	myGLCD.setColor(VGA_LIME);
 	myGLCD.print(txt_info15,CENTER, 200);
 	myGLCD.setColor(255, 255, 255);
-	DrawGrid();
+	//DrawGrid();
 	delay(1000);
 	myGLCD.clrScr();
-				DrawGrid();
+	LongFile = 0;
+	DrawGrid();
+	/*int Long_Screen = (count/PIN_COUNT)/240;
+	float Long_Screen1 = ((count/PIN_COUNT)/240)/240;*/
+
 	while (!myTouch.dataAvailable() && binFile.read(&buf , 512) == 512) 
 	{
+		//myGLCD.clrScr();
 		//waitForIt(1, 1, 319, 239);
 		if (buf.count == 0) break;
 		if (buf.overrun) 
@@ -908,65 +916,40 @@ void dumpData_Osc()
 				Serial.print(F("OVERRUN,"));
 				Serial.println(buf.overrun);
 			}
-
+		  
 		for (uint16_t i = 0; i < buf.count; i++) 
 		{
-	
-			Sample[xpos] = buf.data[i]*5/100;
-				myGLCD.setColor( 0, 0, 0);       		// Erase previous display Стереть предыдущий экран
-				myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
-				if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
-				myGLCD.setColor( 255, 255, 255);  	//Draw the new data
-				myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
-				OldSample[xpos] = Sample[xpos];
+				Sample[xpos] = buf.data[i]*5/100;
 				xpos++;
-			if(xpos >= 239)
+			if(xpos == 240)
 				{
+					for (int xpos1 = 0; xpos1<240; xpos1++)
+						{
+							myGLCD.setColor( 0, 0, 0);       		// Erase previous display Стереть предыдущий экран
+							myGLCD.drawLine (xpos1 + 1, 255-OldSample[ xpos1 + 1]* vsens-hpos, xpos1 + 2, 255-OldSample[ xpos1 + 2]* vsens-hpos);
+							if (xpos1 == 0) myGLCD.drawLine (xpos1 + 1, 1, xpos1 + 1, 239);
+							myGLCD.setColor( 255, 255, 255);  	//Draw the new data
+							myGLCD.drawLine (xpos1, 255-Sample[ xpos1]* vsens-hpos, xpos1 + 1, 255-Sample[ xpos1 + 1]* vsens-hpos);
+							OldSample[xpos1] = Sample[xpos1];
+							
+						}
+			
 					xpos = 0;
-				//	myGLCD.clrScr();
 					DrawGrid();
+					count1++;
+					myGLCD.printNumI(count/PIN_COUNT, RIGHT, 220);// 
+					myGLCD.setColor(VGA_LIME);
+					myGLCD.printNumI(count1*240, LEFT, 220);// 
 				}
-			Serial.print(buf.data[i], DEC);
+
 			if ((i+1)%PIN_COUNT) 
 				{
-					Serial.print(',');
+			//		Serial.print(',');
 				}
 			else 
 				{
-					Serial.println();
+			//		Serial.println();
 				}
-
-
-	/*				for( int xpos = 0;	xpos < 240; xpos ++) 
-		{
-			Sample[xpos] = analogRead(port)*5/102;
-			delayMicroseconds(dTime);
-
-		}*/
-
-
-		//// Display the collected analog data from array
-		//for( int xpos = 0; xpos < 239;	xpos ++)
-		//	{
-		//		// Erase previous display Стереть предыдущий экран
-		//		myGLCD.setColor( 0, 0, 0);
-		//		myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
-		//		if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
-		//		//Draw the new data
-		//		myGLCD.setColor( 255, 255, 255);
-		//		myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
-		//	}
-		//// Determine sample voltage peak to peak
-		//Max = Sample[ 100];
-		//Min = Sample[ 100];
-		//for( int xpos = 0;	xpos < 240; xpos ++)
-		//	{
-		//	OldSample[xpos] = Sample[ xpos];
-		///*	if (Sample[ xpos] > Max) Max = Sample[ xpos];
-		//	if (Sample[ xpos] < Min) Min = Sample[ xpos];*/
-		//	}
-
-
 		}
 	}
 	Serial.println(F("Done"));
@@ -996,40 +979,49 @@ void logData()
 	adcInit((metadata_t*) &block[0]);
   
 	// Find unused file name.
-	if (BASE_NAME_SIZE > 6) {
-	error("FILE_BASE_NAME too long");
-	}
-	while (sd.exists(binName)) {
-	if (binName[BASE_NAME_SIZE + 1] != '9') {
-		binName[BASE_NAME_SIZE + 1]++;
-	} else {
-		binName[BASE_NAME_SIZE + 1] = '0';
-		if (binName[BASE_NAME_SIZE] == '9') {
-		error("Can't create file name");
+	if (BASE_NAME_SIZE > 6)  // Проверка длины базовой части имени файла
+		{
+			error("FILE_BASE_NAME too long");
 		}
-		binName[BASE_NAME_SIZE]++;
-	}
-	}
+	while (sd.exists(binName)) 
+	 {
+		if (binName[BASE_NAME_SIZE + 1] != '9') 
+		  {
+				binName[BASE_NAME_SIZE + 1]++;
+		  }
+		else 
+		 {
+			binName[BASE_NAME_SIZE + 1] = '0';
+			if (binName[BASE_NAME_SIZE] == '9') 
+				{
+					error("Can't create file name");
+				}
+			binName[BASE_NAME_SIZE]++;
+		 }
+	 }
 	// Delete old tmp file.
-	if (sd.exists(TMP_FILE_NAME)) {
-	Serial.println(F("Deleting tmp file"));
-	myGLCD.print(txt_info13,LEFT, 135);//
-	if (!sd.remove(TMP_FILE_NAME)) {
-		error("Can't remove tmp file");
-	}
-	}
+	if (sd.exists(TMP_FILE_NAME)) 
+	 {
+		Serial.println(F("Deleting tmp file"));
+		myGLCD.print(txt_info13,LEFT, 135);//
+		if (!sd.remove(TMP_FILE_NAME)) 
+			{
+				error("Can't remove tmp file");
+			}
+	 }
 	// Create new file.
 	Serial.println(F("Creating new file"));
 	myGLCD.print(txt_info27,LEFT, 155);//"Сброс"
 	binFile.close();
-	if (!binFile.createContiguous(sd.vwd(),
-	TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) {
-	error("createContiguous failed");
-	}
+	if (!binFile.createContiguous(sd.vwd(),	TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) 
+		{
+	    	error("createContiguous failed");
+		}
 	// Get the address of the file on the SD.
-	if (!binFile.contiguousRange(&bgnBlock, &endBlock)) {
-	error("contiguousRange failed");
-	}
+	if (!binFile.contiguousRange(&bgnBlock, &endBlock)) 
+		{
+    		error("contiguousRange failed");
+		}
 	// Use SdFat's internal buffer.
 	uint8_t* cache = (uint8_t*)sd.vol()->cacheClear();
 	if (cache == 0) error("cacheClear failed"); 
@@ -1039,27 +1031,31 @@ void logData()
 	myGLCD.print(txt_info14,LEFT, 175);//"Сброс"
 	uint32_t bgnErase = bgnBlock;
 	uint32_t endErase;
-	while (bgnErase < endBlock) {
-	endErase = bgnErase + ERASE_SIZE;
-	if (endErase > endBlock) endErase = endBlock;
-	if (!sd.card()->erase(bgnErase, endErase)) {
-		error("erase failed");
-	}
-	bgnErase = endErase + 1;
+	while (bgnErase < endBlock)
+	{
+		endErase = bgnErase + ERASE_SIZE;
+		if (endErase > endBlock) endErase = endBlock;
+		if (!sd.card()->erase(bgnErase, endErase))
+			{
+				error("erase failed");
+			}
+		bgnErase = endErase + 1;
 	}
 	// Start a multiple block write.
-	if (!sd.card()->writeStart(bgnBlock, FILE_BLOCK_COUNT)) {
-	error("writeBegin failed");
-	}
+	if (!sd.card()->writeStart(bgnBlock, FILE_BLOCK_COUNT)) 
+		{
+    		error("writeBegin failed");
+		}
 	// Write metadata.
-	if (!sd.card()->writeData((uint8_t*)&block[0])) {
-	error("Write metadata failed");
-	} 
-	// Initialize queues.
+	if (!sd.card()->writeData((uint8_t*)&block[0])) 
+		{
+		error("Write metadata failed");
+		} 
+	// Initialize queues.  Инициализация очереди.
 	emptyHead = emptyTail = 0;
 	fullHead = fullTail = 0;
   
-	// Use SdFat buffer for one block.
+	// Use SdFat buffer for one block.  Используйте SdFat буфер для одного блока
 	emptyQueue[emptyHead] = (block_t*)cache;
 	emptyHead = queueNext(emptyHead);
   
@@ -1070,11 +1066,10 @@ void logData()
 			emptyHead = queueNext(emptyHead);
 		}
 	// Give SD time to prepare for big write.
-	delay(1500);
+	delay(100);
 	Serial.println(F("Logging - type any character to stop"));
 	myGLCD.setColor(VGA_LIME);
 	myGLCD.print(txt_info15, CENTER, 200);
-	myGLCD.setColor(255, 255, 255);
 	// Wait for Serial Idle.
 	Serial.flush();
 	delay(10);
@@ -1082,41 +1077,51 @@ void logData()
 	uint32_t t0 = millis();
 	uint32_t t1 = t0;
 	uint32_t overruns = 0;
-	uint32_t count = 0;
+	//uint32_t count = 0;
 	uint32_t maxLatency = 0;
-
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.print(txt_info28, CENTER, 135);
+	myGLCD.setColor(255, 255, 255);
 	// Start logging interrupts.
+
+
+
 	adcStart();
 	while (1) 
 		{
+
 		if (fullHead != fullTail) 
 			{
-				// Get address of block to write.
+				// Get address of block to write.  Получить адрес блока, чтобы написать
 				block_t* pBlock = fullQueue[fullTail];
 	  
-				// Write block to SD.
+				// Write block to SD. Написать блок SD
 				uint32_t usec = micros();
-				if (!sd.card()->writeData((uint8_t*)pBlock)) {
-				error("write data failed");
-				}
+				if (!sd.card()->writeData((uint8_t*)pBlock)) 
+					{
+	     				error("write data failed");
+					}
 				usec = micros() - usec;
 				t1 = millis();
 				if (usec > maxLatency) maxLatency = usec;
 				count += pBlock->count;
 	  
 				// Add overruns and possibly light LED. 
-				if (pBlock->overrun) {
-				overruns += pBlock->overrun;
-				if (ERROR_LED_PIN >= 0) {
-					digitalWrite(ERROR_LED_PIN, HIGH);
-				}
+				if (pBlock->overrun) 
+				{
+					overruns += pBlock->overrun;
+					if (ERROR_LED_PIN >= 0) 
+						{
+							digitalWrite(ERROR_LED_PIN, HIGH);
+						}
 				}
 				// Move block to empty queue.
 				emptyQueue[emptyHead] = pBlock;
 				emptyHead = queueNext(emptyHead);
 				fullTail = queueNext(fullTail);
 				bn++;
-				if (bn == FILE_BLOCK_COUNT) {
+				if (bn == FILE_BLOCK_COUNT) 
+				{
 				// File full so stop ISR calls.
 				adcStop();
 				break;
@@ -2514,6 +2519,7 @@ void menu_Oscilloscope()
 						{
 							waitForIt(30, 70, 290, 110);
 							dumpData_Osc();
+							Draw_menu_Osc();
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
 						{
@@ -2738,7 +2744,7 @@ void setup(void)
 	AD9850.reset();                    //reset module
 	delay(1000);
 	AD9850.powerDown();                //set signal output to LOW
-	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
+	AD9850.set_frequency(0,0,500);    //set power=UP, phase=0, 1kHz frequency 
 
 	Wire.begin();
 	if (!RTC.begin())
