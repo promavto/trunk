@@ -236,8 +236,8 @@ void dateTime(uint16_t* date, uint16_t* time) // Программа записи времени и даты
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
 // numbers may be repeated.
-const uint8_t PIN_LIST[] = {0};
-//const uint8_t PIN_LIST[] = {0, 1, 2, 3};
+//const uint8_t PIN_LIST[] = {0};
+const uint8_t PIN_LIST[] = {0, 1, 2, 3};
 //------------------------------------------------------------------------------
 // Sample rate in samples per second.
 const float SAMPLE_RATE = 10000;  // Must be 0.25 or greater.
@@ -339,11 +339,6 @@ const uint8_t QUEUE_DIM = 8;  // Must be a power of two!
 
 
 
-
-
-
-
-
 //==============================================================================
 // End of configuration constants.
 //==============================================================================
@@ -384,8 +379,8 @@ uint8_t emptyHead;
 uint8_t emptyTail;
 
 block_t* fullQueue[QUEUE_DIM];
-volatile uint8_t fullHead;  // volatile insures non-interrupt code sees changes.
-uint8_t fullTail;
+volatile uint8_t fullHead;    // volatile insures non-interrupt code sees changes. обеспечивает код без прерывания видит изменения.
+uint8_t fullTail;             // Окончание
 
 // queueNext assumes QUEUE_DIM is a power of two
 inline uint8_t queueNext(uint8_t ht) {return (ht + 1) & (QUEUE_DIM -1);}
@@ -1350,8 +1345,14 @@ void logData()
 		if (fullHead != fullTail) 
 			{
 				// Get address of block to write.  Получить адрес блока, чтобы написать
-				block_t* pBlock = fullQueue[fullTail];
+				block_t* pBlock = fullQueue[fullTail];  // fullTail содержит номер блока. Всего 8 блоков
+		//		Serial.println();
 	  
+				for(int i=0;i<254;i++)
+				{
+					Serial.println(pBlock->data[i]);     //	pBlock->data[i]
+				}
+
 				// Write block to SD. Написать блок SD
 				uint32_t usec = micros();
 				if (!sd.card()->writeData((uint8_t*)pBlock)) 
