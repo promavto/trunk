@@ -1,4 +1,9 @@
 /**
+
+* Дата начала создания программы 05.03.2015г.
+* Текущая дата 27.03.2015г.
+
+
  * This program logs data from the Arduino ADC to a binary file.
  *
  * Samples are logged at regular intervals. Each Sample consists of the ADC
@@ -18,6 +23,35 @@
  * end of the block.
  *
  * Data is written to the file using a SD multiple block write command.
+
+ Эта программа сохраняет данные из Arduino АЦП в двоичный файл.
+*
+* Измерения проводят через регулярные интервалы. Каждое измерение состоит из данных  АЦП
+* Наименование  аналоговых входов, определено в массиве PIN_LIST. Номера входов
+* Могут быть в любом порядке.
+*
+* Изменение константы конфигурации ниже, для установки входов, частоты дискретизации,
+* И другие значения конфигурации.
+*
+* Если ваша карта SD имеет долгую задержку записи, это может быть необходимо использовать
+* Более медленными темпами образца. Использование Mega Arduino помогает преодолеть задержки
+* Проблемы, так как 13 512 байт буфера будет использоваться.
+*
+* Каждый блок данных 512 байт в файле имеет заголовок четырехбайтовое затем до
+* 508 байт данных. (508 значения в 8-битном режиме или 254 значения в 10-битном режиме)
+* Каждый блок содержит целое число образцов с неиспользуемого пространства в
+* Конец блока.
+*
+* Данные записываются в файл с помощью команды блок записи SD .
+
+
+
+
+
+
+
+
+
  */
 #include <SdFat.h>
 #include <SdFatUtil.h>
@@ -337,7 +371,9 @@ const uint8_t BUFFER_BLOCK_COUNT = 4;
 // Dimension for queues of 512 byte SD blocks.
 const uint8_t QUEUE_DIM = 8;  // Must be a power of two!
 
-
+// log data
+// max number of blocks to erase per erase call
+uint32_t const ERASE_SIZE = 262144L;
 
 
 
@@ -507,6 +543,8 @@ void fatalBlink() {
 
 void adcInit(metadata_t* meta) 
 {
+  myGLCD.setBackColor( 0, 0, 0);
+  myGLCD.setColor(255, 255, 255);
   uint8_t adps;  // prescaler bits for ADCSRA 
   uint32_t ticks = F_CPU*SAMPLE_INTERVAL + 0.5;  // Sample interval cpu cycles.
 
@@ -959,265 +997,6 @@ void dumpData_Osc()
 	delay(500);
 	while (myTouch.dataAvailable()){}
 }
-void Data_Oscill()
-{
-	uint32_t bgnBlock, endBlock;
-	// Allocate extra buffer space.
-	block_t block[BUFFER_BLOCK_COUNT];
-	uint32_t bn = 1;
-	uint32_t t0 = millis();
-	uint32_t t1 = t0;
-	uint32_t overruns = 0;
-	//uint32_t count = 0;
-	uint32_t maxLatency = 0;
-	int xpos = 0;
- 
-	Serial.println();
-	myGLCD.clrScr();
-	myGLCD.setBackColor(0, 0, 0);
-	myGLCD.print(txt_info12, CENTER, 2);
-
-	// Initialize ADC and timer1.
-	adcInit((metadata_t*) &block[0]);
-
-	myGLCD.clrScr();
-
-	//	  // Read ADC data.
-	//#if RECORD_EIGHT_BITS
-	//  uint8_t d = ADCH;
-	//#else  // RECORD_EIGHT_BITS
-	//  // This will access ADCL first. 
-	//  uint16_t d = ADC;
-	//#endif  // RECORD_EIGHT_BITS
-
-	// // if (isrBufNeeded && emptyHead == emptyTail) 
-	//	//{
-	//	//	// no buffers - count overrun нет буферов - рассчитывайте перерасход памяти
-	//	//	if (isrOver < 0XFFFF) isrOver++;
-	//	//	// Avoid missed timer error.
-	//	//	timerFlag = false;
-	//	//	return;
-	//	//}
-
-	//  // Start ADC
-	//  if (PIN_COUNT > 1) 
-	//	{
-	//		ADMUX  = adcmux[adcindex];
-	//		ADCSRB = adcsrb[adcindex];
-	//		ADCSRA = adcsra[adcindex];
-	//		if (adcindex == 0) timerFlag = false;
-	//		adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
-	//	}
-	//  else 
-	//	{
-	//		timerFlag = false;
-	//	}
-	//  // Check for buffer needed. Необходимо проверить буфер
-	//  if (isrBufNeeded) 
-	//	{   
-	//		// Remove buffer from empty queue.  Удалить буфер из пустого очереди.
-	//		isrBuf = emptyQueue[emptyTail];
-	//		emptyTail = queueNext(emptyTail);
-	//		isrBuf->count = 0;
-	//		isrBuf->overrun = isrOver;
-	//		isrBufNeeded = false;    
-	//	}
-	  // Store ADC data.
-	//  isrBuf->data[isrBuf->count++] = d;
-
-	adcStart();
-
-	  while(!myTouch.dataAvailable()) 
-	{
-		DrawGrid();
-	/*	touch();*/
-		//  trigger();
-
-		// Collect the analog data into an array
- 
-		StartSample = micros();
-		for( int xpos = 0;
-		xpos < 240; xpos ++) { Sample[ xpos] = analogRead(A0)*5/102;
-		delayMicroseconds(dTime);
-		}
-		EndSample = micros();
-  
-		// Display the collected analog data from array
-		for( int xpos = 0; xpos < 239;
-		xpos ++)
-		{
-		// Erase previous display
-		myGLCD.setColor( 0, 0, 0);
-
-		myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
-		if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
-		//Draw the new data
-		myGLCD.setColor( 255, 255, 255);
-		myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
-		}
-
-		for( int xpos = 0;
-		xpos < 240; xpos ++)
-		{
-		OldSample[ xpos] = Sample[ xpos];
-		}
-	
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	//  while (!myTouch.dataAvailable()) 
-	//{
-	//	//myGLCD.clrScr();
-	//	////waitForIt(1, 1, 319, 239);
-	//	//if (buf.count == 0) break;
-	//	//if (buf.overrun) 
-	//	//	{
-	//	//		Serial.print(F("OVERRUN,"));
-	//	//		Serial.println(buf.overrun);
-	//	//	}
-	//	//  
-	//	//for (uint16_t i = 0; i < buf.count; i++) 
-	//	//{
-	//			Sample[xpos] = d*5/100;
-	//			xpos++;
-	//		if(xpos == 240)
-	//			{
-	//				for (int xpos1 = 0; xpos1<240; xpos1++)
-	//					{
-	//						myGLCD.setColor( 0, 0, 0);       		// Erase previous display Стереть предыдущий экран
-	//						myGLCD.drawLine (xpos1 + 1, 255-OldSample[ xpos1 + 1]* vsens-hpos, xpos1 + 2, 255-OldSample[ xpos1 + 2]* vsens-hpos);
-	//						if (xpos1 == 0) myGLCD.drawLine (xpos1 + 1, 1, xpos1 + 1, 239);
-	//						myGLCD.setColor( 255, 255, 255);  	//Draw the new data
-	//						myGLCD.drawLine (xpos1, 255-Sample[ xpos1]* vsens-hpos, xpos1 + 1, 255-Sample[ xpos1 + 1]* vsens-hpos);
-	//						OldSample[xpos1] = Sample[xpos1];
-	//						
-	//					}
-	//		
-	//				xpos = 0;
-	//				DrawGrid();
-	//				//count1++;
-	//				//myGLCD.printNumI(count/PIN_COUNT, RIGHT, 220);// 
-	//				//myGLCD.setColor(VGA_LIME);
-	//				//myGLCD.printNumI(count1*240, LEFT, 220);// 
-	//			}
-
-	//		//if ((i+1)%PIN_COUNT) 
-	//		//	{
-	//		////		Serial.print(',');
-	//		//	}
-	//		//else 
-	//		//	{
-	//		////		Serial.println();
-	//		//	}
-	//	//}
-	//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	//adcStart();
-	//while (1) 
-	//	{
-	//	if (fullHead != fullTail) 
-	//		{
-	//			// Get address of block to write.  Получить адрес блока, чтобы написать
-	//			block_t* pBlock = fullQueue[fullTail];
-	//  
-	//			// Write block to SD. Написать блок SD
-	//			uint32_t usec = micros();
-	//			//++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-	//			if (!sd.card()->writeData((uint8_t*)pBlock)) 
-	//				{
-	//					error("write data failed");
-	//				}
-	////			Serial.println(writeData((uint8_t*)pBlock));
-
-
-	//			//-----------------------------------------------
-	//			usec = micros() - usec;
-	//			t1 = millis();
-	//			if (usec > maxLatency) maxLatency = usec;
-	//			count += pBlock->count;
-	//  
-	//			// Add overruns and possibly light LED. 
-	//			if (pBlock->overrun) 
-	//			{
-	//				overruns += pBlock->overrun;
-	//				if (ERROR_LED_PIN >= 0) 
-	//					{
-	//						digitalWrite(ERROR_LED_PIN, HIGH);
-	//					}
-	//			}
-	//			// Move block to empty queue.
-	//			emptyQueue[emptyHead] = pBlock;
-	//			emptyHead = queueNext(emptyHead);
-	//			fullTail = queueNext(fullTail);
-	//			bn++;
-	//			//if (bn == FILE_BLOCK_COUNT) 
-	//			//{
-	//			//// File full so stop ISR calls.
-	//			//adcStop();
-	//			//break;
-	//			//}
-	//		}
-	///*	if (timerError) 
-	//		{
-	//			error("Missed timer event - rate too high");
-	//		}*/
-	//	if (myTouch.dataAvailable())
-	//	//if (Serial.available()) 
-	//		{
-	//			// Stop ISR calls.
-	//			adcStop();
-	//			if (isrBuf != 0 && isrBuf->count >= PIN_COUNT) {
-	//			// Truncate to last complete sample.
-	//			isrBuf->count = PIN_COUNT*(isrBuf->count/PIN_COUNT);
-	//			// Put buffer in full queue.
-	//			fullQueue[fullHead] = isrBuf;
-	//			fullHead = queueNext(fullHead);
-	//			isrBuf = 0;
-	//			}
-	//			if (fullHead == fullTail) break;
-	//		}
-	//	}
-adcStop();
-while (myTouch.dataAvailable()){}
-}
-// log data
-// max number of blocks to erase per erase call
-uint32_t const ERASE_SIZE = 262144L;
-
 void logData() 
 {
 	uint32_t bgnBlock, endBlock;
@@ -1466,7 +1245,70 @@ void logData()
 	Draw_menu_ADC1();
 
 }
+void Data_Oscill()
+{
+	uint32_t bgnBlock, endBlock;
+	// Allocate extra buffer space.
+	block_t block[BUFFER_BLOCK_COUNT];
+	uint32_t bn = 1;
+	uint32_t t0 = millis();
+	uint32_t t1 = t0;
+	uint32_t overruns = 0;
+	//uint32_t count = 0;
+	uint32_t maxLatency = 0;
+	int xpos = 0;
+ 
+	Serial.println();
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.print(txt_info12, CENTER, 2);
 
+	// Initialize ADC and timer1.
+	adcInit((metadata_t*) &block[0]);
+
+	myGLCD.clrScr();
+	adcStart();
+
+	  while(!myTouch.dataAvailable()) 
+	{
+		DrawGrid();
+	/*	touch();*/
+		//  trigger();
+
+		// Collect the analog data into an array
+ 
+		StartSample = micros();
+		for( int xpos = 0; xpos < 240; xpos ++)
+		{
+			Sample[ xpos] = analogRead(A0)*5/100;
+	    	delayMicroseconds(dTime);
+		}
+		EndSample = micros();
+  
+		// Display the collected analog data from array
+		for( int xpos = 0; xpos < 239;xpos ++)
+		{
+		// Erase previous display
+		myGLCD.setColor( 0, 0, 0);
+
+		myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
+		if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
+		//Draw the new data
+		myGLCD.setColor( 255, 255, 255);
+		myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
+		}
+
+		for( int xpos = 0;
+		xpos < 240; xpos ++)
+		{
+		OldSample[ xpos] = Sample[ xpos];
+		}
+	
+	}
+
+adcStop();
+while (myTouch.dataAvailable()){}
+}
 void Draw_menu_ADC1()
 {
 	myGLCD.clrScr();
@@ -2804,7 +2646,16 @@ void trigger()
 }
 void oscilloscope()
 {
-		adcStart();
+	uint32_t bgnBlock, endBlock;
+	// Allocate extra buffer space.
+	block_t block[BUFFER_BLOCK_COUNT];
+	myGLCD.clrScr();
+	myGLCD.setBackColor( 0, 0, 0);
+	adcInit((metadata_t*) &block[0]);
+	delay(2000);
+	myGLCD.clrScr();
+
+	adcStart();
 	while(!myTouch.dataAvailable()) 
 	{
 		 DrawGrid();
@@ -2876,6 +2727,7 @@ void oscilloscope()
 		myGLCD.print(itoa( analogRead(A2)*4.15/10.23, buf, 10),180 ,200);*/
 	}
 adcStop();
+myGLCD.setFont( BigFont);
 while (myTouch.dataAvailable()){}
 
 }
@@ -2974,7 +2826,8 @@ void setup(void)
   {
 	pinMode(ERROR_LED_PIN, OUTPUT);
   }
-  Serial.begin(9600);
+  Serial.begin(115200);
+//  Serial.begin(9600);
    Serial.println(F("Start Setup: "));
   
   // Read the first sample pin to init the ADC.
