@@ -159,6 +159,7 @@ byte Sample_Test[320];
 unsigned long LongFile = 0;
 float StartSample = 0; 
 float EndSample = 0;
+float V_koeff = 0.0488;
 int Max = 0;
 int Min = 500;
 int mode = 0;
@@ -1304,12 +1305,12 @@ void Data_Oscill()
 				{
 					// Erase previous display
 					myGLCD.setColor( 0, 0, 0);
-					myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
+					myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]*V_koeff* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]*V_koeff* vsens-hpos);
 					if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
 					//Draw the new data
 					myGLCD.setColor( 255, 255, 255);
-					myGLCD.drawLine (xpos, 255-(pBlock->data[xpos]*5/100 )* vsens-hpos, xpos + 1, 255-(pBlock->data[xpos+1]*5/100 )* vsens-hpos);
-					OldSample[ xpos] = (pBlock->data[xpos]*5/100 );
+					myGLCD.drawLine (xpos, 255-(pBlock->data[xpos]*V_koeff )* vsens-hpos, xpos + 1, 255-(pBlock->data[xpos+1]*V_koeff )* vsens-hpos);
+					OldSample[ xpos] = (pBlock->data[xpos]);
 				}
 
 		/*		for( int xpos = 0;	xpos < 240; xpos ++)
@@ -2716,7 +2717,7 @@ void oscilloscope()
 	{
 		 DrawGrid();
 		 touch();
-		 trigger();
+		// trigger();
 
 		// Collect the analog data into an array
  
