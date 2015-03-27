@@ -1092,7 +1092,7 @@ void logData()
 	emptyQueue[emptyHead] = (block_t*)cache;
 	emptyHead = queueNext(emptyHead);
   
-	// Put rest of buffers in the empty queue.
+	// Put rest of buffers in the empty queue. Поместите остальные буферов в пустую очередь.
 	for (uint8_t i = 0; i < BUFFER_BLOCK_COUNT; i++) 
 		{
 			emptyQueue[emptyHead] = &block[i];
@@ -1180,7 +1180,9 @@ void logData()
 				if (fullHead == fullTail) break;
 			}
 		}
-	if (!sd.card()->writeStop()) {
+
+	if (!sd.card()->writeStop()) 
+	{
 	error("writeStop failed");
 	}
 	// Truncate file if recording stopped early.
@@ -1257,7 +1259,7 @@ void Data_Oscill()
 	//uint32_t count = 0;
 	uint32_t maxLatency = 0;
 	int xpos = 0;
- 
+	uint8_t* cache = (uint8_t*)sd.vol()->cacheClear();
 	Serial.println();
 	myGLCD.clrScr();
 	myGLCD.setBackColor(0, 0, 0);
@@ -1267,43 +1269,151 @@ void Data_Oscill()
 	adcInit((metadata_t*) &block[0]);
 
 	myGLCD.clrScr();
+
+
+		// Initialize queues.  Инициализация очереди.
+	emptyHead = emptyTail = 0;
+	fullHead = fullTail = 0;
+  
+	// Use SdFat buffer for one block.  Используйте SdFat буфер для одного блока
+	emptyQueue[emptyHead] = (block_t*)cache;
+	emptyHead = queueNext(emptyHead);
+  
+	// Put rest of buffers in the empty queue. Поместите остальные буферов в пустую очередь.
+	for (uint8_t i = 0; i < BUFFER_BLOCK_COUNT; i++) 
+		{
+			emptyQueue[emptyHead] = &block[i];
+			emptyHead = queueNext(emptyHead);
+		}
+//	 Give SD time to prepare for big write.
+	
+	
+
+
 	adcStart();
 
 	  while(!myTouch.dataAvailable()) 
 	{
-		DrawGrid();
+
+
+		if (fullHead != fullTail) 
+			{
+				// Get address of block to write.  Получить адрес блока, чтобы написать
+				block_t* pBlock = fullQueue[fullTail];
+	  
+				// Write block to SD. Написать блок SD
+				uint32_t usec = micros();
+
+				for(int i=0;i<254;i++)
+				{
+					Serial.println(pBlock->data[i]);     //Чтение блока данных из АЦП
+				}
+
+
+
+				/*if (!sd.card()->writeData((uint8_t*)pBlock)) 
+					{
+						error("write data failed");
+					}*/
+				usec = micros() - usec;
+				t1 = millis();
+				if (usec > maxLatency) maxLatency = usec;
+				count += pBlock->count;
+	  
+				// Add overruns and possibly light LED. 
+				if (pBlock->overrun) 
+				{
+					overruns += pBlock->overrun;
+					if (ERROR_LED_PIN >= 0) 
+						{
+							digitalWrite(ERROR_LED_PIN, HIGH);
+						}
+				}
+				// Move block to empty queue.
+				emptyQueue[emptyHead] = pBlock;
+				emptyHead = queueNext(emptyHead);
+				fullTail = queueNext(fullTail);
+				bn++;
+				if (bn == FILE_BLOCK_COUNT) 
+				{
+				// File full so stop ISR calls.
+				adcStop();
+				break;
+				}
+			}
+		if (timerError) 
+			{
+				error("Missed timer event - rate too high");
+			}
+		if (myTouch.dataAvailable())
+		//if (Serial.available()) 
+			{
+				// Stop ISR calls.
+				adcStop();
+				if (isrBuf != 0 && isrBuf->count >= PIN_COUNT) {
+				// Truncate to last complete sample.
+				isrBuf->count = PIN_COUNT*(isrBuf->count/PIN_COUNT);
+				// Put buffer in full queue.
+				fullQueue[fullHead] = isrBuf;
+				fullHead = queueNext(fullHead);
+				isrBuf = 0;
+				}
+				if (fullHead == fullTail) break;
+			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//	DrawGrid();
 	/*	touch();*/
 		//  trigger();
-
+	//		uint32_t usec = micros();
 		// Collect the analog data into an array
+		// Get address of block to write.  Получить адрес блока, чтобы написать
+		//block_t* pBlock = fullQueue[fullTail];
+
+		//for(int i=0;i<254;i++)
+		//		{
+		//			Serial.println(pBlock->data[i]);     //Чтение блока данных из АЦП
+		//		}
  
-		StartSample = micros();
-		for( int xpos = 0; xpos < 240; xpos ++)
+	/*	for( int xpos = 0; xpos < 240; xpos ++)
 		{
 			Sample[ xpos] = analogRead(A0)*5/100;
-	    	delayMicroseconds(dTime);
-		}
-		EndSample = micros();
+			delayMicroseconds(dTime);
+		}*/
+
   
 		// Display the collected analog data from array
-		for( int xpos = 0; xpos < 239;xpos ++)
-		{
-		// Erase previous display
-		myGLCD.setColor( 0, 0, 0);
+		//for( int xpos = 0; xpos < 239;xpos ++)
+		//{
+		//// Erase previous display
+		//myGLCD.setColor( 0, 0, 0);
 
-		myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
-		if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
-		//Draw the new data
-		myGLCD.setColor( 255, 255, 255);
-		myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
-		}
+		//myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]* vsens-hpos);
+		//if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
+		////Draw the new data
+		//myGLCD.setColor( 255, 255, 255);
+		//myGLCD.drawLine (xpos, 255-Sample[ xpos]* vsens-hpos, xpos + 1, 255-Sample[ xpos + 1]* vsens-hpos);
+		//}
 
-		for( int xpos = 0;
-		xpos < 240; xpos ++)
-		{
-		OldSample[ xpos] = Sample[ xpos];
-		}
-	
+		//for( int xpos = 0;	xpos < 240; xpos ++)
+		//	{
+		//		OldSample[ xpos] = Sample[ xpos];
+		//	}
+
+		
 	}
 
 adcStop();
@@ -2607,7 +2717,7 @@ void menu_Oscilloscope()
 							myGLCD.clrScr();
 							DrawGrid();
 							buttons();
-					        Data_Oscill();
+							Data_Oscill();
 							Draw_menu_Osc();
 						}
 					if ((y>=70) && (y<=110))   // Button: 2

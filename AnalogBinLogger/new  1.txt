@@ -1,0 +1,5 @@
+for(int i=0;i<254;i++)
+				{
+					//Serial.println(pBlock->data[i]);     //	pBlock->data[i]
+
+				}
