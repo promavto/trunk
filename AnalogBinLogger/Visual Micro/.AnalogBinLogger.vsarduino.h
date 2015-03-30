@@ -120,6 +120,7 @@ void buttons();
 void touch();
 void waitForIt_osc(int x1, int y1, int x2, int y2);
 void DrawGrid();
+void DrawGrid1();
 void setup(void);
 //
 void drawUpButton(int x, int y);

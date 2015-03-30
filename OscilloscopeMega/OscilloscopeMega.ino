@@ -173,7 +173,7 @@ void DrawGrid()
 void trigger()
 {
 
-while (Input < Trigger){ Input = analogRead(port)*5/100;
+while (Input < Trigger){ Input = analogRead(port)*5/102;
 }}
 
 //---------------End Subrutine  ----------------------
