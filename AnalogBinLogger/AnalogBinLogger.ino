@@ -150,7 +150,7 @@ int ret                = 0;                // Признак прерывания операции
  // Declare variables
 char buf[12];
 int x_osc,y_osc;
-float Input = 0;
+int Input = 0;
 //byte Sample[320];
 //byte OldSample[320];
 //byte Sample_Test[320];
@@ -160,23 +160,23 @@ unsigned long LongFile = 0;
 float StartSample = 0; 
 float EndSample = 0;
 float V_koeff = 0.0488;
+float koeff_h = 5.12;
 int Max = 0;
 int Min = 500;
 int mode = 0;
+int mode1 = 0;             //Переключение чувствительности
 int dTime = 1;
 int tmode = 0;
-float Trigger = 5;
+float Trigger = 0;
 int SampleSize = 0;
 float SampleTime = 0;
 int dgvh;
 //int hpos = 105; //set 0v on horizontal  grid
 int hpos = 55; //set 0v on horizontal  grid
-int vsens = 2; // vertical sensitivity чувствительность по вертикали
+int vsens = 1; //  чувствительность по вертикали
 int port = 0;
 int x_kn = 30;  // Смещение кнопок по Х
 
-int *ptr_i;
-int var;
 
 
 
@@ -2713,16 +2713,12 @@ void trigger()
 {
 	do
 	 {
-		Input = analogRead(port)*5/102;
-
-	 }  while (Input<Trigger); //Input < Trigger
+	   Input = analogRead(port)/koeff_h;   //
+	 }  while (Input<Trigger); 
 	 do
 	 {
-		Input = analogRead(port);//*5/102;
-
-	 }  while (Input>Trigger +5 ); //Input < Trigger
-
-	// Serial.println(Input);
+		Input = analogRead(port)/koeff_h; //
+	 }  while (Input>Trigger +3 );        //Input < Trigger
 }
 void oscilloscope()
 {
@@ -2736,8 +2732,11 @@ void oscilloscope()
 	myGLCD.clrScr();
 	buttons();
 	adcStart();
+	int xpos;
+	int ypos1;
+	int ypos2;
 	while(1) 
-    {
+	{
 		 DrawGrid();
 		 if (myTouch.dataAvailable())
 			{
@@ -2753,6 +2752,65 @@ void oscilloscope()
 							break;
 						} 
 					}
+	myGLCD.drawRoundRect (250, 1, 310, 40);
+	myGLCD.drawRoundRect (250, 45, 310, 85);
+	myGLCD.drawRoundRect (250, 90, 310, 130);
+	myGLCD.drawRoundRect (250, 135, 310, 175);
+		if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
+		  {
+			  if ((y_osc>=1) && (y_osc<=40))  // Delay row
+				  {
+					waitForIt(250, 1, 310, 40);
+					mode ++ ;
+					// Select delay times you can change values to suite your needs
+					if (mode == 0) dTime = 1;
+					if (mode == 1) dTime = 10;
+					if (mode == 2) dTime = 20;
+					if (mode == 3) dTime = 50;
+					if (mode == 4) dTime = 100;
+					if (mode == 5) dTime = 200;
+					if (mode == 6) dTime = 300;
+					if (mode == 7) dTime = 500;
+					if (mode == 8) dTime = 1000;
+					if (mode == 9) dTime = 5000;
+					if (mode == 10) dTime = 10000;
+					if (mode > 10) mode = 0;   
+					 Serial.println(dTime);
+
+				  }
+			 if ((y_osc>=45) && (y_osc<=85))  // Trigger  row
+				 {
+					waitForIt(250, 45, 310, 85);
+					tmode ++;
+					if (tmode == 1) Trigger = 0;
+					if (tmode == 2) Trigger = (Max-20)/10/koeff_h;//;
+					if (tmode == 3) Trigger = (Max-20)/5/koeff_h;//20;
+					if (tmode == 4) Trigger = (Max-20)/2/koeff_h;//30;
+					if (tmode == 5) Trigger = (Max-20)/1/koeff_h;//50;
+					if (tmode > 5)tmode = 0;
+					Serial.print(Max);
+					Serial.print(" - ");
+					Serial.println(Trigger);
+				 }
+			 if ((y_osc>=90) && (y_osc<=130))  // Port select   row
+				 {
+					waitForIt(250, 90, 310, 130);
+					mode1 ++ ;
+					myGLCD.clrScr();
+	                buttons();
+					if (mode1 > 3) mode1 = 0;   
+					if (mode1 == 0) koeff_h = 5.12;
+					if (mode1 == 1) koeff_h = 2.56;
+					if (mode1 == 2) koeff_h = 1.024;
+					if (mode1 == 3) koeff_h = 0.512;
+				 }
+			  if ((y_osc>=135) && (y_osc<=175))  // Port select   row
+				 {
+					waitForIt(250, 135, 310, 175);
+					//break;
+				 }
+
+		  }
 				
 				if ((y_osc>=205) && (y_osc<=239))  //  Delay Button
 					{
@@ -2761,58 +2819,67 @@ void oscilloscope()
 		   }
 		
 		 trigger();
-		// Serial.println(Input);
-		// Collect the analog data into an array
+
+		// Записать аналоговый сигнал в блок памяти
  
 		StartSample = micros();
-		for( int xpos = 0;	xpos < 240; xpos ++) 
+		for( xpos = 0;	xpos < 240; xpos ++) 
 		{
 			Sample[xpos] = analogRead(port);//*5/100;
+			Max = max(Max, Sample[xpos]);
 			delayMicroseconds(dTime);
 		}
-
 		EndSample = micros();
+
+		//Max = Sample[100];
+		//Min = Sample[100];
   
 		// Display the collected analog data from array
 		for( int xpos = 0; xpos < 239;	xpos ++)
 			{
 				// Erase previous display Стереть предыдущий экран
 				myGLCD.setColor( 0, 0, 0);
-				myGLCD.drawLine (xpos + 1, 255-(OldSample[ xpos + 1]/4)* vsens-hpos, xpos + 2, 255-(OldSample[ xpos + 2]/4)* vsens-hpos);
+				ypos1 = 255-(OldSample[ xpos + 1]/koeff_h) - hpos; 
+				ypos2 = 255-(OldSample[ xpos + 2]/koeff_h) - hpos;
+				if(ypos1<0) ypos1 = 0;
+				if(ypos2<0) ypos2 = 0;
+			//	myGLCD.drawLine (xpos + 1, 255-(OldSample[ xpos + 1]/4)* vsens-hpos, xpos + 2, 255-(OldSample[ xpos + 2]/4)* vsens-hpos);
+				myGLCD.drawLine (xpos + 1, ypos1, xpos + 2, ypos2);
 				if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
 				//Draw the new data
 				myGLCD.setColor( 255, 255, 255);
-				myGLCD.drawLine (xpos, 255-(Sample[ xpos]/4)* vsens-hpos, xpos + 1, 255-(Sample[ xpos + 1]/4)* vsens-hpos);
+				ypos1 = 255-(Sample[ xpos]/koeff_h) - hpos;
+				ypos2 = 255-(Sample[ xpos + 1]/koeff_h)- hpos;
+				if(ypos1<0) ypos1 = 0;
+				if(ypos2<0) ypos2 = 0;
+				myGLCD.drawLine (xpos, ypos1, xpos + 1, ypos2);
+			//	myGLCD.drawLine (xpos, 255-(Sample[ xpos]/4)* vsens-hpos, xpos + 1, 255-(Sample[ xpos + 1]/4)* vsens-hpos);
+				OldSample[xpos] = Sample[ xpos];
 			}
-		// Determine sample voltage peak to peak
-		Max = Sample[ 100];
-		Min = Sample[ 100];
-		for( int xpos = 0;	xpos < 240; xpos ++)
-			{
-			OldSample[xpos] = Sample[ xpos];
-			//if (Sample[ xpos] > Max) Max = Sample[ xpos];
-			//if (Sample[ xpos] < Min) Min = Sample[ xpos];
-			}
+
 		// display the sample time, delay time and trigger level
 		myGLCD.setBackColor( 0, 0, 255);
 		myGLCD.setFont( SmallFont);
 		myGLCD.setColor (255, 255,255);
-		//myGLCD.setBackColor( 0, 0,255);
-		
+
 		myGLCD.print("Delay", 260, 5);
 		myGLCD.print("     ", 270, 20);
 		myGLCD.print(itoa ( dTime, buf, 10), 270, 20);
 		myGLCD.print("Trig.", 260, 50);
-		myGLCD.print("   ", 270, 65);
+		myGLCD.print("  %", 270, 65);
 		myGLCD.print(itoa( Trigger, buf, 10), 270, 65);
 		SampleTime =( EndSample/1000-StartSample/1000);
 		myGLCD.print("mSec.", 260, 140);
 		myGLCD.print("      ", 260, 160);
 		myGLCD.printNumF(SampleTime, 1, 260, 160);
-	/*	if (port == 0)myGLCD.print("Pulse", 260, 120);
-		if (port == 1)myGLCD.print("Temp", 260, 120);
-		if (port == 2)myGLCD.print("GSR", 260, 120);
-		myGLCD.print( itoa( port, buf, 10), 270, 135);*/
+	//	myGLCD.printNumI(mode1, 260, 105);
+		myGLCD.print("V/del.", 260, 95);
+		myGLCD.print("      ", 260, 110);
+		if (mode1 == 0)myGLCD.print("1", 275, 110);
+		if (mode1 == 1)myGLCD.print("0.5", 268, 110);
+		if (mode1 == 2)myGLCD.print("0.2", 268, 110);
+		if (mode1 == 3)myGLCD.print("0.1", 268, 110);
+	//	myGLCD.print( itoa( port, buf, 10), 270, 135);
 
 	/*	myGLCD.setBackColor( 0, 0, 0);
 		myGLCD.setFont( BigFont);
@@ -2835,7 +2902,6 @@ void oscilloscope()
 adcStop();
 myGLCD.setFont( BigFont);
 while (myTouch.dataAvailable()){}
-
 }
 
 //--------draw buttons sub
