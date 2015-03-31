@@ -118,6 +118,7 @@ void trigger();
 void oscilloscope();
 void buttons();
 void touch();
+void touch_osc();
 void waitForIt_osc(int x1, int y1, int x2, int y2);
 void DrawGrid();
 void DrawGrid1();

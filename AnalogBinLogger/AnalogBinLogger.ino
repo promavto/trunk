@@ -175,6 +175,9 @@ int vsens = 2; // vertical sensitivity чувствительность по вертикали
 int port = 0;
 int x_kn = 30;  // Смещение кнопок по Х
 
+int *ptr_i;
+int var;
+
 
 
 
@@ -2719,11 +2722,7 @@ void trigger()
 
 	 }  while (Input>Trigger +5 ); //Input < Trigger
 
-
-
-
-
-	 Serial.println(Input);
+	// Serial.println(Input);
 }
 void oscilloscope()
 {
@@ -2738,10 +2737,8 @@ void oscilloscope()
 	buttons();
 	adcStart();
 	while(1) 
-	//	while(!myTouch.dataAvailable()) 
-	{
+    {
 		 DrawGrid();
-		// touch();
 		 if (myTouch.dataAvailable())
 			{
 				delay(10);
@@ -2756,122 +2753,13 @@ void oscilloscope()
 							break;
 						} 
 					}
-
-
-
+				
 				if ((y_osc>=205) && (y_osc<=239))  //  Delay Button
-				{
-					
-	
-					if ((x_osc>=5+x_kn) && (x_osc<=30+x_kn))  //  Delay Button
-						{
-							waitForIt(5+x_kn, 218, 30+x_kn, 239);
-							buttons();
-							myGLCD.setColor(VGA_LIME);
-							myGLCD.setBackColor( VGA_LIME);
-							myGLCD.fillRoundRect (5+x_kn, 219, 30+x_kn, 238);
-							myGLCD.setColor(0, 0, 255);
-							myGLCD.setFont( SmallFont);
-							myGLCD.print("1s", 12+x_kn, 222);
-						}
-					if ((x_osc>=35+x_kn) && (x_osc<=60+x_kn))  //  Delay Button
-						{
-							waitForIt(35+x_kn, 218, 60+x_kn, 239);
-							buttons();
-							myGLCD.setColor(VGA_LIME);
-							myGLCD.setBackColor( VGA_LIME);
-							myGLCD.fillRoundRect (35+x_kn, 219, 60+x_kn, 238);
-							myGLCD.setColor(0, 0, 255);
-							myGLCD.setFont( SmallFont);
-							myGLCD.print("5s", 42+x_kn, 222);
-
-						}
-					if ((x_osc>=65+x_kn) && (x_osc<=90+x_kn))  //  Delay Button
-						{
-							waitForIt(65+x_kn, 218, 90+x_kn, 239);
-							buttons();
-							myGLCD.setColor(VGA_LIME);
-							myGLCD.setBackColor( VGA_LIME);
-							myGLCD.fillRoundRect (65+x_kn, 219, 90+x_kn, 238);
-							myGLCD.setColor(0, 0, 255);
-							myGLCD.setFont( SmallFont);
-							myGLCD.print("10s", 67+x_kn, 222);
-
-						}
-					if ((x_osc>=95+x_kn) && (x_osc<=120+x_kn))  //  Delay Button
-						{
-							waitForIt(95+x_kn, 218, 120+x_kn, 239);
-							buttons();
-							myGLCD.setColor(VGA_LIME);
-							myGLCD.setBackColor( VGA_LIME);
-							myGLCD.fillRoundRect (95+x_kn, 219, 120+x_kn, 238);
-							myGLCD.setColor(0, 0, 255);
-							myGLCD.setFont( SmallFont);
-							myGLCD.print("1m", 102+x_kn, 222);
-
-						}
-					if ((x_osc>=125+x_kn) && (x_osc<=150+x_kn))  //  Delay Button
-						{
-							waitForIt(125+x_kn, 218, 150+x_kn, 239);
-							buttons();
-							myGLCD.setColor(VGA_LIME);
-							myGLCD.setBackColor( VGA_LIME);
-							myGLCD.fillRoundRect (125+x_kn, 219, 150+x_kn, 238);
-							myGLCD.setColor(0, 0, 255);
-							myGLCD.setFont( SmallFont);
-							myGLCD.print("5m", 132+x_kn, 222);
-
-
-						}
-					if ((x_osc>=155+x_kn) && (x_osc<=180+x_kn))  //  Delay Button
-						{
-							waitForIt(155+x_kn, 218, 180+x_kn, 239);
-							buttons();
-							myGLCD.setColor(VGA_LIME);
-							myGLCD.setBackColor( VGA_LIME);
-							myGLCD.fillRoundRect (155+x_kn, 219, 180+x_kn, 238);
-							myGLCD.setColor(0, 0, 255);
-							myGLCD.setFont( SmallFont);
-							myGLCD.print("10m", 157+x_kn, 222);
-
-						}
-					if ((x_osc>=185+x_kn) && (x_osc<=210+x_kn))  //  Delay Button
-						{
-							waitForIt(185+x_kn, 218, 210+x_kn, 239);
-							buttons();
-							myGLCD.setColor(VGA_LIME);
-							myGLCD.setBackColor( VGA_LIME);
-							myGLCD.fillRoundRect (185+x_kn, 219, 210+x_kn, 238);
-							myGLCD.setColor(0, 0, 255);
-							myGLCD.setFont( SmallFont);
-							myGLCD.print("15m", 187+x_kn, 222);
-
-						}
-
-					if ((x_osc>=0) && (x_osc<=29))  //  Delay Button
-						{
-							waitForIt(1, 205, 29, 239);
-							
-
-						}
-
-					if ((x_osc>=217+x_kn) && (x_osc<= 245+x_kn))  //  Delay Button
-						{
-							waitForIt(217+x_kn, 205, 245+x_kn, 239);
-							
-
-						}
-
-
-
-
-				}
-
-
-
-			}
-
-
+					{
+						 touch_osc();
+					}
+		   }
+		
 		 trigger();
 		// Serial.println(Input);
 		// Collect the analog data into an array
@@ -3046,6 +2934,118 @@ void touch()
 	  }
    }
 }
+void touch_osc()
+{
+	delay(10);
+	myTouch.read();
+	x_osc=myTouch.getX();
+	y_osc=myTouch.getY();
+
+	if ((y_osc>=205) && (y_osc<=239))  //  Delay Button
+	{
+					
+	
+		if ((x_osc>=5+x_kn) && (x_osc<=30+x_kn))  //  Delay Button
+			{
+				waitForIt(5+x_kn, 218, 30+x_kn, 239);
+				buttons();
+				myGLCD.setColor(VGA_LIME);
+				myGLCD.setBackColor( VGA_LIME);
+				myGLCD.fillRoundRect (5+x_kn, 219, 30+x_kn, 238);
+				myGLCD.setColor(0, 0, 255);
+				myGLCD.setFont( SmallFont);
+				myGLCD.print("1s", 12+x_kn, 222);
+			}
+		if ((x_osc>=35+x_kn) && (x_osc<=60+x_kn))  //  Delay Button
+			{
+				waitForIt(35+x_kn, 218, 60+x_kn, 239);
+				buttons();
+				myGLCD.setColor(VGA_LIME);
+				myGLCD.setBackColor( VGA_LIME);
+				myGLCD.fillRoundRect (35+x_kn, 219, 60+x_kn, 238);
+				myGLCD.setColor(0, 0, 255);
+				myGLCD.setFont( SmallFont);
+				myGLCD.print("5s", 42+x_kn, 222);
+
+			}
+		if ((x_osc>=65+x_kn) && (x_osc<=90+x_kn))  //  Delay Button
+			{
+				waitForIt(65+x_kn, 218, 90+x_kn, 239);
+				buttons();
+				myGLCD.setColor(VGA_LIME);
+				myGLCD.setBackColor( VGA_LIME);
+				myGLCD.fillRoundRect (65+x_kn, 219, 90+x_kn, 238);
+				myGLCD.setColor(0, 0, 255);
+				myGLCD.setFont( SmallFont);
+				myGLCD.print("10s", 67+x_kn, 222);
+
+			}
+		if ((x_osc>=95+x_kn) && (x_osc<=120+x_kn))  //  Delay Button
+			{
+				waitForIt(95+x_kn, 218, 120+x_kn, 239);
+				buttons();
+				myGLCD.setColor(VGA_LIME);
+				myGLCD.setBackColor( VGA_LIME);
+				myGLCD.fillRoundRect (95+x_kn, 219, 120+x_kn, 238);
+				myGLCD.setColor(0, 0, 255);
+				myGLCD.setFont( SmallFont);
+				myGLCD.print("1m", 102+x_kn, 222);
+
+			}
+		if ((x_osc>=125+x_kn) && (x_osc<=150+x_kn))  //  Delay Button
+			{
+				waitForIt(125+x_kn, 218, 150+x_kn, 239);
+				buttons();
+				myGLCD.setColor(VGA_LIME);
+				myGLCD.setBackColor( VGA_LIME);
+				myGLCD.fillRoundRect (125+x_kn, 219, 150+x_kn, 238);
+				myGLCD.setColor(0, 0, 255);
+				myGLCD.setFont( SmallFont);
+				myGLCD.print("5m", 132+x_kn, 222);
+
+
+			}
+		if ((x_osc>=155+x_kn) && (x_osc<=180+x_kn))  //  Delay Button
+			{
+				waitForIt(155+x_kn, 218, 180+x_kn, 239);
+				buttons();
+				myGLCD.setColor(VGA_LIME);
+				myGLCD.setBackColor( VGA_LIME);
+				myGLCD.fillRoundRect (155+x_kn, 219, 180+x_kn, 238);
+				myGLCD.setColor(0, 0, 255);
+				myGLCD.setFont( SmallFont);
+				myGLCD.print("10m", 157+x_kn, 222);
+
+			}
+		if ((x_osc>=185+x_kn) && (x_osc<=210+x_kn))  //  Delay Button
+			{
+				waitForIt(185+x_kn, 218, 210+x_kn, 239);
+				buttons();
+				myGLCD.setColor(VGA_LIME);
+				myGLCD.setBackColor( VGA_LIME);
+				myGLCD.fillRoundRect (185+x_kn, 219, 210+x_kn, 238);
+				myGLCD.setColor(0, 0, 255);
+				myGLCD.setFont( SmallFont);
+				myGLCD.print("15m", 187+x_kn, 222);
+
+			}
+
+		if ((x_osc>=0) && (x_osc<=29))  //  Delay Button
+			{
+				waitForIt(1, 205, 29, 239);
+							
+
+			}
+
+		if ((x_osc>=217+x_kn) && (x_osc<= 245+x_kn))  //  Delay Button
+			{
+				waitForIt(217+x_kn, 205, 245+x_kn, 239);
+							
+
+			}
+	}
+
+}
 //----------wait for touch sub 
 void waitForIt_osc(int x1, int y1, int x2, int y2)
 {
@@ -3155,7 +3155,7 @@ void setup(void)
 	AD9850.reset();                    //reset module
 	delay(1000);
 	AD9850.powerDown();                //set signal output to LOW
-	AD9850.set_frequency(0,0,250);    //set power=UP, phase=0, 1kHz frequency 
+	AD9850.set_frequency(0,0,500);    //set power=UP, phase=0, 1kHz frequency 
 
 	Wire.begin();
 	if (!RTC.begin())
@@ -3168,14 +3168,15 @@ void setup(void)
 	/*Draw_menu_ADC1();
 	menu_ADC();*/
 
-	Serial.println("Ukazatel");
+	//Serial.println("Ukazatel");
 
-	//int *ptr_i;
-
-	//*ptr_i = 100;
-
+	////int *ptr_i;
+	//var=10;
+	////*ptr_i = 100;
+	//ptr_i=&var;
 	//Serial.println(*ptr_i);
-
+	//*ptr_i=*ptr_i+1;
+	//Serial.println(*ptr_i);
 	Serial.println("End ADC");
 }
 //------------------------------------------------------------------------------
