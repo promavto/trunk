@@ -112,8 +112,8 @@ uint8_t menu_redraw_required = 0;
 //----------------------Конец  Настройки дисплея --------------------------------
 //**************************  Меню прибора ***************************************
 
-int clockCenterX=119;
-int clockCenterY=119;
+const int clockCenterX=119;
+const int clockCenterY=119;
 int oldsec=0;
 char* str[] = {"MON","TUE","WED","THU","FRI","SAT","SUN"};
 char* str_mon[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
@@ -168,19 +168,15 @@ int mode = 0;
 int mode1 = 0;             //Переключение чувствительности
 int dTime = 1;
 int tmode = 0;
-float Trigger = 0;
+int Trigger = 0;
 int SampleSize = 0;
 float SampleTime = 0;
 int dgvh;
 //int hpos = 105; //set 0v on horizontal  grid
-int hpos = 55; //set 0v on horizontal  grid
+const int hpos = 55; //set 0v on horizontal  grid
 int vsens = 1; //  чувствительность по вертикали
 int port = 0;
 int x_kn = 30;  // Смещение кнопок по Х
-
-
-
-
 
 
 // variables for DVM
@@ -205,7 +201,7 @@ const unsigned char PS_128 = (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 char  txt_menu1_1[]          = "PE\x81\x86""CTPATOP";                                                       // "РЕГИСТРАТОР"
 char  txt_menu1_2[]          = "CAMO\x89\x86""CE\x8C";                                                      // "САМОПИСЕЦ"
 char  txt_menu1_3[]          = "PE\x81\x86""CT.+ CAMO\x89.";                                                // "РЕГИСТ. + САМОП."
-char  txt_menu1_4[]          = "\x89O\x82K\x88\x94\x8D""EH\x86""E \x89K";                                   // "ПОДКЛЮЧЕНИЕ ПК"
+char  txt_menu1_4[]          = "PA\x80OTA c SD";                                                            // "РАБОТА с SD"
 char  txt_menu2_1[]          = "MENU 2-1";//"\x86H\x8BO C\x8D""ET\x8D\x86KOB";                              // ИНФО СЧЕТЧИКОВ
 char  txt_menu2_2[]          = "MENU 2-2";//"\x86H\x8BO N \xA3o\xA0\xAC\x9C.";                              //
 char  txt_menu2_3[]          = "MENU 2-3";//                                                   //
@@ -229,22 +225,28 @@ char  txt_info2[]            = "\x86\xA2\xA5op\xA1""a""\xA6\x9D\xAF";           
 char  txt_info3[]            = "Hac\xA4po\x9E\x9F""a c\x9D""c\xA4""e\xA1\xAB";                              // Настройка системы
 char  txt_info4[]            = "\x8A""c\xA4""a\xA2o\x97\x9F\x9D c\x9D""c\xA4""e\xA1\xAB";                   // 
 char  txt_info5[]            = "\x86\xA2\xA5op\xA1""a""\xA6\x9D\xAF ZigBee";                                // Информация ZigBee
-char  txt_return[]           = "\x85""a\x97""ep\xA8\xA2\xA4\xAC \xA3poc\xA1o\xA4p";            // Завершить просмотр
+char  txt_return[]           = "\x85""a\x97""ep\xA8\xA2\xA4\xAC \xA3poc\xA1o\xA4p";                         // Завершить просмотр
 
-char  txt_ADC_menu1[]        = "Record data";                                      //
-char  txt_ADC_menu2[]        = "Convert to CSV";                                             //
-char  txt_ADC_menu3[]        = "Dump to Serial";                                  //
-char  txt_ADC_menu4[]        = "EXIT";                                  //
-char  txt_osc_menu1[]        = "Oscilloscope";                                      //
-char  txt_osc_menu2[]        = "View File";                                             //
-char  txt_osc_menu3[]        = "Oscilloscope 1";                                  //
+char  txt_ADC_menu1[]        = "Record data";                                                               //
+char  txt_ADC_menu2[]        = "Convert to CSV";                                                            //
+char  txt_ADC_menu3[]        = "Dump to Serial";                                                            //
+char  txt_ADC_menu4[]        = "EXIT";                                                                      //
+
+char  txt_osc_menu1[]        = "Oscilloscope";                                                              //
+char  txt_osc_menu2[]        = "Oscill_Time";                                                                    //
+char  txt_osc_menu3[]        = "Menu 3";                                                                    //
 char  txt_osc_menu4[]        = "EXIT";           
 
+char  txt_SD_menu1[]         = "View File";                                                                //
+char  txt_SD_menu2[]         = "Info SD";                                                                  //
+char  txt_SD_menu3[]         = "Format SD";                                                                //
+char  txt_SD_menu4[]         = "EXIT";           
 
-char  txt_info6[]            = "Info: ";                                //Info: 
-char  txt_info7[]            = "Writing:"; 
-char  txt_info8[]            = "%"; 
-char  txt_info9[]            = "Done: "; 
+
+char  txt_info6[]             = "Info: ";                                //Info: 
+char  txt_info7[]             = "Writing:"; 
+char  txt_info8[]             = "%"; 
+char  txt_info9[]             = "Done: "; 
 char  txt_info10[]            = "Seconds"; 
 char  txt_info11[]            = "ESC->PUSH Display"; 
 char  txt_info12[]            = "START"; 
@@ -343,8 +345,48 @@ const uint32_t FILE_BLOCK_COUNT = 256000;
 // overrun errors and logging continues.
 const int8_t ERROR_LED_PIN = 13;
 
+const uint8_t spiSpeed = SPI_HALF_SPEED;
 // SD chip select pin.
-const uint8_t SD_CS_PIN = SS;
+const uint8_t SD_CS_PIN = 53;
+
+//+++++++++++++++++++++++++++++++ SD Format ++++++++++++++++++++++++++++++++++++++
+
+Sd2Card card;
+
+uint32_t cardSizeBlocks;
+uint16_t cardCapacityMB;
+
+// cache for SD block
+cache_t cache;
+
+// MBR information
+uint8_t partType;
+uint32_t relSector;
+uint32_t partSize;
+
+// Fake disk geometry
+uint8_t numberOfHeads;
+uint8_t sectorsPerTrack;
+
+// FAT parameters
+uint16_t reservedSectors;
+uint8_t sectorsPerCluster;
+uint32_t fatStart;
+uint32_t fatSize;
+uint32_t dataStart;
+
+// constants for file system structure
+uint16_t const BU16 = 128;
+uint16_t const BU32 = 8192;
+
+//  strings needed in file system structures
+char noName[] = "NO NAME    ";
+char fat16str[] = "FAT16   ";
+char fat32str[] = "FAT32   ";
+
+
+
+
 //------------------------------------------------------------------------------
 // Buffer definitions.
 //
@@ -390,11 +432,6 @@ const uint8_t QUEUE_DIM = 8;  // Must be a power of two!
 // max number of blocks to erase per erase call
 uint32_t const ERASE_SIZE = 262144L;
 
-
-
-
-
-
 //==============================================================================
 // End of configuration constants.
 //==============================================================================
@@ -419,6 +456,12 @@ const uint16_t ISR_TIMER0 = 160;
 SdFat sd;
 
 SdBaseFile binFile;
+// Serial streams
+ArduinoOutStream cout(Serial);
+
+// input buffer for line
+char cinBuf[40];
+ArduinoInStream cin(Serial, cinBuf, sizeof(cinBuf));
 
 char binName[13] = FILE_BASE_NAME "00.BIN";
 
@@ -935,7 +978,7 @@ void dumpData()
 //------------------------------------------------------------------------------
 void dumpData_Osc() 
 {
-	Serial.println();
+	//Serial.println();
 	myGLCD.clrScr();
 	myGLCD.setBackColor(0, 0, 0);
 	myGLCD.print(txt_info12,CENTER, 40);
@@ -944,18 +987,18 @@ void dumpData_Osc()
 	int xpos = 0;
 	int ypos1;
 	int ypos2;
+
 	if (!binFile.isOpen()) 
 		{
 			Serial.println(F("No current binary file"));
 			return;
 		}
+//	myGLCD.print(binFile,CENTER, 220);
 	binFile.rewind();
 	if (binFile.read(&buf , 512) != 512) 
 	{
 		error("Read metadata failed");
 	}
-	Serial.println();
-	//Serial.println(F("Type any character to stop"));
 	myGLCD.setColor(VGA_LIME);
 	myGLCD.print(txt_info15,CENTER, 200);
 	myGLCD.setColor(255, 255, 255);
@@ -978,10 +1021,6 @@ void dumpData_Osc()
 	if (mode1 == 2)myGLCD.print("0.2", 268, 110);
 	if (mode1 == 3)myGLCD.print("0.1", 268, 110);
 
-	/*int Long_Screen = (count/PIN_COUNT)/240;
-	float Long_Screen1 = ((count/PIN_COUNT)/240)/240;*/
-
-	//while (!myTouch.dataAvailable() && binFile.read(&buf , 512) == 512) 
 	while (binFile.read(&buf , 512) == 512) 
 	{
 		if (buf.count == 0) break;
@@ -1017,7 +1056,7 @@ void dumpData_Osc()
 						myGLCD.setColor(0, 0, 255);
 						myGLCD.fillRoundRect (250, 90, 310, 130);
 						myGLCD.setColor( 255, 255, 255);
-			            myGLCD.drawRoundRect (250, 90, 310, 130);
+						myGLCD.drawRoundRect (250, 90, 310, 130);
 						if (mode1 > 3) mode1 = 0;   
 						if (mode1 == 0) koeff_h = 5.12;
 						if (mode1 == 1) koeff_h = 2.56;
@@ -1042,7 +1081,7 @@ void dumpData_Osc()
 				xpos++;
 			if(xpos == 240)
 				{
-					DrawGrid1();
+				DrawGrid1();
 				for( int xpos = 0; xpos < 239;	xpos ++)
 					{
 						// Erase previous display Стереть предыдущий экран
@@ -1081,14 +1120,17 @@ void dumpData_Osc()
 				}
 		}
 	}
+	koeff_h = 5.12;
+	mode1 = 0;
+	Trigger = 0;
 	myGLCD.setFont( BigFont);
-	Serial.println(F("Done"));
 	myGLCD.setColor(VGA_YELLOW);
 	myGLCD.print(txt_info9,CENTER, 80);
 	myGLCD.setColor(255, 255, 255);
 	delay(500);
 	while (myTouch.dataAvailable()){}
 }
+
 void logData() 
 {
 	uint32_t bgnBlock, endBlock;
@@ -1207,15 +1249,11 @@ void logData()
 	myGLCD.setColor(VGA_YELLOW);
 	myGLCD.print(txt_info28, CENTER, 135);
 	myGLCD.setColor(255, 255, 255);
-	// Start logging interrupts.
 
-
-
-	adcStart();
+	adcStart();  // Start logging interrupts.
 	while (1) 
 		{
-
-		if (fullHead != fullTail) 
+		  if (fullHead != fullTail) 
 			{
 				// Get address of block to write.  Получить адрес блока, чтобы написать
 				block_t* pBlock = fullQueue[fullTail];
@@ -1230,16 +1268,15 @@ void logData()
 				t1 = millis();
 				if (usec > maxLatency) maxLatency = usec;
 				count += pBlock->count;
-	  
 				// Add overruns and possibly light LED. 
 				if (pBlock->overrun) 
-				{
-					overruns += pBlock->overrun;
-					if (ERROR_LED_PIN >= 0) 
-						{
-							digitalWrite(ERROR_LED_PIN, HIGH);
-						}
-				}
+					{
+						overruns += pBlock->overrun;
+						if (ERROR_LED_PIN >= 0) 
+							{
+								digitalWrite(ERROR_LED_PIN, HIGH);
+							}
+					}
 				// Move block to empty queue.
 				emptyQueue[emptyHead] = pBlock;
 				emptyHead = queueNext(emptyHead);
@@ -1339,123 +1376,7 @@ void logData()
 	Draw_menu_ADC1();
 
 }
-void Data_Oscill()
-{
-	uint32_t bgnBlock, endBlock;
-	// Allocate extra buffer space.
-	block_t block[BUFFER_BLOCK_COUNT];
-	uint32_t bn = 1;
-	uint32_t t0 = millis();
-	uint32_t t1 = t0;
-	uint32_t overruns = 0;
-	//uint32_t count = 0;
-	uint32_t maxLatency = 0;
-	int xpos = 0;
-	uint8_t* cache = (uint8_t*)sd.vol()->cacheClear();
-	Serial.println();
-	myGLCD.clrScr();
-	myGLCD.setBackColor(0, 0, 0);
-	myGLCD.print(txt_info12, CENTER, 2);
 
-	// Initialize ADC and timer1.
-	adcInit((metadata_t*) &block[0]);
-
-	myGLCD.clrScr();
-	// Initialize queues.  Инициализация очереди.
-	emptyHead = emptyTail = 0;
-	fullHead = fullTail = 0;
- 
-	// Put rest of buffers in the empty queue. Поместите остальные буферов в пустую очередь.
-	for (uint8_t i = 0; i < BUFFER_BLOCK_COUNT; i++) 
-		{
-			emptyQueue[emptyHead] = &block[i];
-			emptyHead = queueNext(emptyHead);
-		}
-//	 Give SD time to prepare for big write.
-
-	adcStart();
-
-	//  while(1) 
-	 while(!myTouch.dataAvailable()) 
-	   {
-		if (fullHead != fullTail) 
-			{
-				DrawGrid();
-				// Get address of block to write.  Получить адрес блока, чтобы написать
-				block_t* pBlock = fullQueue[fullTail];
-	  
-				// Write block to SD. Написать блок SD
-				//for(int i=0;i<254;i++)
-				//{
-				////	Serial.println(pBlock->data[i]);     //Чтение блока данных из АЦП
-				//	Sample_Test[i]= pBlock->data[i];
-				//}
-
-				for( int xpos = 0; xpos < 239;xpos ++)
-				{
-					// Erase previous display
-					myGLCD.setColor( 0, 0, 0);
-					myGLCD.drawLine (xpos + 1, 255-OldSample[ xpos + 1]*V_koeff* vsens-hpos, xpos + 2, 255-OldSample[ xpos + 2]*V_koeff* vsens-hpos);
-					if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
-					//Draw the new data
-					myGLCD.setColor( 255, 255, 255);
-					myGLCD.drawLine (xpos, 255-(pBlock->data[xpos]*V_koeff )* vsens-hpos, xpos + 1, 255-(pBlock->data[xpos+1]*V_koeff )* vsens-hpos);
-					OldSample[ xpos] = (pBlock->data[xpos]);
-				}
-
-		/*		for( int xpos = 0;	xpos < 240; xpos ++)
-				{
-				OldSample[ xpos] = (pBlock->data[xpos]*5/100 );
-				}
-*/
-
-				//usec = micros() - usec;
-				//t1 = millis();
-				//if (usec > maxLatency) maxLatency = usec;
-				count += pBlock->count;
-				// Move block to empty queue.
-				emptyQueue[emptyHead] = pBlock;
-				emptyHead = queueNext(emptyHead);
-				fullTail = queueNext(fullTail);
-			//	bn++;
-	
-			}
-		if (timerError) 
-			{
-				error("Missed timer event - rate too high");
-			}
-	//	if (myTouch.dataAvailable())
-		//if (Serial.available()) 
-		//	{
-				// Stop ISR calls.
-				//adcStop();
-				//if (isrBuf != 0 && isrBuf->count >= PIN_COUNT) 
-				//	{
-				//		// Truncate to last complete sample.
-				//		isrBuf->count = PIN_COUNT*(isrBuf->count/PIN_COUNT);
-				//		// Put buffer in full queue.
-				//		fullQueue[fullHead] = isrBuf;
-				//		fullHead = queueNext(fullHead);
-				//		isrBuf = 0;
-				//	}
-				//if (fullHead == fullTail) break;
-			//}
-
-	}
-	 adcStop();
-	if (isrBuf != 0 && isrBuf->count >= PIN_COUNT) 
-		{
-			// Truncate to last complete sample.
-			isrBuf->count = PIN_COUNT*(isrBuf->count/PIN_COUNT);
-			// Put buffer in full queue.
-			fullQueue[fullHead] = isrBuf;
-			fullHead = queueNext(fullHead);
-			isrBuf = 0;
-		}
-//	if (fullHead == fullTail) break;
-//adcStop();
-while (myTouch.dataAvailable()){}
-}
 void Draw_menu_ADC1()
 {
 	myGLCD.clrScr();
@@ -1467,9 +1388,9 @@ void Draw_menu_ADC1()
 			myGLCD.setColor(255, 255, 255);
 			myGLCD.drawRoundRect (30, 20+(50*x), 290,60+(50*x));
 		}
-	myGLCD.print( txt_ADC_menu1, CENTER, 30);     // "Record ADC data"
-	myGLCD.print( txt_ADC_menu2, CENTER, 80);      // "Convert to CSV"
-	myGLCD.print( txt_ADC_menu3, CENTER, 130);     // "Data to Serial"
+	myGLCD.print( txt_ADC_menu1, CENTER, 30);       // "Record ADC data"
+	myGLCD.print( txt_ADC_menu2, CENTER, 80);       // "Convert to CSV"
+	myGLCD.print( txt_ADC_menu3, CENTER, 130);      // "Data to Serial"
 	myGLCD.print( txt_ADC_menu4, CENTER, 180);      // "Error details"
 }
 void menu_ADC()
@@ -2011,28 +1932,6 @@ void swichMenu() // Тексты меню в строках "txt....."
 	  
 				   if (pressed_button==but3 && m2 == 1)
 					   {
-						//   pass_test_start();  // Нарисовать цифровую клавиатуру
-						//   klav123();          // Считать информацию с клавиатуры
-						//if (ret == 1)        // Если "Возврат" - закончить
-						//	 {
-						//		goto bailout31;  // Перейти на окончание выполнения пункта меню
-						//	 }
-						//else                 // Иначе выполнить пункт меню
-						//	 {
-						//		pass_test();     // Проверить пароль
-						//	 }
-						//if ( ( pass1 == 1)||( pass2 == 1) || ( pass3 == 1)) // если верно - выполнить пункт меню
-						//	 {
-						//		myGLCD.clrScr();   // Очистить экран
-						//		myGLCD.print(txt_pass_ok, RIGHT, 208); 
-						//		delay (500);
-						//	   colwater_save_start(); // если верно - выполнить пункт меню
-						//	 }
-						//else  // Пароль не верный - сообщить и закончить
-						//	 {
-						//		txt_pass_no_all();
-						//	 }
-
 							bailout31: // Восстановить пункты меню
 							myGLCD.clrScr();
 							myButtons.drawButtons();
@@ -2040,29 +1939,8 @@ void swichMenu() // Тексты меню в строках "txt....."
 					   }
 				   if (pressed_button==but4 && m2 == 1)
 					   {
-						//	pass_test_start();  // Нарисовать цифровую клавиатуру
-						//	klav123();          // Считать информацию с клавиатуры
-						//if (ret == 1)        // Если "Возврат" - закончить
-						//	 {
-						//		goto bailout41;  // Перейти на окончание выполнения пункта меню
-						//	 }
-						//else                 // Иначе выполнить пункт меню
-						//	 {
-						//		pass_test();     // Проверить пароль
-						//	 }
-						//if ( ( pass1 == 1)||( pass2 == 1) || ( pass3 == 1)) // если верно - выполнить пункт меню
-						//	 {
-						//		myGLCD.clrScr();   // Очистить экран
-						//		myGLCD.print(txt_pass_ok, RIGHT, 208); 
-						//		delay (500);
-						//		hotwater_save_start(); // если верно - выполнить пункт меню
-						//	 }
-						//else  // Пароль не верный - сообщить и закончить
-						//	 {
-						//		txt_pass_no_all();
-						//	 }
-
-							bailout41: // Восстановить пункты меню
+							Draw_menu_SD();
+							menu_SD();
 							myGLCD.clrScr();
 							myButtons.drawButtons();
 							print_up();
@@ -2755,12 +2633,12 @@ void menu_Oscilloscope()
 							myGLCD.clrScr();
 							oscilloscope();
 							Draw_menu_Osc();
-							Draw_menu_Osc();
 						}
 					if ((y>=70) && (y<=110))   // Button: 2
 						{
 							waitForIt(30, 70, 290, 110);
-							dumpData_Osc();
+							myGLCD.clrScr();
+							//oscilloscope1();
 							Draw_menu_Osc();
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
@@ -2769,7 +2647,7 @@ void menu_Oscilloscope()
 							myGLCD.clrScr();
 							DrawGrid();
 							buttons();
-							Data_Oscill();
+							dumpData_Osc();
 							Draw_menu_Osc();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
@@ -2866,7 +2744,7 @@ void oscilloscope()
 					waitForIt(250, 90, 310, 130);
 					mode1 ++ ;
 					myGLCD.clrScr();
-	                buttons();
+					buttons();
 					if (mode1 > 3) mode1 = 0;   
 					if (mode1 == 0) koeff_h = 5.12;
 					if (mode1 == 1) koeff_h = 2.56;
@@ -2973,14 +2851,180 @@ void oscilloscope()
 
 	}
 adcStop();
+koeff_h = 5.12;
+mode1 = 0;
+Trigger = 0;
 myGLCD.setFont( BigFont);
 while (myTouch.dataAvailable()){}
 }
+void oscilloscope1()
+{
+	/*
+	uint32_t bgnBlock, endBlock;
+	// Allocate extra buffer space.
+	block_t block[BUFFER_BLOCK_COUNT];
+	myGLCD.clrScr();
+	myGLCD.setBackColor( 0, 0, 0);
+	adcInit((metadata_t*) &block[0]);
+	delay(500);
+	myGLCD.clrScr();
+	buttons();
+	adcStart();
+	int xpos;
+	int ypos1;
+	int ypos2;
+	while(1) 
+	{
+		 DrawGrid();
+		 if (myTouch.dataAvailable())
+			{
+				delay(10);
+				myTouch.read();
+				x_osc=myTouch.getX();
+				y_osc=myTouch.getY();
 
+				if ((x_osc>=2) && (x_osc<=240))  //  Delay Button
+					{
+						if ((y_osc>=1) && (y_osc<=200))  // Delay row
+						{
+							break;
+						} 
+					}
+			myGLCD.drawRoundRect (250, 1, 310, 40);
+			myGLCD.drawRoundRect (250, 45, 310, 85);
+			myGLCD.drawRoundRect (250, 90, 310, 130);
+			myGLCD.drawRoundRect (250, 135, 310, 175);
+		if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
+		  {
+			  if ((y_osc>=1) && (y_osc<=40))  // Delay row
+				  {
+					waitForIt(250, 1, 310, 40);
+					mode ++ ;
+					// Select delay times you can change values to suite your needs
+					if (mode == 0) dTime = 1;
+					if (mode == 1) dTime = 10;
+					if (mode == 2) dTime = 20;
+					if (mode == 3) dTime = 50;
+					if (mode == 4) dTime = 100;
+					if (mode == 5) dTime = 200;
+					if (mode == 6) dTime = 300;
+					if (mode == 7) dTime = 500;
+					if (mode == 8) dTime = 1000;
+					if (mode == 9) dTime = 5000;
+					if (mode == 10) dTime = 10000;
+					if (mode > 10) mode = 0;   
+					 Serial.println(dTime);
+
+				  }
+			 if ((y_osc>=45) && (y_osc<=85))  // Trigger  row
+				 {
+					waitForIt(250, 45, 310, 85);
+					tmode ++;
+					if (tmode > 2)tmode = 0;
+					if (tmode == 0) Trigger = 0;
+					if (tmode == 1) Trigger = Max/1.6;//;
+					if (tmode == 2) Trigger = Max-10;//20;
+				 }
+			 if ((y_osc>=90) && (y_osc<=130))  // Port select   row
+				 {
+					waitForIt(250, 90, 310, 130);
+					mode1 ++ ;
+					myGLCD.clrScr();
+					buttons();
+					if (mode1 > 3) mode1 = 0;   
+					if (mode1 == 0) koeff_h = 5.12;
+					if (mode1 == 1) koeff_h = 2.56;
+					if (mode1 == 2) koeff_h = 1.024;
+					if (mode1 == 3) koeff_h = 0.512;
+				 }
+			  if ((y_osc>=135) && (y_osc<=175))  // Port select   row
+				 {
+					waitForIt(250, 135, 310, 175);
+					//break;
+				 }
+
+		  }
+				
+				if ((y_osc>=205) && (y_osc<=239))  //  Delay Button
+					{
+						 touch_osc();
+					}
+		   }
+		
+		 trigger();
+
+		// Записать аналоговый сигнал в блок памяти
+ 
+		StartSample = micros();
+		for( xpos = 0;	xpos < 240; xpos ++) 
+		{
+			Sample[xpos] = analogRead(port);//*5/100;
+			Max = max(Max, Sample[xpos]);
+			delayMicroseconds(dTime);
+		}
+		EndSample = micros();
+
+		// Display the collected analog data from array
+		for( int xpos = 0; xpos < 239;	xpos ++)
+			{
+				// Erase previous display Стереть предыдущий экран
+				myGLCD.setColor( 0, 0, 0);
+				ypos1 = 255-(OldSample[ xpos + 1]/koeff_h) - hpos; 
+				ypos2 = 255-(OldSample[ xpos + 2]/koeff_h) - hpos;
+				if(ypos1<0) ypos1 = 0;
+				if(ypos2<0) ypos2 = 0;
+			//	myGLCD.drawLine (xpos + 1, 255-(OldSample[ xpos + 1]/4)* vsens-hpos, xpos + 2, 255-(OldSample[ xpos + 2]/4)* vsens-hpos);
+				myGLCD.drawLine (xpos + 1, ypos1, xpos + 2, ypos2);
+				if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
+				//Draw the new data
+				myGLCD.setColor( 255, 255, 255);
+				ypos1 = 255-(Sample[ xpos]/koeff_h) - hpos;
+				ypos2 = 255-(Sample[ xpos + 1]/koeff_h)- hpos;
+				if(ypos1<0) ypos1 = 0;
+				if(ypos2<0) ypos2 = 0;
+				myGLCD.drawLine (xpos, ypos1, xpos + 1, ypos2);
+			//	myGLCD.drawLine (xpos, 255-(Sample[ xpos]/4)* vsens-hpos, xpos + 1, 255-(Sample[ xpos + 1]/4)* vsens-hpos);
+				OldSample[xpos] = Sample[ xpos];
+			}
+
+		// display the sample time, delay time and trigger level
+		myGLCD.setBackColor( 0, 0, 255);
+		myGLCD.setFont( SmallFont);
+		myGLCD.setColor (255, 255,255);
+
+		myGLCD.print("Delay", 260, 5);
+		myGLCD.print("     ", 270, 20);
+		myGLCD.print(itoa ( dTime, buf, 10), 270, 20);
+		myGLCD.print("Trig.", 265, 50);
+		myGLCD.print("    ", 265, 65);
+		if (tmode == 0)myGLCD.print(" 0% ", 268, 65);
+		if (tmode == 1)myGLCD.print("50%", 266, 65);
+		if (tmode == 2)myGLCD.print("100%", 266, 65);
+
+		SampleTime =( EndSample/1000-StartSample/1000);
+		myGLCD.print("mSec.", 260, 140);
+		myGLCD.print("      ", 260, 160);
+		myGLCD.printNumF(SampleTime, 1, 260, 160);
+		myGLCD.print("V/del.", 260, 95);
+		myGLCD.print("      ", 260, 110);
+		if (mode1 == 0)myGLCD.print("1", 275, 110);
+		if (mode1 == 1)myGLCD.print("0.5", 268, 110);
+		if (mode1 == 2)myGLCD.print("0.2", 268, 110);
+		if (mode1 == 3)myGLCD.print("0.1", 268, 110);
+
+	}
+adcStop();
+koeff_h = 5.12;
+mode1 = 0;
+Trigger = 0;
+myGLCD.setFont( BigFont);
+while (myTouch.dataAvailable()){}
+*/
+}
 //--------draw buttons sub
 void buttons()
 {
- 	myGLCD.setColor(0, 0, 255);
+	myGLCD.setColor(0, 0, 255);
 	myGLCD.fillRoundRect (250, 1, 310, 40);
 	myGLCD.fillRoundRect (250, 45, 310, 85);
 	myGLCD.fillRoundRect (250, 90, 310, 130);
@@ -3233,6 +3277,230 @@ void DrawGrid1()
 	myGLCD.drawLine( 240, 0, 240, 200);
 	myGLCD.setColor(255, 255, 255);           // Белая окантовка
 }
+//++++++++++++++++++++++++++++++ SD Info +++++++++++++++++++++++++++++++
+bool firstTry = true;
+void SD_info()
+{
+
+  if (!sd.begin(SD_CS_PIN, spiSpeed)) 
+  {
+	if (sd.card()->errorCode()) 
+	{
+	  cout << F(
+			 "\nSD initialization failed.\n"
+			 "Do not reformat the card!\n"
+			 "Is the card correctly inserted?\n"
+			 "Is chipSelect set to the correct value?\n"
+			 "Does another SPI device need to be disabled?\n"
+			 "Is there a wiring/soldering problem?\n");
+	  cout << F("\nerrorCode: ") << hex << showbase;
+	  cout << int(sd.card()->errorCode());
+	  cout << F(", errorData: ") << int(sd.card()->errorData());
+	  cout << dec << noshowbase << endl;
+	  return;
+	}
+	cout << F("\nCard successfully initialized.\n");
+	if (sd.vol()->fatType() == 0) 
+	{
+	  cout << F("Can't find a valid FAT16/FAT32 partition.\n");
+	  reformatMsg();
+	  return;
+	}
+	if (!sd.vwd()->isOpen()) 
+	{
+	  cout << F("Can't open root directory.\n");
+	  reformatMsg();
+	  return;
+	}
+	cout << F("Can't determine error type\n");
+	return;
+  }
+  cout << F("\nCard successfully initialized.\n");
+  cout << endl;
+
+  uint32_t size = sd.card()->cardSize();
+  if (size == 0) {
+	cout << F("Can't determine the card size.\n");
+	cardOrSpeed();
+	return;
+  }
+  uint32_t sizeMB = 0.000512 * size + 0.5;
+  cout << F("Card size: ") << sizeMB;
+  cout << F(" MB (MB = 1,000,000 bytes)\n");
+  cout << endl;
+  cout << F("Volume is FAT") << int(sd.vol()->fatType());
+  cout << F(", Cluster size (bytes): ") << 512L * sd.vol()->blocksPerCluster();
+  cout << endl << endl;
+
+  cout << F("Files found (date time size name):\n");
+  sd.ls(LS_R | LS_DATE | LS_SIZE);
+
+  if ((sizeMB > 1100 && sd.vol()->blocksPerCluster() < 64)
+	  || (sizeMB < 2200 && sd.vol()->fatType() == 32)) 
+  {
+	cout << F("\nThis card should be reformatted for best performance.\n");
+	cout << F("Use a cluster size of 32 KB for cards larger than 1 GB.\n");
+	cout << F("Only cards larger than 2 GB should be formatted FAT32.\n");
+	reformatMsg();
+	return;
+  }
+}
+void cardOrSpeed() 
+{
+  cout << F("Try another SD card or reduce the SPI bus speed.\n");
+  cout << F("Edit spiSpeed in this program to change it.\n");
+}
+void reformatMsg() {
+  cout << F("Try reformatting the card.  For best results use\n");
+  cout << F("the SdFormatter program in SdFat/examples or download\n");
+  cout << F("and use SDFormatter from www.sdcard.org/downloads.\n");
+}
+
+#define sdError(msg) sdError_F(F(msg)) //
+
+
+//------------------------------------------------------------------------------
+
+//+++++++++++++++++++++++ SD Format ++++++++++++++++++++++++++++++++++++++++++++
+
+
+void SD_format()
+{
+	/*
+  char c;
+	cout << F(
+		 "\n"
+		 "This program can erase and/or format SD/SDHC cards.\n"
+		 "\n"
+		 "Erase uses the card's fast flash erase command.\n"
+		 "Flash erase sets all data to 0X00 for most cards\n"
+		 "and 0XFF for a few vendor's cards.\n"
+		 "\n"
+		 "Cards larger than 2 GB will be formatted FAT32 and\n"
+		 "smaller cards will be formatted FAT16.\n"
+		 "\n"
+		 "Warning, all data on the card will be erased.\n"
+		 "Enter 'Y' to continue: ");
+  while (!Serial.available()) {}
+  delay(400);  // catch Due restart problem
+
+  c = Serial.read();
+  cout << c << endl;
+  if (c != 'Y') {
+	cout << F("Quiting, you did not enter 'Y'.\n");
+	return;
+  }
+  // read any existing Serial data
+  while (Serial.read() >= 0) {}
+
+  cout << F(
+		 "\n"
+		 "Options are:\n"
+		 "E - erase the card and skip formatting.\n"
+		 "F - erase and then format the card. (recommended)\n"
+		 "Q - quick format the card without erase.\n"
+		 "\n"
+		 "Enter option: ");
+
+  while (!Serial.available()) {}
+  c = Serial.read();
+  cout << c << endl;
+  if (!strchr("EFQ", c)) {
+	cout << F("Quiting, invalid option entered.") << endl;
+	return;
+  }
+
+  if (!card.begin(SD_CS_PIN, spiSpeed)) {
+	cout << F(
+		   "\nSD initialization failure!\n"
+		   "Is the SD card inserted correctly?\n"
+		   "Is chip select correct at the top of this program?\n");
+	sdError("card.begin failed");
+  }
+  cardSizeBlocks = card.cardSize();
+  if (cardSizeBlocks == 0) {
+	sdError("cardSize");
+  }
+  cardCapacityMB = (cardSizeBlocks + 2047)/2048;
+
+  cout << F("Card Size: ") << cardCapacityMB;
+  cout << F(" MB, (MB = 1,048,576 bytes)") << endl;
+
+  if (c == 'E' || c == 'F') {
+	eraseCard();
+  }
+  if (c == 'F' || c == 'Q') {
+	formatCard();
+  }
+  */
+}
+//------------------------------------------------------------------------------
+void Draw_menu_SD()
+{
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 255);
+	for (int x=0; x<4; x++)
+		{
+			myGLCD.setColor(0, 0, 255);
+			myGLCD.fillRoundRect (30, 20+(50*x), 290,60+(50*x));
+			myGLCD.setColor(255, 255, 255);
+			myGLCD.drawRoundRect (30, 20+(50*x), 290,60+(50*x));
+		}
+	myGLCD.print( txt_SD_menu1, CENTER, 30);     // 
+	myGLCD.print( txt_SD_menu2, CENTER, 80);      
+	myGLCD.print( txt_SD_menu3, CENTER, 130);     
+	myGLCD.print( txt_SD_menu4, CENTER, 180);      
+}
+void menu_SD()
+{
+		// discard any input
+	while (Serial.read() >= 0) {} // Удалить все символы из буфера
+
+	char c;
+
+	while (true)
+		{
+		delay(10);
+		if (myTouch.dataAvailable())
+			{
+				myTouch.read();
+				int	x=myTouch.getX();
+				int	y=myTouch.getY();
+
+				if ((x>=30) && (x<=290))       // Upper row
+					{
+					if ((y>=20) && (y<=60))    // Button: 1
+						{
+							waitForIt(30, 20, 290, 60);
+							myGLCD.clrScr();
+							dumpData_Osc();
+
+							Draw_menu_SD();
+						}
+					if ((y>=70) && (y<=110))   // Button: 2
+						{
+							waitForIt(30, 70, 290, 110);
+						//	SD_info();
+							Draw_menu_SD();
+						}
+					if ((y>=120) && (y<=160))  // Button: 3
+						{
+							waitForIt(30, 120, 290, 160);
+							myGLCD.clrScr();
+						//	SD_format();
+							Draw_menu_SD();
+						}
+					if ((y>=170) && (y<=220))  // Button: 4
+						{
+							waitForIt(30, 170, 290, 210);
+							break;
+						}
+				}
+			}
+	   }
+
+}
+//--------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 void setup(void) 
@@ -3252,7 +3520,8 @@ void setup(void)
   Serial.println(FreeRam());
 
   // initialize file system.
-  if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED)) {
+  if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED)) 
+  {
 	sd.initErrorPrint();
 	fatalBlink();
   }
@@ -3294,7 +3563,9 @@ void setup(void)
 	//Serial.println(*ptr_i);
 	//*ptr_i=*ptr_i+1;
 	//Serial.println(*ptr_i);
-	Serial.println("End ADC");
+	SD_info();
+	Serial.println();
+	Serial.println("End setup");
 }
 //------------------------------------------------------------------------------
 void loop()
