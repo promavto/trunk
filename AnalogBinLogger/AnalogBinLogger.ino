@@ -151,6 +151,7 @@ int ret                = 0;                // Признак прерывания операции
 char buf[12];
 int x_osc,y_osc;
 int Input = 0;
+int Old_Input = 0;
 //byte Sample[320];
 //byte OldSample[320];
 //byte Sample_Test[320];
@@ -941,6 +942,8 @@ void dumpData_Osc()
 	block_t buf;
 	count1 = 0;
 	int xpos = 0;
+	int ypos1;
+	int ypos2;
 	if (!binFile.isOpen()) 
 		{
 			Serial.println(F("No current binary file"));
@@ -956,44 +959,112 @@ void dumpData_Osc()
 	myGLCD.setColor(VGA_LIME);
 	myGLCD.print(txt_info15,CENTER, 200);
 	myGLCD.setColor(255, 255, 255);
-	//DrawGrid();
 	delay(1000);
 	myGLCD.clrScr();
 	LongFile = 0;
 	DrawGrid1();
+	myGLCD.setColor(0, 0, 255);
+	myGLCD.setBackColor( 0, 0, 255);
+	myGLCD.fillRoundRect (250, 90, 310, 130);
+	myGLCD.setColor( 255, 255, 255);
+	myGLCD.drawRoundRect (250, 90, 310, 130);
+	myGLCD.setBackColor( 0, 0, 255);
+	myGLCD.setColor( 255, 255, 255);
+	myGLCD.setFont( SmallFont);
+	myGLCD.print("V/del.", 260, 95);
+	myGLCD.print("      ", 260, 110);
+	if (mode1 == 0)myGLCD.print("1", 275, 110);
+	if (mode1 == 1)myGLCD.print("0.5", 268, 110);
+	if (mode1 == 2)myGLCD.print("0.2", 268, 110);
+	if (mode1 == 3)myGLCD.print("0.1", 268, 110);
+
 	/*int Long_Screen = (count/PIN_COUNT)/240;
 	float Long_Screen1 = ((count/PIN_COUNT)/240)/240;*/
 
-	while (!myTouch.dataAvailable() && binFile.read(&buf , 512) == 512) 
+	//while (!myTouch.dataAvailable() && binFile.read(&buf , 512) == 512) 
+	while (binFile.read(&buf , 512) == 512) 
 	{
-		//myGLCD.clrScr();
-		//waitForIt(1, 1, 319, 239);
 		if (buf.count == 0) break;
 		if (buf.overrun) 
 			{
 				Serial.print(F("OVERRUN,"));
 				Serial.println(buf.overrun);
 			}
-		  
+
+		DrawGrid1();
+		 if (myTouch.dataAvailable())
+			{
+				delay(10);
+				myTouch.read();
+				x_osc=myTouch.getX();
+				y_osc=myTouch.getY();
+
+				if ((x_osc>=2) && (x_osc<=240))  //  Delay Button
+					{
+						if ((y_osc>=1) && (y_osc<=200))  // Delay row
+						{
+							break;
+						} 
+					}
+			if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
+			  {
+
+				 if ((y_osc>=90) && (y_osc<=130))  // Port select   row
+					 {
+						waitForIt(250, 90, 310, 130);
+						mode1 ++ ;
+						myGLCD.clrScr();
+						myGLCD.setColor(0, 0, 255);
+						myGLCD.fillRoundRect (250, 90, 310, 130);
+						myGLCD.setColor( 255, 255, 255);
+			            myGLCD.drawRoundRect (250, 90, 310, 130);
+						if (mode1 > 3) mode1 = 0;   
+						if (mode1 == 0) koeff_h = 5.12;
+						if (mode1 == 1) koeff_h = 2.56;
+						if (mode1 == 2) koeff_h = 1.024;
+						if (mode1 == 3) koeff_h = 0.512;
+						myGLCD.setBackColor( 0, 0, 255);
+						myGLCD.setColor( 255, 255, 255);
+						myGLCD.setFont( SmallFont);
+						myGLCD.print("V/del.", 260, 95);
+						myGLCD.print("      ", 260, 110);
+						if (mode1 == 0)myGLCD.print("1", 275, 110);
+						if (mode1 == 1)myGLCD.print("0.5", 268, 110);
+						if (mode1 == 2)myGLCD.print("0.2", 268, 110);
+						if (mode1 == 3)myGLCD.print("0.1", 268, 110);
+					 }
+			  }
+		   }
+
 		for (uint16_t i = 0; i < buf.count; i++) 
 		{
-				Sample[xpos] = buf.data[i]*5/100;
+				Sample[xpos] = buf.data[i];
 				xpos++;
 			if(xpos == 240)
 				{
-					for (int xpos1 = 0; xpos1<240; xpos1++)
-						{
-							myGLCD.setColor( 0, 0, 0);       		// Erase previous display Стереть предыдущий экран
-							myGLCD.drawLine (xpos1 + 1, 255-OldSample[ xpos1 + 1]* vsens-hpos, xpos1 + 2, 255-OldSample[ xpos1 + 2]* vsens-hpos);
-							if (xpos1 == 0) myGLCD.drawLine (xpos1 + 1, 1, xpos1 + 1, 239);
-							myGLCD.setColor( 255, 255, 255);  	//Draw the new data
-							myGLCD.drawLine (xpos1, 255-Sample[ xpos1]* vsens-hpos, xpos1 + 1, 255-Sample[ xpos1 + 1]* vsens-hpos);
-							OldSample[xpos1] = Sample[xpos1];
-							
-						}
-			
-					xpos = 0;
 					DrawGrid1();
+				for( int xpos = 0; xpos < 239;	xpos ++)
+					{
+						// Erase previous display Стереть предыдущий экран
+						myGLCD.setColor( 0, 0, 0);
+						ypos1 = 255-(OldSample[ xpos + 1]/koeff_h) - hpos; 
+						ypos2 = 255-(OldSample[ xpos + 2]/koeff_h) - hpos;
+						if(ypos1<0) ypos1 = 0;
+						if(ypos2<0) ypos2 = 0;
+						myGLCD.drawLine (xpos + 1, ypos1, xpos + 2, ypos2);
+						if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
+						//Draw the new data
+						myGLCD.setColor( 255, 255, 255);
+						ypos1 = 255-(Sample[ xpos]/koeff_h) - hpos;
+						ypos2 = 255-(Sample[ xpos + 1]/koeff_h)- hpos;
+						if(ypos1<0) ypos1 = 0;
+						if(ypos2<0) ypos2 = 0;
+						myGLCD.drawLine (xpos, ypos1, xpos + 1, ypos2);
+						OldSample[xpos] = Sample[ xpos];
+					}
+					xpos = 0;
+					myGLCD.setFont( BigFont);
+					myGLCD.setBackColor( 0, 0, 0);
 					count1++;
 					myGLCD.printNumI(count/PIN_COUNT, RIGHT, 220);// 
 					myGLCD.setColor(VGA_LIME);
@@ -1010,6 +1081,7 @@ void dumpData_Osc()
 				}
 		}
 	}
+	myGLCD.setFont( BigFont);
 	Serial.println(F("Done"));
 	myGLCD.setColor(VGA_YELLOW);
 	myGLCD.print(txt_info9,CENTER, 80);
@@ -2681,9 +2753,8 @@ void menu_Oscilloscope()
 						{
 							waitForIt(30, 20, 290, 60);
 							myGLCD.clrScr();
-							DrawGrid();
-							buttons();
-							Data_Oscill();
+							oscilloscope();
+							Draw_menu_Osc();
 							Draw_menu_Osc();
 						}
 					if ((y>=70) && (y<=110))   // Button: 2
@@ -2696,7 +2767,9 @@ void menu_Oscilloscope()
 						{
 							waitForIt(30, 120, 290, 160);
 							myGLCD.clrScr();
-							oscilloscope();
+							DrawGrid();
+							buttons();
+							Data_Oscill();
 							Draw_menu_Osc();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
@@ -2713,12 +2786,13 @@ void trigger()
 {
 	do
 	 {
-	   Input = analogRead(port)/koeff_h;   //
+	   Input = analogRead(port);   //
+	  // Old_Input = Input;
 	 }  while (Input<Trigger); 
 	 do
 	 {
-		Input = analogRead(port)/koeff_h; //
-	 }  while (Input>Trigger +3 );        //Input < Trigger
+		Input = analogRead(port); //
+	 }  while (Input>Trigger );        //Input < Trigger
 }
 void oscilloscope()
 {
@@ -2752,10 +2826,10 @@ void oscilloscope()
 							break;
 						} 
 					}
-	myGLCD.drawRoundRect (250, 1, 310, 40);
-	myGLCD.drawRoundRect (250, 45, 310, 85);
-	myGLCD.drawRoundRect (250, 90, 310, 130);
-	myGLCD.drawRoundRect (250, 135, 310, 175);
+			myGLCD.drawRoundRect (250, 1, 310, 40);
+			myGLCD.drawRoundRect (250, 45, 310, 85);
+			myGLCD.drawRoundRect (250, 90, 310, 130);
+			myGLCD.drawRoundRect (250, 135, 310, 175);
 		if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
 		  {
 			  if ((y_osc>=1) && (y_osc<=40))  // Delay row
@@ -2782,15 +2856,10 @@ void oscilloscope()
 				 {
 					waitForIt(250, 45, 310, 85);
 					tmode ++;
-					if (tmode == 1) Trigger = 0;
-					if (tmode == 2) Trigger = (Max-20)/10/koeff_h;//;
-					if (tmode == 3) Trigger = (Max-20)/5/koeff_h;//20;
-					if (tmode == 4) Trigger = (Max-20)/2/koeff_h;//30;
-					if (tmode == 5) Trigger = (Max-20)/1/koeff_h;//50;
-					if (tmode > 5)tmode = 0;
-					Serial.print(Max);
-					Serial.print(" - ");
-					Serial.println(Trigger);
+					if (tmode > 2)tmode = 0;
+					if (tmode == 0) Trigger = 0;
+					if (tmode == 1) Trigger = Max/1.6;//;
+					if (tmode == 2) Trigger = Max-10;//20;
 				 }
 			 if ((y_osc>=90) && (y_osc<=130))  // Port select   row
 				 {
@@ -2865,9 +2934,13 @@ void oscilloscope()
 		myGLCD.print("Delay", 260, 5);
 		myGLCD.print("     ", 270, 20);
 		myGLCD.print(itoa ( dTime, buf, 10), 270, 20);
-		myGLCD.print("Trig.", 260, 50);
-		myGLCD.print("  %", 270, 65);
-		myGLCD.print(itoa( Trigger, buf, 10), 270, 65);
+		myGLCD.print("Trig.", 265, 50);
+		myGLCD.print("    ", 265, 65);
+		if (tmode == 0)myGLCD.print(" 0% ", 268, 65);
+		if (tmode == 1)myGLCD.print("50%", 266, 65);
+		if (tmode == 2)myGLCD.print("100%", 266, 65);
+
+	//	myGLCD.print(itoa( Trigger, buf, 10), 270, 65);
 		SampleTime =( EndSample/1000-StartSample/1000);
 		myGLCD.print("mSec.", 260, 140);
 		myGLCD.print("      ", 260, 160);
@@ -2907,8 +2980,7 @@ while (myTouch.dataAvailable()){}
 //--------draw buttons sub
 void buttons()
 {
-  
-	myGLCD.setColor(0, 0, 255);
+ 	myGLCD.setColor(0, 0, 255);
 	myGLCD.fillRoundRect (250, 1, 310, 40);
 	myGLCD.fillRoundRect (250, 45, 310, 85);
 	myGLCD.fillRoundRect (250, 90, 310, 130);
@@ -3152,35 +3224,14 @@ void DrawGrid()
 }
 void DrawGrid1()
 {
-
   myGLCD.setColor( 0, 200, 0);
   for(  dgvh = 0; dgvh < 6; dgvh ++)
   {
 	  myGLCD.drawLine( dgvh * 40, 0, dgvh * 40, 200);
 	  myGLCD.drawLine(  0, dgvh * 40, 240 ,dgvh * 40);
   }
-//  myGLCD.drawLine( 200, 0, 200, 150);
 	myGLCD.drawLine( 240, 0, 240, 200);
 	myGLCD.setColor(255, 255, 255);           // Белая окантовка
-	//myGLCD.drawRoundRect (250, 1, 310, 40);
-	//myGLCD.drawRoundRect (250, 45, 310, 85);
-	//myGLCD.drawRoundRect (250, 90, 310, 130);
-	//myGLCD.drawRoundRect (250, 135, 310, 175);
-	//myGLCD.drawRoundRect (5+x_kn, 218, 30+x_kn, 239);
-	//myGLCD.drawRoundRect (35+x_kn, 218, 60+x_kn, 239);
-	//myGLCD.drawRoundRect (65+x_kn, 218, 90+x_kn, 239);
-	//myGLCD.drawRoundRect (95+x_kn, 218, 120+x_kn, 239);
-	//myGLCD.drawRoundRect (125+x_kn, 218, 150+x_kn, 239);
-	//myGLCD.drawRoundRect (155+x_kn, 218, 180+x_kn, 239);
-	//myGLCD.drawRoundRect (185+x_kn, 218, 210+x_kn, 239);
-	//myGLCD.drawRoundRect (280, 205, 311, 239);
-
-	//myGLCD.setColor(VGA_LIME);
-	//myGLCD.drawRoundRect (1+x_kn, 205, 215+x_kn, 213);
-	//myGLCD.drawRoundRect (0, 205, 29, 239);
-	//myGLCD.drawRoundRect (217+x_kn, 205, 245+x_kn, 239);
-	//myGLCD.setColor(255, 255, 255);           // 
-
 }
 
 //------------------------------------------------------------------------------
