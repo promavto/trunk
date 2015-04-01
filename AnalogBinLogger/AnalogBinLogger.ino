@@ -281,9 +281,6 @@ void dateTime(uint16_t* date, uint16_t* time) // Программа записи времени и даты
   *time = FAT_TIME(now.hour(), now.minute(), now.second());
 }
 
-
-
-
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
 // numbers may be repeated.
@@ -339,7 +336,6 @@ const uint32_t FILE_BLOCK_COUNT = 256000;
 #define RECORD_EIGHT_BITS 0
 //------------------------------------------------------------------------------
 // Pin definitions.
-//
 // Digital pin to indicate an error, set to -1 if not used.
 // The led blinks for fatal errors. The led goes on solid for SD write
 // overrun errors and logging continues.
@@ -349,7 +345,7 @@ const uint8_t spiSpeed = SPI_HALF_SPEED;
 // SD chip select pin.
 const uint8_t SD_CS_PIN = 53;
 
-//+++++++++++++++++++++++++++++++ SD Format ++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++ SD Format ++++++++++++++++++++++++++++++++++++
 
 Sd2Card card;
 
@@ -383,9 +379,6 @@ uint16_t const BU32 = 8192;
 char noName[] = "NO NAME    ";
 char fat16str[] = "FAT16   ";
 char fat32str[] = "FAT32   ";
-
-
-
 
 //------------------------------------------------------------------------------
 // Buffer definitions.
@@ -422,13 +415,12 @@ char fat32str[] = "FAT32   ";
 //const uint8_t QUEUE_DIM = 32;  // Must be a power of two!
 //#endif  // RAMEND
 
-
 // Use total of five 512 byte buffers.
 const uint8_t BUFFER_BLOCK_COUNT = 4;
+//const uint8_t BUFFER_BLOCK_COUNT = 1;
 // Dimension for queues of 512 byte SD blocks.
+//const uint8_t QUEUE_DIM = 4;  // Must be a power of two!
 const uint8_t QUEUE_DIM = 8;  // Must be a power of two!
-
-// log data
 // max number of blocks to erase per erase call
 uint32_t const ERASE_SIZE = 262144L;
 
@@ -476,7 +468,6 @@ typedef block16_t block_t;
 block_t* emptyQueue[QUEUE_DIM];
 uint8_t emptyHead;
 uint8_t emptyTail;
-
 block_t* fullQueue[QUEUE_DIM];
 volatile uint8_t fullHead;  // volatile insures non-interrupt code sees changes.
 uint8_t fullTail;
@@ -1445,7 +1436,7 @@ void menu_ADC()
 	   }
 }
 
-//************************** Аналоговые часы ****************************************************
+//************************** Аналоговые часы ************************************
 int bcd2bin(int temp)//BCD  to decimal
 {
 	int a,b,c;
@@ -2592,7 +2583,7 @@ void reset_klav()
 		but_m5 = myButtons.addButton(  214, 199, 45,  40, "5");
 
 }
-//++++++++++++++++++++++++++ Конец меню прибора ++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++ Конец меню прибора ++++++++++++++++++++++++
 void Draw_menu_Osc()
 {
 	myGLCD.clrScr();
@@ -2772,7 +2763,7 @@ void oscilloscope()
 		StartSample = micros();
 		for( xpos = 0;	xpos < 240; xpos ++) 
 		{
-			Sample[xpos] = analogRead(port);//*5/100;
+			Sample[xpos] = analogRead(port);    //
 			Max = max(Max, Sample[xpos]);
 			delayMicroseconds(dTime);
 		}
@@ -2786,8 +2777,11 @@ void oscilloscope()
 			{
 				// Erase previous display Стереть предыдущий экран
 				myGLCD.setColor( 0, 0, 0);
-				ypos1 = 255-(OldSample[ xpos + 1]/koeff_h) - hpos; 
-				ypos2 = 255-(OldSample[ xpos + 2]/koeff_h) - hpos;
+				ypos1 = 240-(OldSample[ xpos + 1]/koeff_h) - hpos; 
+				ypos2 = 240-(OldSample[ xpos + 2]/koeff_h) - hpos;
+				//ypos1 = 255-(OldSample[ xpos + 1]/koeff_h) - hpos; 
+				//ypos2 = 255-(OldSample[ xpos + 2]/koeff_h) - hpos;
+
 				if(ypos1<0) ypos1 = 0;
 				if(ypos2<0) ypos2 = 0;
 			//	myGLCD.drawLine (xpos + 1, 255-(OldSample[ xpos + 1]/4)* vsens-hpos, xpos + 2, 255-(OldSample[ xpos + 2]/4)* vsens-hpos);
@@ -2795,8 +2789,11 @@ void oscilloscope()
 				if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 239);
 				//Draw the new data
 				myGLCD.setColor( 255, 255, 255);
-				ypos1 = 255-(Sample[ xpos]/koeff_h) - hpos;
-				ypos2 = 255-(Sample[ xpos + 1]/koeff_h)- hpos;
+				ypos1 = 240-(Sample[ xpos]/koeff_h) - hpos;
+				ypos2 = 240-(Sample[ xpos + 1]/koeff_h)- hpos;
+				//ypos1 = 255-(Sample[ xpos]/koeff_h) - hpos;
+				//ypos2 = 255-(Sample[ xpos + 1]/koeff_h)- hpos;
+
 				if(ypos1<0) ypos1 = 0;
 				if(ypos2<0) ypos2 = 0;
 				myGLCD.drawLine (xpos, ypos1, xpos + 1, ypos2);
@@ -3064,59 +3061,58 @@ void buttons()
 	//myGLCD.setFont( SmallFont);
 }
 //-------touchscreen position sub
-void touch()
-{
-  while (myTouch.dataAvailable())
-  {
-	  delay(10);
-	  myTouch.read();
-	  x_osc=myTouch.getX();
-	  y_osc=myTouch.getY();
-
-	  if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
-	  {
-		  if ((y_osc>=1) && (y_osc<=50))  // Delay row
-			  {
-				waitForIt(250, 1, 310, 50);
-				mode ++ ;
-				// Select delay times you can change values to suite your needs
-				if (mode == 0) dTime = 1;
-				if (mode == 1) dTime = 10;
-				if (mode == 2) dTime = 20;
-				if (mode == 3) dTime = 50;
-				if (mode == 4) dTime = 100;
-				if (mode == 5) dTime = 200;
-				if (mode == 6) dTime = 300;
-				if (mode == 7) dTime = 500;
-				if (mode == 8) dTime = 1000;
-				if (mode == 9) dTime = 5000;
-				if (mode == 10) dTime = 10000;
-				if (mode > 10) mode = 0;   
-				 Serial.println(dTime);
-
-			  }
-		 if ((y_osc>=55) && (y_osc<=105))  // Trigger  row
-			 {
-				waitForIt(250, 55, 310, 105);
-				tmode ++;
-				if (tmode == 1) Trigger = 0;
-				if (tmode == 2) Trigger = 10;
-				if (tmode == 3) Trigger = 20;
-				if (tmode == 4) Trigger = 30;
-				if (tmode == 5) Trigger = 50;
-				if (tmode > 5)tmode = 0;
-				Serial.println(Trigger);
-			 }
-		 if ((y_osc>=110) && (y_osc<=160))  // Port select   row
-			 {
-				waitForIt(250, 110, 310, 160);
-				break;
-			 }
-
-	  }
-   }
-}
-void touch_osc()
+//void touch()
+//{
+//  while (myTouch.dataAvailable())
+//  {
+//	  delay(10);
+//	  myTouch.read();
+//	  x_osc=myTouch.getX();
+//	  y_osc=myTouch.getY();
+//
+//	  if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
+//	  {
+//		  if ((y_osc>=1) && (y_osc<=50))  // Delay row
+//			  {
+//				waitForIt(250, 1, 310, 50);
+//				mode ++ ;
+//				// Select delay times you can change values to suite your needs
+//				if (mode == 0) dTime = 1;
+//				if (mode == 1) dTime = 10;
+//				if (mode == 2) dTime = 20;
+//				if (mode == 3) dTime = 50;
+//				if (mode == 4) dTime = 100;
+//				if (mode == 5) dTime = 200;
+//				if (mode == 6) dTime = 300;
+//				if (mode == 7) dTime = 500;
+//				if (mode == 8) dTime = 1000;
+//				if (mode == 9) dTime = 5000;
+//				if (mode == 10) dTime = 10000;
+//				if (mode > 10) mode = 0;   
+//				 Serial.println(dTime);
+//
+//			  }
+//		 if ((y_osc>=55) && (y_osc<=105))  // Trigger  row
+//			 {
+//				waitForIt(250, 55, 310, 105);
+//				tmode ++;
+//				if (tmode == 1) Trigger = 0;
+//				if (tmode == 2) Trigger = 10;
+//				if (tmode == 3) Trigger = 20;
+//				if (tmode == 4) Trigger = 30;
+//				if (tmode == 5) Trigger = 50;
+//				if (tmode > 5)tmode = 0;
+//				Serial.println(Trigger);
+//			 }
+//		 if ((y_osc>=110) && (y_osc<=160))  // Port select   row
+//			 {
+//				waitForIt(250, 110, 310, 160);
+//				break;
+//			 }
+//	  }
+//   }
+//}
+void touch_osc()  //  Нижнее меню осциллографа
 {
 	delay(10);
 	myTouch.read();
@@ -3125,8 +3121,6 @@ void touch_osc()
 
 	if ((y_osc>=205) && (y_osc<=239))  //  Delay Button
 	{
-					
-	
 		if ((x_osc>=5+x_kn) && (x_osc<=30+x_kn))  //  Delay Button
 			{
 				waitForIt(5+x_kn, 218, 30+x_kn, 239);
@@ -3148,7 +3142,6 @@ void touch_osc()
 				myGLCD.setColor(0, 0, 255);
 				myGLCD.setFont( SmallFont);
 				myGLCD.print("5s", 42+x_kn, 222);
-
 			}
 		if ((x_osc>=65+x_kn) && (x_osc<=90+x_kn))  //  Delay Button
 			{
@@ -3160,7 +3153,6 @@ void touch_osc()
 				myGLCD.setColor(0, 0, 255);
 				myGLCD.setFont( SmallFont);
 				myGLCD.print("10s", 67+x_kn, 222);
-
 			}
 		if ((x_osc>=95+x_kn) && (x_osc<=120+x_kn))  //  Delay Button
 			{
@@ -3172,7 +3164,6 @@ void touch_osc()
 				myGLCD.setColor(0, 0, 255);
 				myGLCD.setFont( SmallFont);
 				myGLCD.print("1m", 102+x_kn, 222);
-
 			}
 		if ((x_osc>=125+x_kn) && (x_osc<=150+x_kn))  //  Delay Button
 			{
@@ -3184,8 +3175,6 @@ void touch_osc()
 				myGLCD.setColor(0, 0, 255);
 				myGLCD.setFont( SmallFont);
 				myGLCD.print("5m", 132+x_kn, 222);
-
-
 			}
 		if ((x_osc>=155+x_kn) && (x_osc<=180+x_kn))  //  Delay Button
 			{
@@ -3197,7 +3186,6 @@ void touch_osc()
 				myGLCD.setColor(0, 0, 255);
 				myGLCD.setFont( SmallFont);
 				myGLCD.print("10m", 157+x_kn, 222);
-
 			}
 		if ((x_osc>=185+x_kn) && (x_osc<=210+x_kn))  //  Delay Button
 			{
@@ -3209,20 +3197,17 @@ void touch_osc()
 				myGLCD.setColor(0, 0, 255);
 				myGLCD.setFont( SmallFont);
 				myGLCD.print("15m", 187+x_kn, 222);
-
 			}
 
 		if ((x_osc>=0) && (x_osc<=29))  //  Delay Button
 			{
 				waitForIt(1, 205, 29, 239);
-							
 
 			}
 
 		if ((x_osc>=217+x_kn) && (x_osc<= 245+x_kn))  //  Delay Button
 			{
 				waitForIt(217+x_kn, 205, 245+x_kn, 239);
-							
 
 			}
 	}
@@ -3453,13 +3438,10 @@ void Draw_menu_SD()
 }
 void menu_SD()
 {
-		// discard any input
 	while (Serial.read() >= 0) {} // Удалить все символы из буфера
-
 	char c;
-
 	while (true)
-		{
+	  {
 		delay(10);
 		if (myTouch.dataAvailable())
 			{
@@ -3498,10 +3480,7 @@ void menu_SD()
 				}
 			}
 	   }
-
 }
-//--------------------------------------------------------------------
-
 //------------------------------------------------------------------------------
 void setup(void) 
 {
