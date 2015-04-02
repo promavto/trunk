@@ -21,5 +21,8 @@
     <ClInclude Include="Visual Micro\.AnalogBinLoggerFast.vsarduino.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="UserDataType.h">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
