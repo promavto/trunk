@@ -115,6 +115,7 @@ void Draw_menu_Osc();
 void menu_Oscilloscope();
 void trigger();
 void oscilloscope();
+void print_set();
 void oscilloscope1();
 void buttons();
 void touch_osc();
