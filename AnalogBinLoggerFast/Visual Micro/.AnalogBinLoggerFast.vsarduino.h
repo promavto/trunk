@@ -83,7 +83,7 @@ void acquireData(data_t* data);
 void printData(Print* pr, data_t* data);
 void printHeader(Print* pr);
 inline uint8_t queueNext(uint8_t ht);
-void errorFlash(const __FlashStringHelper* msg);
+void error_P(const char* msg);
 void fatalBlink();
 void binaryToCsv();
 void checkOverrun();
@@ -93,4 +93,5 @@ void setup(void);
 void loop(void);
 
 #include <AnalogBinLoggerFast.ino>
+#include <UserDataType.h>
 #endif
