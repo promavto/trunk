@@ -81,10 +81,10 @@ const uint32_t FILE_BLOCK_COUNT = 256000;
 // Digital pin to indicate an error, set to -1 if not used.
 // The led blinks for fatal errors. The led goes on solid for SD write
 // overrun errors and logging continues.
-const int8_t ERROR_LED_PIN = 3;
+const int8_t ERROR_LED_PIN = 13;
 
 // SD chip select pin.
-const uint8_t SD_CS_PIN = SS;
+const uint8_t SD_CS_PIN = 53;
 //------------------------------------------------------------------------------
 // Buffer definitions.
 //
@@ -126,18 +126,22 @@ const uint8_t QUEUE_DIM = 32;  // Must be a power of two!
 #define TMP_FILE_NAME "TMP_LOG.BIN"
 
 // Size of file base name.  Must not be larger than six.
+//Размер базовой части имени файла. Должно быть не больше, чем шесть.
 const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
 
-// Number of analog pins to log.
-const uint8_t PIN_COUNT = sizeof(PIN_LIST)/sizeof(PIN_LIST[0]);
+// Number of analog pins to log. Количество аналоговых входов, зарегистрировать.
+const uint8_t PIN_COUNT = sizeof(PIN_LIST)/sizeof(PIN_LIST[0]);  
 
 // Minimum ADC clock cycles per sample interval
+//Минимальное количество измерений  АЦП за интервал дискретизации
 const uint16_t MIN_ADC_CYCLES = 15;
 
 // Extra cpu cycles to setup ADC with more than one pin per sample.
+// Дополнительные циклов процессора настройки АЦП с более чем одним штифтом на образец.
 const uint16_t ISR_SETUP_ADC = 100;
 
 // Maximum cycles for timer0 system interrupt, millis, micros.
+// Максимальные циклы для системы TIMER0 прерывания, Millis, Micros.
 const uint16_t ISR_TIMER0 = 160;
 //==============================================================================
 SdFat sd;
@@ -150,7 +154,7 @@ char binName[13] = FILE_BASE_NAME "00.BIN";
 const size_t SAMPLES_PER_BLOCK = DATA_DIM8/PIN_COUNT;
 typedef block8_t block_t;
 #else  // RECORD_EIGHT_BITS
-const size_t SAMPLES_PER_BLOCK = DATA_DIM16/PIN_COUNT;
+const size_t SAMPLES_PER_BLOCK = DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
 typedef block16_t block_t;
 #endif // RECORD_EIGHT_BITS
 
@@ -176,10 +180,11 @@ bool isrBufNeeded = true;
 // overrun count
 uint16_t isrOver = 0;
 
-// ADC configuration for each pin.
-uint8_t adcmux[PIN_COUNT];
-uint8_t adcsra[PIN_COUNT];
-uint8_t adcsrb[PIN_COUNT];
+// ADC configuration for each pin. Конфигурация АЦП для каждого контакта.
+
+uint8_t adcmux[PIN_COUNT]; // PIN_COUNT - количество входов.
+uint8_t adcsra[PIN_COUNT]; //
+uint8_t adcsrb[PIN_COUNT]; // 
 uint8_t adcindex = 1;
 
 // Insure no timer events are missed.
@@ -189,65 +194,69 @@ volatile bool timerFlag = false;
 // ADC done interrupt.
 ISR(ADC_vect) 
 {
-  // Read ADC data.
-#if RECORD_EIGHT_BITS
+  // Read ADC data.   
+#if RECORD_EIGHT_BITS // Выбор разрядности АЦП
   uint8_t d = ADCH;
 #else  // RECORD_EIGHT_BITS
   // This will access ADCL first. 
-  uint16_t d = ADC;
+  uint16_t d = ADC;   // Записать данные АЦП в d
 #endif  // RECORD_EIGHT_BITS
 
-
-
   if (isrBufNeeded && emptyHead == emptyTail) 
-  {
-    // no buffers - count overrun
-    if (isrOver < 0XFFFF) isrOver++;
+	  {
+		// no buffers - count overrun 
+		if (isrOver < 0XFFFF) isrOver++;
     
-    // Avoid missed timer error. Избежать пропущенных ошибку таймера.
-    timerFlag = false;
-    return;
-  }
-  // Start ADC
-  if (PIN_COUNT > 1) {
-    ADMUX = adcmux[adcindex];
-    ADCSRB = adcsrb[adcindex];
-    ADCSRA = adcsra[adcindex];
-    if (adcindex == 0) timerFlag = false;
-    adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
-  } else {
-    timerFlag = false;
-  }
-  // Check for buffer needed.
-  if (isrBufNeeded) {   
-    // Remove buffer from empty queue.
-    isrBuf = emptyQueue[emptyTail];
-    emptyTail = queueNext(emptyTail);
-    isrBuf->count = 0;
-    isrBuf->overrun = isrOver;
-    isrBufNeeded = false;    
-  }
+		// Avoid missed timer error. Избежать пропущенных ошибку таймера.
+		timerFlag = false;
+		return;
+	  }
+  // Start ADC 
+  if (PIN_COUNT > 1) 
+	  {
+		ADMUX = adcmux[adcindex];
+		ADCSRB = adcsrb[adcindex];
+		ADCSRA = adcsra[adcindex];
+		if (adcindex == 0) timerFlag = false;
+		adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
+	  }
+  else  // Иначе  ошибка
+	  {
+		timerFlag = false;
+	  }
+  // Check for buffer needed.  Проверьте буфера, необходимого.
+  if (isrBufNeeded) 
+	  {   
+		// Remove buffer from empty queue. Удалить буфер из пустого очереди.
+		isrBuf = emptyQueue[emptyTail];
+		emptyTail = queueNext(emptyTail);
+		isrBuf->count = 0;            // Счнтчик в 0
+		isrBuf->overrun = isrOver;    // 
+		isrBufNeeded = false;    
+	  }
   // Store ADC data.
-  isrBuf->data[isrBuf->count++] = d;
+  isrBuf->data[isrBuf->count++] = d; // Записать данные в буфер по счетчику "isrBuf->count++"
 
-  // Check for buffer full.
-  if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK) 
-  {
-    // Put buffer isrIn full queue.  
-    uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
-    fullQueue[tmp] = (block_t*)isrBuf;
-    fullHead = queueNext(tmp);
+  // Check for buffer full. Проверка заполнения буфера
+  if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK)  //  PIN_COUNT*SAMPLES_PER_BLOCK
+	                             // SAMPLES_PER_BLOCK = DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
+	  {
+		// Put buffer isrIn full queue.  Положите буфер isrIn полной очереди.
+		uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
+		fullQueue[tmp] = (block_t*)isrBuf;
+		fullHead = queueNext(tmp);
    
-    // Set buffer needed and clear overruns.
-    isrBufNeeded = true;
-    isrOver = 0;
-  }
+		// Set buffer needed and clear overruns.
+		isrBufNeeded = true;
+		isrOver = 0;
+	  }
 }
+
 //------------------------------------------------------------------------------
 // timer1 interrupt to clear OCF1B
-ISR(TIMER1_COMPB_vect) 
+ISR(TIMER1_COMPB_vect)  // Проверка успевает ли записать АЦП данные вовремя.
 {
-  // Make sure ADC ISR responded to timer event.
+  // Make sure ADC ISR responded to timer event. Убедитесь в том, ADC ISR ответил на события таймера.
   if (timerFlag) timerError = true;
   timerFlag = true;
 }
@@ -321,7 +330,7 @@ void adcInit(metadata_t* meta)
 	  meta->pinCount = PIN_COUNT;
 	  meta->recordEightBits = RECORD_EIGHT_BITS;
   
-	  for (int i = 0; i < PIN_COUNT; i++) 
+	  for (int i = 0; i < PIN_COUNT; i++)  
 	  {
 		uint8_t pin = PIN_LIST[i];
 		if (pin >= NUM_ANALOG_INPUTS) error("Invalid Analog pin number");
@@ -555,28 +564,35 @@ void checkOverrun()
 }
 //------------------------------------------------------------------------------
 // dump data file to Serial
-void dumpData() {
+void dumpData() 
+{
   block_t buf;
-  if (!binFile.isOpen()) {
+  if (!binFile.isOpen()) 
+  {
     Serial.println(F("No current binary file"));
     return;
   }
   binFile.rewind();
-  if (binFile.read(&buf , 512) != 512) {
+  if (binFile.read(&buf , 512) != 512) 
+  {
     error("Read metadata failed");
   }
   Serial.println();
   Serial.println(F("Type any character to stop"));
   delay(1000);
-  while (!Serial.available() && binFile.read(&buf , 512) == 512) {
+  while (!Serial.available() && binFile.read(&buf , 512) == 512) 
+  {
     if (buf.count == 0) break;
-    if (buf.overrun) {
+    if (buf.overrun) 
+	{
       Serial.print(F("OVERRUN,"));
       Serial.println(buf.overrun);
     }
-    for (uint16_t i = 0; i < buf.count; i++) {
+    for (uint16_t i = 0; i < buf.count; i++) 
+	{
       Serial.print(buf.data[i], DEC);
-      if ((i+1)%PIN_COUNT) {
+      if ((i+1)%PIN_COUNT) 
+	  {
         Serial.print(',');
       } else {
         Serial.println();
@@ -603,46 +619,47 @@ void logData()
   
   // Find unused file name.
   if (BASE_NAME_SIZE > 6) 
-  {
-    error("FILE_BASE_NAME too long");
-  }
-  while (sd.exists(binName)) 
-  {
-    if (binName[BASE_NAME_SIZE + 1] != '9') {
-      binName[BASE_NAME_SIZE + 1]++;
-    }
-	else 
-	{
-      binName[BASE_NAME_SIZE + 1] = '0';
-      if (binName[BASE_NAME_SIZE] == '9') 
 	  {
-        error("Can't create file name");
-      }
-      binName[BASE_NAME_SIZE]++;
-    }
-  }
+		error("FILE_BASE_NAME too long");
+	  }
+  while (sd.exists(binName)) 
+	  {
+		if (binName[BASE_NAME_SIZE + 1] != '9') 
+			{
+			  binName[BASE_NAME_SIZE + 1]++;
+			}
+		else 
+			{
+			  binName[BASE_NAME_SIZE + 1] = '0';
+			  if (binName[BASE_NAME_SIZE] == '9') 
+			  {
+				error("Can't create file name");
+			  }
+			  binName[BASE_NAME_SIZE]++;
+			}
+	  }
   // Delete old tmp file.
   if (sd.exists(TMP_FILE_NAME)) 
-  {
-    Serial.println(F("Deleting tmp file"));
-    if (!sd.remove(TMP_FILE_NAME)) 
-	{
-      error("Can't remove tmp file");
-    }
-  }
+	  {
+		Serial.println(F("Deleting tmp file"));
+		if (!sd.remove(TMP_FILE_NAME)) 
+			{
+			  error("Can't remove tmp file");
+			}
+	  }
   // Create new file.
   Serial.println(F("Creating new file"));
   binFile.close();
   if (!binFile.createContiguous(sd.vwd(),
     TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) 
-  {
-    error("createContiguous failed");
-  }
+	  {
+		error("createContiguous failed");
+	  }
   // Get the address of the file on the SD.
   if (!binFile.contiguousRange(&bgnBlock, &endBlock)) 
-  {
-    error("contiguousRange failed");
-  }
+	  {
+		error("contiguousRange failed");
+	  }
   // Use SdFat's internal buffer.
   uint8_t* cache = (uint8_t*)sd.vol()->cacheClear();
   if (cache == 0) error("cacheClear failed"); 
@@ -652,25 +669,25 @@ void logData()
   uint32_t bgnErase = bgnBlock;
   uint32_t endErase;
   while (bgnErase < endBlock) 
-  {
-    endErase = bgnErase + ERASE_SIZE;
-    if (endErase > endBlock) endErase = endBlock;
-    if (!sd.card()->erase(bgnErase, endErase)) 
-	{
-      error("erase failed");
-    }
-    bgnErase = endErase + 1;
-  }
+	  {
+		endErase = bgnErase + ERASE_SIZE;
+		if (endErase > endBlock) endErase = endBlock;
+		if (!sd.card()->erase(bgnErase, endErase)) 
+			{
+			  error("erase failed");
+			}
+		bgnErase = endErase + 1;
+	  }
   // Start a multiple block write.
   if (!sd.card()->writeStart(bgnBlock, FILE_BLOCK_COUNT)) 
-  {
-    error("writeBegin failed");
-  }
-  // Write metadata.
+	  {
+		error("writeBegin failed");
+	  }
+  // Write metadata. Написать метаданные.
   if (!sd.card()->writeData((uint8_t*)&block[0])) 
-  {
-    error("Write metadata failed");
-  } 
+	  {
+		error("Write metadata failed");
+	  } 
   // Initialize queues.
   emptyHead = emptyTail = 0;
   fullHead = fullTail = 0;
@@ -679,12 +696,12 @@ void logData()
   emptyQueue[emptyHead] = (block_t*)cache;
   emptyHead = queueNext(emptyHead);
   
-  // Put rest of buffers in the empty queue.
+  // Put rest of buffers in the empty queue. Поместите остальные буферов в пустую очередь.
   for (uint8_t i = 0; i < BUFFER_BLOCK_COUNT; i++) 
-  {
-    emptyQueue[emptyHead] = &block[i];
-    emptyHead = queueNext(emptyHead);
-  }
+	  {
+		emptyQueue[emptyHead] = &block[i];
+		emptyHead = queueNext(emptyHead);
+	  }
   // Give SD time to prepare for big write.
   delay(1000);
   Serial.println(F("Logging - type any character to stop"));
@@ -701,64 +718,64 @@ void logData()
   // Start logging interrupts.
   adcStart();
   while (1) 
-  {
-    if (fullHead != fullTail) 
-	{
-      // Get address of block to write.
-      block_t* pBlock = fullQueue[fullTail];
-      
-      // Write block to SD.
-      uint32_t usec = micros();
-      if (!sd.card()->writeData((uint8_t*)pBlock)) 
 	  {
-        error("write data failed");
-      }
-      usec = micros() - usec;
-      t1 = millis();
-      if (usec > maxLatency) maxLatency = usec;
-      count += pBlock->count;
+		if (fullHead != fullTail) 
+			{
+			  // Get address of block to write.
+			  block_t* pBlock = fullQueue[fullTail];
       
-      // Add overruns and possibly light LED. 
-      if (pBlock->overrun) 
-	  {
-        overruns += pBlock->overrun;
-        if (ERROR_LED_PIN >= 0) 
+			  // Write block to SD.
+			  uint32_t usec = micros();
+			  if (!sd.card()->writeData((uint8_t*)pBlock)) 
+				  {
+					error("write data failed");
+				  }
+			  usec = micros() - usec;
+			  t1 = millis();
+			  if (usec > maxLatency) maxLatency = usec; // Максимальное время записи блока в SD
+			  count += pBlock->count;
+      
+			  // Add overruns and possibly light LED. 
+			  if (pBlock->overrun) 
+			  {
+				overruns += pBlock->overrun;
+				if (ERROR_LED_PIN >= 0) 
+					{
+					  digitalWrite(ERROR_LED_PIN, HIGH);
+					}
+			  }
+			  // Move block to empty queue.
+			  emptyQueue[emptyHead] = pBlock;
+			  emptyHead = queueNext(emptyHead);
+			  fullTail = queueNext(fullTail);
+			  bn++;
+			  if (bn == FILE_BLOCK_COUNT) 
+			  {
+				// File full so stop ISR calls.
+				adcStop();
+				break;
+			  }
+			}
+			if (timerError) 
 		{
-          digitalWrite(ERROR_LED_PIN, HIGH);
-        }
-      }
-      // Move block to empty queue.
-      emptyQueue[emptyHead] = pBlock;
-      emptyHead = queueNext(emptyHead);
-      fullTail = queueNext(fullTail);
-      bn++;
-      if (bn == FILE_BLOCK_COUNT) 
-	  {
-        // File full so stop ISR calls.
-        adcStop();
-        break;
-      }
-    }
-    if (timerError) 
-	{
-      error("Missed timer event - rate too high");
-    }
-    if (Serial.available()) 
-	{
-      // Stop ISR calls.
-      adcStop();
-      if (isrBuf != 0 && isrBuf->count >= PIN_COUNT) 
-	  {
-        // Truncate to last complete sample.
-        isrBuf->count = PIN_COUNT*(isrBuf->count/PIN_COUNT);
-        // Put buffer in full queue.
-        fullQueue[fullHead] = isrBuf;
-        fullHead = queueNext(fullHead);
-        isrBuf = 0;
-      }
-      if (fullHead == fullTail) break;
-    }
-  }
+		  error("Missed timer event - rate too high");
+		}
+		if (Serial.available()) 
+		{
+		  // Stop ISR calls.
+		  adcStop();
+		  if (isrBuf != 0 && isrBuf->count >= PIN_COUNT) 
+		  {
+			// Truncate to last complete sample.
+			isrBuf->count = PIN_COUNT*(isrBuf->count/PIN_COUNT);
+			// Put buffer in full queue.
+			fullQueue[fullHead] = isrBuf;
+			fullHead = queueNext(fullHead);
+			isrBuf = 0;
+		  }
+		  if (fullHead == fullTail) break;
+		}
+	  }
   if (!sd.card()->writeStop()) 
   {
     error("writeStop failed");

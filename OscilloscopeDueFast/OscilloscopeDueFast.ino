@@ -62,6 +62,11 @@ int points_lines = 1; // 1 => lines
 #define ADC_LCDR * (volatile unsigned int *) (0x400C0020) /*last converted low 12 bits*/
 #define ADC_DATA 0x00000FFF 
 
+ISR(ADC_vect)
+{
+
+}
+
 //=== setup ==============================================================
 void setup(void) 
 {
@@ -180,7 +185,7 @@ void loop(void)
 // if (!points_lines){delay(30);}
  
 // yield();
-}
+} 
 
 //================================================
 // slow background task
