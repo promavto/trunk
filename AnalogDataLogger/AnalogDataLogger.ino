@@ -96,7 +96,7 @@ int ret                = 0;                // Признак прерывания операции
 int x_kn = 30;  // Смещение кнопок по Х
 int dgvh;
 const int hpos = 95; //set 0v on horizontal  grid
-int port = 0;
+int port = 4;
 int x_osc,y_osc;
 int Input = 0;
 int Old_Input = 0;
@@ -2159,7 +2159,7 @@ void menu_Oscilloscope()
 						{
 							waitForIt(30, 70, 290, 110);
 							myGLCD.clrScr();
-							//oscilloscope1();
+							oscilloscope_time();
 							Draw_menu_Osc();
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
@@ -2201,7 +2201,6 @@ void print_set()
 	myGLCD.print("Delay", 260, 5);
 	myGLCD.print("     ", 270, 20);
 	myGLCD.printNumI(dTime, 270, 20);
-//	myGLCD.print(itoa ( dTime, buf, 10), 270, 20);
 	myGLCD.print("Trig.", 265, 50);
 	myGLCD.print("    ", 265, 65);
 	if (tmode == 0)myGLCD.print(" 0% ", 268, 65);
@@ -2356,6 +2355,176 @@ void oscilloscope()
 				OldSample[xpos] = Sample[ xpos];
 			}
 	}
+koeff_h = 7.759;
+mode1 = 0;
+Trigger = 0;
+myGLCD.setFont( BigFont);
+while (myTouch.dataAvailable()){}
+}
+void oscilloscope_time()
+{
+	uint32_t bgnBlock, endBlock;
+	block_t block[BUFFER_BLOCK_COUNT];
+	myGLCD.clrScr();
+	myGLCD.setBackColor( 0, 0, 0);
+	delay(500);
+	myGLCD.clrScr();
+	buttons();
+	int xpos;
+	int ypos1;
+	int ypos2;
+	int sec_osc = 0;
+	int min_osc = 0;
+	print_set();
+	uint32_t logTime;
+	const uint32_t SAMPLE_INTERVAL_MS = 1250;
+	int32_t diff;
+	
+
+	for( xpos = 0; xpos < 239;	xpos ++)
+	//while(1) 
+	{
+		OldSample[xpos] = 0;
+	}
+
+
+	logTime = micros();
+	StartSample = micros();
+
+	for( xpos = 1; xpos < 240;	xpos ++)
+	//while(1) 
+	{
+		 
+		 DrawGrid();
+		 if (myTouch.dataAvailable())
+			{
+				delay(10);
+				myTouch.read();
+				x_osc=myTouch.getX();
+				y_osc=myTouch.getY();
+
+				if ((x_osc>=2) && (x_osc<=240))  //  Delay Button
+					{
+						if ((y_osc>=1) && (y_osc<=160))  // Delay row
+						{
+							break;
+						} 
+					}
+
+				myGLCD.setBackColor( 0, 0, 255);
+				myGLCD.setFont( SmallFont);
+				myGLCD.setColor (255, 255,255);
+				myGLCD.drawRoundRect (250, 1, 310, 40);
+				myGLCD.drawRoundRect (250, 45, 310, 85);
+				myGLCD.drawRoundRect (250, 90, 310, 130);
+				myGLCD.drawRoundRect (250, 135, 310, 175);
+			if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
+			  {
+				  if ((y_osc>=1) && (y_osc<=40))  // Delay row
+				  {
+					waitForIt(250, 1, 310, 40);
+					mode ++ ;
+					if (mode > 10) mode = 0;   
+					// Select delay times you can change values to suite your needs
+					if (mode == 0) dTime = 1;
+					if (mode == 1) dTime = 10;
+					if (mode == 2) dTime = 20;
+					if (mode == 3) dTime = 50;
+					if (mode == 4) dTime = 100;
+					if (mode == 5) dTime = 200;
+					if (mode == 6) dTime = 300;
+					if (mode == 7) dTime = 500;
+					if (mode == 8) dTime = 1000;
+					if (mode == 9) dTime = 5000;
+					if (mode == 10) dTime = 10000;
+					print_set();
+				  }
+			 if ((y_osc>=45) && (y_osc<=85))  // Trigger  row
+				 {
+					waitForIt(250, 45, 310, 85);
+					tmode ++;
+					if (tmode > 2)tmode = 0;
+					if (tmode == 0) Trigger = Min;
+					if (tmode == 1) Trigger = Max/2;//;
+					if (tmode == 2) Trigger = Max-10;//20;
+					print_set();
+				 }
+			 if ((y_osc>=90) && (y_osc<=130))  // Port select   row
+				 {
+					waitForIt(250, 90, 310, 130);
+					mode1 ++ ;
+					myGLCD.clrScr();
+					buttons();
+					if (mode1 > 3) mode1 = 0;   
+					if (mode1 == 0) koeff_h = 7.759;
+					if (mode1 == 1) koeff_h = 3.879;
+					if (mode1 == 2) koeff_h = 1.939;
+					if (mode1 == 3) koeff_h = 0.969;
+					print_set();
+				 }
+			 if ((y_osc>=135) && (y_osc<=175))  // Port select   row
+				 {
+					waitForIt(250, 135, 310, 175);
+					//break;
+				 }
+		   }
+				
+			 if ((y_osc>=205) && (y_osc<=239))  //  Delay Button
+					{
+						 touch_osc();
+					}
+		}
+
+		 logTime += 1000UL*SAMPLE_INTERVAL_MS;
+		       Max = 0;
+				do
+				 {
+					 Max = max(Max, analogRead(port));
+					 delayMicroseconds(20);      //dTime
+  			      	 diff = micros() - logTime;
+					 EndSample = micros();
+					 if(EndSample - StartSample > 1000000 )
+					 {
+                        StartSample  =   EndSample ;
+						sec_osc++;
+						if (sec_osc >= 60)
+							{
+							  sec_osc = 0;
+							  min_osc++;
+							}
+
+						myGLCD.setBackColor( 0, 0, 0);
+						myGLCD.setFont( BigFont);
+						myGLCD.print("Min", 8, 175);
+						myGLCD.printNumI(min_osc, 60, 175);
+						myGLCD.print("Sec", 120, 175);
+						myGLCD.print("   ", 170, 175);
+						myGLCD.printNumI(sec_osc, 170, 175);
+
+						//Serial.print(min_osc);
+						//Serial.print(" - ");
+						//Serial.println(sec_osc);
+					 }
+
+				 } while (diff < 0);
+
+				 	Sample[xpos] = Max;
+
+
+				ypos1 = 255-(OldSample[ xpos -1 ]/koeff_h) - hpos; 
+	
+				myGLCD.setColor( 255, 255, 255);
+				ypos2 = 255-(Sample[ xpos]/koeff_h)- hpos;
+
+				if(ypos1<0) ypos1 = 0;
+				if(ypos2<0) ypos2 = 0;
+				if(ypos1>220) ypos1 = 220;
+				if(ypos2>220) ypos2 = 220;
+
+				myGLCD.drawLine (xpos, ypos1, xpos+1 , ypos2);
+				OldSample[xpos] = Sample[ xpos];
+
+	} 
 koeff_h = 7.759;
 mode1 = 0;
 Trigger = 0;

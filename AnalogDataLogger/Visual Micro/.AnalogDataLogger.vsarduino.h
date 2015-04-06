@@ -102,6 +102,7 @@ void menu_Oscilloscope();
 void trigger();
 void print_set();
 void oscilloscope();
+void oscilloscope_time();
 void buttons();
 void DrawGrid();
 void DrawGrid1();
