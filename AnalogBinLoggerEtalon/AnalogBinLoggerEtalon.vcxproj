@@ -41,10 +41,10 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\arduino-1.6.1\hardware\arduino\avr\cores\arduino;C:\arduino-1.6.1\hardware\arduino\avr\variants\mega;D:\1 SVN AnalogBinLogger\trunk\AnalogBinLoggerEtalon;D:\1 SVN AnalogBinLogger\trunk\AnalogBinLoggerEtalon\libraries\SdFat;D:\1 SVN AnalogBinLogger\trunk\AnalogBinLoggerEtalon\libraries\SdFat\utility;C:\arduino-1.6.1\libraries;C:\arduino-1.6.1\hardware\arduino\avr\libraries;C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers;D:\1 SVN AnalogBinLogger\trunk\AnalogBinLoggerEtalon\libraries;c:\arduino-1.6.1\hardware\tools\avr\avr\include\;c:\arduino-1.6.1\hardware\tools\avr\avr\include\avr\;c:\arduino-1.6.1\hardware\tools\avr\avr\;c:\arduino-1.6.1\hardware\tools\avr\lib\gcc\avr\4.8.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>D:\1 SVN AnalogBinLogger\trunk\AnalogBinLoggerEtalon\Visual Micro\.AnalogBinLoggerEtalon.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>C:\arduino 1.6.1\hardware\arduino\avr\cores\arduino;C:\arduino 1.6.1\hardware\arduino\avr\variants\mega;E:\1 SVN AnalogBinLogger\trunk\AnalogBinLoggerEtalon;E:\1 SVN AnalogBinLogger\trunk\AnalogBinLoggerEtalon\libraries\SdFat;E:\1 SVN AnalogBinLogger\trunk\AnalogBinLoggerEtalon\libraries\SdFat\utility;C:\arduino 1.6.1\libraries;C:\arduino 1.6.1\hardware\arduino\avr\libraries;C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers;E:\1 SVN AnalogBinLogger\trunk\AnalogBinLoggerEtalon\libraries;c:\arduino 1.6.1\hardware\tools\avr\avr\include\;c:\arduino 1.6.1\hardware\tools\avr\avr\include\avr\;c:\arduino 1.6.1\hardware\tools\avr\avr\;c:\arduino 1.6.1\hardware\tools\avr\lib\gcc\avr\4.8.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>E:\1 SVN AnalogBinLogger\trunk\AnalogBinLoggerEtalon\Visual Micro\.AnalogBinLoggerEtalon.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
-      <PreprocessorDefinitions>__AVR_ATmega2560__;ARDUINO=161;ARDUINO_MAIN;__AVR__;__avr__;F_CPU=16000000L;__cplusplus;GCC_VERSION=40801;ARDUINO_ARCH_AVR;ARDUINO_AVR_MEGA2560;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__AVR_ATmega2560__;ARDUINO=160;ARDUINO_MAIN;__AVR__;__avr__;F_CPU=16000000L;__cplusplus;GCC_VERSION=40801;ARDUINO_ARCH_AVR;ARDUINO_AVR_MEGA2560;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
