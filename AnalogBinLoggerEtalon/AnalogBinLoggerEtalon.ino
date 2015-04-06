@@ -26,7 +26,7 @@
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
 // numbers may be repeated.
-const uint8_t PIN_LIST[] = {0, 1, 2, 3, 4};
+const uint8_t PIN_LIST[] = {0, 1, 2, 3};
 //------------------------------------------------------------------------------
 // Sample rate in samples per second.
 const float SAMPLE_RATE = 5000;  // Must be 0.25 or greater.
@@ -206,7 +206,7 @@ ISR(ADC_vect)
 	  {
 		// no buffers - count overrun 
 		if (isrOver < 0XFFFF) isrOver++;
-    
+	
 		// Avoid missed timer error. Избежать пропущенных ошибку таймера.
 		timerFlag = false;
 		return;
@@ -239,7 +239,7 @@ ISR(ADC_vect)
 
   // Check for buffer full. Проверка заполнения буфера
   if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK)  //  PIN_COUNT*SAMPLES_PER_BLOCK
-	                             // SAMPLES_PER_BLOCK = DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
+								 // SAMPLES_PER_BLOCK = DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
 	  {
 		// Put buffer isrIn full queue.  Положите буфер isrIn полной очереди.
 		uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
@@ -273,12 +273,12 @@ void error_P(const char* msg)
 //
 void fatalBlink() {
   while (true) {
-    if (ERROR_LED_PIN >= 0) {
-      digitalWrite(ERROR_LED_PIN, HIGH);
-      delay(200);
-      digitalWrite(ERROR_LED_PIN, LOW);
-      delay(200);
-    }
+	if (ERROR_LED_PIN >= 0) {
+	  digitalWrite(ERROR_LED_PIN, HIGH);
+	  delay(200);
+	  digitalWrite(ERROR_LED_PIN, LOW);
+	  delay(200);
+	}
   }
 }
 //==============================================================================
@@ -306,7 +306,7 @@ void adcInit(metadata_t* meta)
 	  // Allow extra cpu cycles to change ADC settings if more than one pin.
 	  int32_t adcCycles = (ticks - ISR_TIMER0)/PIN_COUNT;
 						  - (PIN_COUNT > 1 ? ISR_SETUP_ADC : 0);
-                      
+					  
 	  for (adps = 7; adps > 0; adps--) 
 	  {
 		 if (adcCycles >= (MIN_ADC_CYCLES << adps)) break;
@@ -335,11 +335,11 @@ void adcInit(metadata_t* meta)
 		uint8_t pin = PIN_LIST[i];
 		if (pin >= NUM_ANALOG_INPUTS) error("Invalid Analog pin number");
 		meta->pinNumber[i] = pin;
-    
+	
 	   // Set ADC reference and low three bits of analog pin number.   
 		adcmux[i] = (pin & 7) | ADC_REF;
 		if (RECORD_EIGHT_BITS) adcmux[i] |= 1 << ADLAR;
-    
+	
 		// If this is the first pin, trigger on timer/counter 1 compare match B.
 		adcsrb[i] = i == 0 ? (1 << ADTS2) | (1 << ADTS0) : 0;
 	#ifdef MUX5
@@ -456,8 +456,8 @@ void binaryToCsv() {
   StdioStream csvStream;
   
   if (!binFile.isOpen()) {
-    Serial.println(F("No current binary file"));
-    return;
+	Serial.println(F("No current binary file"));
+	return;
   }
   binFile.rewind();
   if (!binFile.read(&buf , 512) == 512) error("Read metadata failed");
@@ -466,7 +466,7 @@ void binaryToCsv() {
   strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("CSV"));
 
   if (!csvStream.fopen(csvName, "w")) {
-    error("open csvStream failed");  
+	error("open csvStream failed");  
   }
   Serial.println();
   Serial.print(F("Writing: "));
@@ -478,36 +478,36 @@ void binaryToCsv() {
   csvStream.print(intervalMicros, 4);
   csvStream.println(F(",usec"));
   for (uint8_t i = 0; i < pm->pinCount; i++) {
-    if (i) csvStream.putc(',');
-    csvStream.print(F("pin"));
-    csvStream.print(pm->pinNumber[i]);
+	if (i) csvStream.putc(',');
+	csvStream.print(F("pin"));
+	csvStream.print(pm->pinNumber[i]);
   }
   csvStream.println(); 
   uint32_t tPct = millis();
   while (!Serial.available() && binFile.read(&buf, 512) == 512) {
-    uint16_t i;
-    if (buf.count == 0) break;
-    if (buf.overrun) {
-      csvStream.print(F("OVERRUN,"));
-      csvStream.println(buf.overrun);     
-    }
-    for (uint16_t j = 0; j < buf.count; j += PIN_COUNT) {
-      for (uint16_t i = 0; i < PIN_COUNT; i++) {
-        if (i) csvStream.putc(',');
-        csvStream.print(buf.data[i + j]);     
-      }
-      csvStream.println();
-    }
-    if ((millis() - tPct) > 1000) {
-      uint8_t pct = binFile.curPosition()/(binFile.fileSize()/100);
-      if (pct != lastPct) {
-        tPct = millis();
-        lastPct = pct;
-        Serial.print(pct, DEC);
-        Serial.println('%');
-      }
-    }
-    if (Serial.available()) break;
+	uint16_t i;
+	if (buf.count == 0) break;
+	if (buf.overrun) {
+	  csvStream.print(F("OVERRUN,"));
+	  csvStream.println(buf.overrun);     
+	}
+	for (uint16_t j = 0; j < buf.count; j += PIN_COUNT) {
+	  for (uint16_t i = 0; i < PIN_COUNT; i++) {
+		if (i) csvStream.putc(',');
+		csvStream.print(buf.data[i + j]);     
+	  }
+	  csvStream.println();
+	}
+	if ((millis() - tPct) > 1000) {
+	  uint8_t pct = binFile.curPosition()/(binFile.fileSize()/100);
+	  if (pct != lastPct) {
+		tPct = millis();
+		lastPct = pct;
+		Serial.print(pct, DEC);
+		Serial.println('%');
+	  }
+	}
+	if (Serial.available()) break;
   }
   csvStream.fclose();  
   Serial.print(F("Done: "));
@@ -524,42 +524,42 @@ void checkOverrun()
   uint32_t bn = 0;
   
   if (!binFile.isOpen()) {
-    Serial.println(F("No current binary file"));
-    return;
+	Serial.println(F("No current binary file"));
+	return;
   }
   if (!binFile.contiguousRange(&bgnBlock, &endBlock)) {
-    error("contiguousRange failed");
+	error("contiguousRange failed");
   }
   binFile.rewind();
   Serial.println();
   Serial.println(F("Checking overrun errors - type any character to stop"));
   if (!binFile.read(&buf , 512) == 512) {
-    error("Read metadata failed");
+	error("Read metadata failed");
   }
   bn++;
   while (binFile.read(&buf, 512) == 512) {
-    if (buf.count == 0) break;
-    if (buf.overrun) 
+	if (buf.count == 0) break;
+	if (buf.overrun) 
 	{
-      if (!headerPrinted) 
+	  if (!headerPrinted) 
 	  {
-        Serial.println();
-        Serial.println(F("Overruns:"));
-        Serial.println(F("fileBlockNumber,sdBlockNumber,overrunCount"));
-        headerPrinted = true;
-      }
-      Serial.print(bn);
-      Serial.print(',');
-      Serial.print(bgnBlock + bn);
-      Serial.print(',');
-      Serial.println(buf.overrun);
-    }
-    bn++;
+		Serial.println();
+		Serial.println(F("Overruns:"));
+		Serial.println(F("fileBlockNumber,sdBlockNumber,overrunCount"));
+		headerPrinted = true;
+	  }
+	  Serial.print(bn);
+	  Serial.print(',');
+	  Serial.print(bgnBlock + bn);
+	  Serial.print(',');
+	  Serial.println(buf.overrun);
+	}
+	bn++;
   }
   if (!headerPrinted) {
-    Serial.println(F("No errors found"));
+	Serial.println(F("No errors found"));
   } else {
-    Serial.println(F("Done"));
+	Serial.println(F("Done"));
   }
 }
 //------------------------------------------------------------------------------
@@ -569,35 +569,35 @@ void dumpData()
   block_t buf;
   if (!binFile.isOpen()) 
   {
-    Serial.println(F("No current binary file"));
-    return;
+	Serial.println(F("No current binary file"));
+	return;
   }
   binFile.rewind();
   if (binFile.read(&buf , 512) != 512) 
   {
-    error("Read metadata failed");
+	error("Read metadata failed");
   }
   Serial.println();
   Serial.println(F("Type any character to stop"));
   delay(1000);
   while (!Serial.available() && binFile.read(&buf , 512) == 512) 
   {
-    if (buf.count == 0) break;
-    if (buf.overrun) 
+	if (buf.count == 0) break;
+	if (buf.overrun) 
 	{
-      Serial.print(F("OVERRUN,"));
-      Serial.println(buf.overrun);
-    }
-    for (uint16_t i = 0; i < buf.count; i++) 
+	  Serial.print(F("OVERRUN,"));
+	  Serial.println(buf.overrun);
+	}
+	for (uint16_t i = 0; i < buf.count; i++) 
 	{
-      Serial.print(buf.data[i], DEC);
-      if ((i+1)%PIN_COUNT) 
+	  Serial.print(buf.data[i], DEC);
+	  if ((i+1)%PIN_COUNT) 
 	  {
-        Serial.print(',');
-      } else {
-        Serial.println();
-      }
-    }
+		Serial.print(',');
+	  } else {
+		Serial.println();
+	  }
+	}
   }
   Serial.println(F("Done"));
 }
@@ -651,7 +651,7 @@ void logData()
   Serial.println(F("Creating new file"));
   binFile.close();
   if (!binFile.createContiguous(sd.vwd(),
-    TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) 
+	TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) 
 	  {
 		error("createContiguous failed");
 	  }
@@ -723,7 +723,7 @@ void logData()
 			{
 			  // Get address of block to write.
 			  block_t* pBlock = fullQueue[fullTail];
-      
+	  
 			  // Write block to SD.
 			  uint32_t usec = micros();
 			  if (!sd.card()->writeData((uint8_t*)pBlock)) 
@@ -734,7 +734,7 @@ void logData()
 			  t1 = millis();
 			  if (usec > maxLatency) maxLatency = usec; // Максимальное время записи блока в SD
 			  count += pBlock->count;
-      
+	  
 			  // Add overruns and possibly light LED. 
 			  if (pBlock->overrun) 
 			  {
@@ -778,20 +778,20 @@ void logData()
 	  }
   if (!sd.card()->writeStop()) 
   {
-    error("writeStop failed");
+	error("writeStop failed");
   }
   // Truncate file if recording stopped early.
   if (bn != FILE_BLOCK_COUNT) 
   {    
-    Serial.println(F("Truncating file"));
-    if (!binFile.truncate(512L * bn)) 
+	Serial.println(F("Truncating file"));
+	if (!binFile.truncate(512L * bn)) 
 	{
-      error("Can't truncate file");
-    }
+	  error("Can't truncate file");
+	}
   }
   if (!binFile.rename(sd.vwd(), binName)) 
    {
-     error("Can't rename file");
+	 error("Can't rename file");
    }
   Serial.print(F("File renamed: "));
   Serial.println(binName);
@@ -812,7 +812,7 @@ void setup(void)
 {
   if (ERROR_LED_PIN >= 0)
   {
-    pinMode(ERROR_LED_PIN, OUTPUT);
+	pinMode(ERROR_LED_PIN, OUTPUT);
   }
   Serial.begin(9600);
   
@@ -825,8 +825,8 @@ void setup(void)
   // initialize file system.
   if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED)) 
   {
-    sd.initErrorPrint();
-    fatalBlink();
+	sd.initErrorPrint();
+	fatalBlink();
   }
 }
 //------------------------------------------------------------------------------
@@ -843,22 +843,22 @@ void loop(void) {
   while(!Serial.available()) {}
   char c = tolower(Serial.read());
   if (ERROR_LED_PIN >= 0) {
-    digitalWrite(ERROR_LED_PIN, LOW);
+	digitalWrite(ERROR_LED_PIN, LOW);
   }
   // Read any extra Serial data.
   do {
-    delay(10);
+	delay(10);
   } while (Serial.read() >= 0);
   
   if (c == 'c') {
-    binaryToCsv();
+	binaryToCsv();
   } else if (c == 'd') {
-    dumpData();
+	dumpData();
   } else if (c == 'e') {    
-    checkOverrun();
+	checkOverrun();
   } else if (c == 'r') {
-    logData();
+	logData();
   } else {
-    Serial.println(F("Invalid entry"));
+	Serial.println(F("Invalid entry"));
   }
 }
