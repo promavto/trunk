@@ -69,6 +69,8 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portModeRegister(P)
 
 inline uint8_t queueNext(uint8_t ht);
+void firstHandler();
+void secondHandler();
 void error_P(const char* msg);
 void fatalBlink();
 void adcInit(metadata_t* meta);

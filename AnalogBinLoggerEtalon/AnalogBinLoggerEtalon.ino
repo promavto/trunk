@@ -31,8 +31,8 @@
 #include <UTFT.h>
 #include <UTouch.h>
 #include <UTFT_Buttons.h>
-
-
+#include <DueTimer.h>
+#include <AH_AD9850.h>
 
 
 // Declare which fonts we will be using
@@ -52,16 +52,43 @@ UTouch        myTouch(6,5,4,3,2);
 //// Finally we set up UTFT_Buttons :)
 UTFT_Buttons  myButtons(&myGLCD, &myTouch);
 
+
+//Настройка звукового генератора
+#define CLK     8  // Назначение выводов генератора сигналов
+#define FQUP    9  // Назначение выводов генератора сигналов
+#define BitData 10 // Назначение выводов генератора сигналов
+#define RESET   11 // Назначение выводов генератора сигналов
+AH_AD9850 AD9850(CLK, FQUP, BitData, RESET);// настройка звукового генератора
+
+
+
+
+
+
+
+
 // ADC speed one channel 480,000 samples/sec (no enable per read)
 //           one channel 288,000 samples/sec (enable per read)
 
+// ADC_MR is 0x400C0004
+#define ADC_MR * (volatile unsigned int *) (0x400C0004) /*adc mode word*/
+#define ADC_CR * (volatile unsigned int *) (0x400C0000) /*write a 2 to start convertion*/
+#define ADC_ISR * (volatile unsigned int *) (0x400C0030) /*status reg -- bit 24 is data ready*/
+#define ADC_ISR_DRDY 0x01000000
+#define ADC_START 2
+#define ADC_LCDR * (volatile unsigned int *) (0x400C0020) /*last converted low 12 bits*/
+#define ADC_DATA 0x00000FFF 
 
-
+uint32_t ulChannel;
 
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
 // numbers may be repeated.
-const uint8_t PIN_LIST[] = {0, 1, 2, 3};
+//const uint8_t PIN_LIST[] = {0, 1, 2, 3};
+const uint8_t PIN_LIST[] = {0};
+
+
+int analogInPin = 0;
 //------------------------------------------------------------------------------
 // Sample rate in samples per second.
 const float SAMPLE_RATE = 5000;  // Must be 0.25 or greater.
@@ -195,13 +222,9 @@ SdBaseFile binFile;
 
 char binName[13] = FILE_BASE_NAME "00.BIN";
 
-#if RECORD_EIGHT_BITS
-const size_t SAMPLES_PER_BLOCK = DATA_DIM8/PIN_COUNT;
-typedef block8_t block_t;
-#else  // RECORD_EIGHT_BITS
+
 const size_t SAMPLES_PER_BLOCK = DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
 typedef block16_t block_t;
-#endif // RECORD_EIGHT_BITS
 
 block_t* emptyQueue[QUEUE_DIM];
 uint8_t emptyHead;
@@ -236,6 +259,82 @@ uint8_t adcindex = 1;
 volatile bool timerError = false;
 volatile bool timerFlag = false;
 //------------------------------------------------------------------------------
+bool ledOn = false;
+void firstHandler()
+{
+	ledOn = !ledOn;
+	digitalWrite(ERROR_LED_PIN, ledOn); // Led on, off, on, off...
+
+
+	 ADC_CR = ADC_START ;                 // Запустить преобразование
+	 uint16_t d = ADC_LCDR & ADC_DATA ;   // Записать данные АЦП в d
+
+	
+  if (isrBufNeeded && emptyHead == emptyTail) 
+	  {
+		// no buffers - count overrun 
+		if (isrOver < 0XFFFF) isrOver++;
+	
+		// Avoid missed timer error. Избежать пропущенных ошибку таймера.
+		timerFlag = false;
+		return;
+	  }
+  // Start ADC 
+  //if (PIN_COUNT > 1) 
+	 // {
+		//ADMUX = adcmux[adcindex];
+		//ADCSRB = adcsrb[adcindex];
+		//ADCSRA = adcsra[adcindex];
+		//if (adcindex == 0) timerFlag = false;
+		//adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
+	 // }
+  //else  // Иначе  ошибка
+	 // {
+		//timerFlag = false;
+	 // }
+
+
+
+ // Check for buffer needed.  Проверьте буфера, необходимого.
+  if (isrBufNeeded) 
+	  {   
+		// Remove buffer from empty queue. Удалить буфер из пустого очереди.
+		isrBuf = emptyQueue[emptyTail];
+		emptyTail = queueNext(emptyTail);
+		isrBuf->count = 0;            // Счнтчик в 0
+		isrBuf->overrun = isrOver;    // 
+		isrBufNeeded = false;    
+	  }
+  // Store ADC data.
+  isrBuf->data[isrBuf->count++] = d; // Записать данные в буфер по счетчику "isrBuf->count++"
+
+  // Check for buffer full. Проверка заполнения буфера
+  if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK)  //  PIN_COUNT*SAMPLES_PER_BLOCK
+								 // SAMPLES_PER_BLOCK = DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
+	  {
+		// Put buffer isrIn full queue.  Положите буфер isrIn полной очереди.
+		uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
+		fullQueue[tmp] = (block_t*)isrBuf;
+		fullHead = queueNext(tmp);
+   
+		// Set buffer needed and clear overruns.
+		isrBufNeeded = true;
+		isrOver = 0;
+	  }
+
+	//Serial.println("[-  ] First Handler!");
+}
+
+void secondHandler()
+{
+	Serial.println("[ - ] Second Handler!");
+}
+
+
+
+
+
+
 // ADC done interrupt.
 ISR(ADC_vect) 
 {
@@ -504,7 +603,8 @@ void adcStop()
 }
 //------------------------------------------------------------------------------
 // Convert binary file to CSV file.
-void binaryToCsv() {
+void binaryToCsv() 
+{
   uint8_t lastPct = 0;
   block_t buf;
   metadata_t* pm;
@@ -512,7 +612,8 @@ void binaryToCsv() {
   char csvName[13];
   StdioStream csvStream;
   
-  if (!binFile.isOpen()) {
+  if (!binFile.isOpen()) 
+  {
 	Serial.println(F("No current binary file"));
 	return;
   }
@@ -522,7 +623,8 @@ void binaryToCsv() {
   strcpy(csvName, binName);
   strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("CSV"));
 
-  if (!csvStream.fopen(csvName, "w")) {
+  if (!csvStream.fopen(csvName, "w")) 
+  {
 	error("open csvStream failed");  
   }
   Serial.println();
@@ -531,33 +633,39 @@ void binaryToCsv() {
   Serial.println(F(" - type any character to stop"));
   pm = (metadata_t*)&buf;
   csvStream.print(F("Interval,"));
-  float intervalMicros = 1.0e6*pm->sampleInterval/(float)pm->cpuFrequency;
-  csvStream.print(intervalMicros, 4);
-  csvStream.println(F(",usec"));
-  for (uint8_t i = 0; i < pm->pinCount; i++) {
+//  float intervalMicros = 1.0e6*pm->sampleInterval/(float)pm->cpuFrequency;
+//  csvStream.print(intervalMicros, 4);
+//  csvStream.println(F(",usec"));
+  for (uint8_t i = 0; i < pm->pinCount; i++) 
+  {
 	if (i) csvStream.putc(',');
 	csvStream.print(F("pin"));
 	csvStream.print(pm->pinNumber[i]);
   }
   csvStream.println(); 
   uint32_t tPct = millis();
-  while (!Serial.available() && binFile.read(&buf, 512) == 512) {
+  while (!Serial.available() && binFile.read(&buf, 512) == 512) 
+  {
 	uint16_t i;
 	if (buf.count == 0) break;
 	if (buf.overrun) {
 	  csvStream.print(F("OVERRUN,"));
 	  csvStream.println(buf.overrun);     
 	}
-	for (uint16_t j = 0; j < buf.count; j += PIN_COUNT) {
-	  for (uint16_t i = 0; i < PIN_COUNT; i++) {
+	for (uint16_t j = 0; j < buf.count; j += PIN_COUNT) 
+	{
+	  for (uint16_t i = 0; i < PIN_COUNT; i++) 
+	  {
 		if (i) csvStream.putc(',');
 		csvStream.print(buf.data[i + j]);     
 	  }
 	  csvStream.println();
 	}
-	if ((millis() - tPct) > 1000) {
+	if ((millis() - tPct) > 1000) 
+	{
 	  uint8_t pct = binFile.curPosition()/(binFile.fileSize()/100);
-	  if (pct != lastPct) {
+	  if (pct != lastPct) 
+	  {
 		tPct = millis();
 		lastPct = pct;
 		Serial.print(pct, DEC);
@@ -672,7 +780,7 @@ void logData()
   Serial.println();
   
   // Initialize ADC and timer1.
-  adcInit((metadata_t*) &block[0]);
+ // adcInit((metadata_t*) &block[0]);
   
   // Find unused file name.
   if (BASE_NAME_SIZE > 6) 
@@ -773,7 +881,9 @@ void logData()
   uint32_t maxLatency = 0;
 
   // Start logging interrupts.
-  adcStart();
+
+   Timer3.start(100);
+//  adcStart();
   while (1) 
 	  {
 		if (fullHead != fullTail) 
@@ -809,7 +919,9 @@ void logData()
 			  if (bn == FILE_BLOCK_COUNT) 
 			  {
 				// File full so stop ISR calls.
-				adcStop();
+
+			   Timer3.stop();
+			//	adcStop();
 				break;
 			  }
 			}
@@ -820,7 +932,8 @@ void logData()
 		if (Serial.available()) 
 		{
 		  // Stop ISR calls.
-		  adcStop();
+			 Timer3.stop();
+		//  adcStop();
 		  if (isrBuf != 0 && isrBuf->count >= PIN_COUNT) 
 		  {
 			// Truncate to last complete sample.
@@ -888,15 +1001,43 @@ void setup(void)
 
    ADC_MR |= 0x00000100 ; // ADC full speed
 
- 
- /* ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
-  adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   */
 
+   myGLCD.InitLCD();
+	myGLCD.clrScr();
+	myGLCD.setFont(BigFont);
+	myGLCD.setBackColor(0, 0, 255);
+
+	myTouch.InitTouch();
+	myTouch.setPrecision(PREC_MEDIUM);
+	//myTouch.setPrecision(PREC_HI);
+	myButtons.setTextFont(BigFont);
+	myButtons.setSymbolFont(Dingbats1_XL);
+		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// Настройка звукового генератора  
+	AD9850.reset();                    //reset module
+	delay(1000);
+	AD9850.powerDown();                //set signal output to LOW
+	AD9850.set_frequency(0,0,100);    //set power=UP, phase=0, 1kHz frequency 
+
+
+
+
+
+
+   analogInPin = PIN_LIST[0];
+  ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
+  adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   
+	Timer3.attachInterrupt(firstHandler); // Every 500ms
+	Timer4.attachInterrupt(secondHandler).setFrequency(1);
+	//  	Timer3.attachInterrupt(firstHandler).start(500000); // Every 500ms
+	//Timer4.attachInterrupt(secondHandler).setFrequency(1).start();
 
 }
 //------------------------------------------------------------------------------
-void loop(void) {
+void loop(void) 
+{
   // discard any input
+
   while (Serial.read() >= 0) {}
   Serial.println();
   Serial.println(F("type:"));
@@ -904,7 +1045,7 @@ void loop(void) {
   Serial.println(F("d - dump data to Serial"));  
   Serial.println(F("e - overrun error details"));
   Serial.println(F("r - record ADC data"));
-
+//  Timer3.start(100);
   while(!Serial.available()) {}
   char c = tolower(Serial.read());
   if (ERROR_LED_PIN >= 0) {
