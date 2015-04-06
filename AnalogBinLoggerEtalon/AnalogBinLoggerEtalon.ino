@@ -147,6 +147,8 @@ const int8_t ERROR_LED_PIN = 13;
 
 // SD chip select pin.
 const uint8_t SD_CS_PIN = 53;
+
+
 //------------------------------------------------------------------------------
 // Buffer definitions.
 //
@@ -154,6 +156,10 @@ const uint8_t SD_CS_PIN = 53;
 // buffers.  QUEUE_DIM must be a power of two larger than
 //(BUFFER_BLOCK_COUNT + 1).
 //
+
+
+// The logger will use SdFat's buffer plus BUFFER_BLOCK_COUNT additional 
+// buffers.
 
 /*
 #if RAMEND < 0X8FF
@@ -185,9 +191,9 @@ const uint8_t QUEUE_DIM = 32;  // Must be a power of two!
 #endif  // RAMEND
 */
 
-const uint8_t BUFFER_BLOCK_COUNT = 28;
+const uint8_t BUFFER_BLOCK_COUNT = 12;
 // Dimension for queues of 512 byte SD blocks.
-const uint8_t QUEUE_DIM = 32;  // Must be a power of two!
+const uint8_t QUEUE_DIM = 16;  // Must be a power of two!
 
 
 
@@ -330,11 +336,6 @@ void secondHandler()
 	Serial.println("[ - ] Second Handler!");
 }
 
-
-
-
-
-
 // ADC done interrupt.
 ISR(ADC_vect) 
 {
@@ -436,10 +437,10 @@ void fatalBlink() {
 // initialize ADC and timer1
 void adcInit(metadata_t* meta) 
 {
-	/*
+	
 	  uint8_t adps;  // prescaler bits for ADCSRA 
 	  uint32_t ticks = F_CPU*SAMPLE_INTERVAL + 0.5;  // Sample interval cpu cycles.
-
+/*
 	  if (ADC_REF & ~((1 << REFS0) | (1 << REFS1))) 
 	  {
 		error("Invalid ADC reference");
@@ -603,6 +604,9 @@ void adcStop()
 }
 //------------------------------------------------------------------------------
 // Convert binary file to CSV file.
+
+
+
 void binaryToCsv() 
 {
   uint8_t lastPct = 0;
@@ -633,15 +637,19 @@ void binaryToCsv()
   Serial.println(F(" - type any character to stop"));
   pm = (metadata_t*)&buf;
   csvStream.print(F("Interval,"));
+   Serial.println(F("Interval "));
 //  float intervalMicros = 1.0e6*pm->sampleInterval/(float)pm->cpuFrequency;
-//  csvStream.print(intervalMicros, 4);
-//  csvStream.println(F(",usec"));
-  for (uint8_t i = 0; i < pm->pinCount; i++) 
+  float intervalMicros = 100;
+  csvStream.print(intervalMicros, 4);
+  csvStream.println(F(",usec"));
+   Serial.println(F("Head 0 "));
+ /* for (uint8_t i = 0; i < pm->pinCount; i++) 
   {
 	if (i) csvStream.putc(',');
 	csvStream.print(F("pin"));
 	csvStream.print(pm->pinNumber[i]);
-  }
+  }*/
+  Serial.println(F("Head 1 "));
   csvStream.println(); 
   uint32_t tPct = millis();
   while (!Serial.available() && binFile.read(&buf, 512) == 512) 
@@ -882,7 +890,7 @@ void logData()
 
   // Start logging interrupts.
 
-   Timer3.start(100);
+   Timer3.start(50);
 //  adcStart();
   while (1) 
 	  {
@@ -1017,7 +1025,7 @@ void setup(void)
 	AD9850.reset();                    //reset module
 	delay(1000);
 	AD9850.powerDown();                //set signal output to LOW
-	AD9850.set_frequency(0,0,100);    //set power=UP, phase=0, 1kHz frequency 
+	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
 
 
 

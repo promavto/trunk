@@ -85,4 +85,5 @@ void loop(void);
 
 #include <AnalogBinLoggerEtalon.ino>
 #include <AnalogBinLogger.h>
+#include <UserDataType.h>
 #endif

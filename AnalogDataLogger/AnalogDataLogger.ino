@@ -244,7 +244,7 @@ void printHeader(Print* pr)
 // Start of configuration constants.
 //==============================================================================
 //Interval between data records in microseconds.
-const uint32_t LOG_INTERVAL_USEC = 130;
+const uint32_t LOG_INTERVAL_USEC = 150;
 //------------------------------------------------------------------------------
 // Pin definitions.
 //
@@ -2699,8 +2699,8 @@ void setup(void) {
 	myGLCD.InitLCD();
 	myGLCD.clrScr();
 	myGLCD.setFont(BigFont);
-	myGLCD.setBackColor(0, 0, 255);
-
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.setColor(255, 255, 255);
 	myTouch.InitTouch();
 	myTouch.setPrecision(PREC_MEDIUM);
 	//myTouch.setPrecision(PREC_HI);
@@ -2712,7 +2712,8 @@ void setup(void) {
 	delay(1000);
 	AD9850.powerDown();                //set signal output to LOW
 	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
-
+	//myGLCD.print("Setup Ok!", CENTER, 10);
+	 Serial.print(F("Setup Ok!"));
 }
 //------------------------------------------------------------------------------
 void loop(void) 
