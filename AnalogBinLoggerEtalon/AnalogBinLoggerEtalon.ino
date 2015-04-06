@@ -19,10 +19,45 @@
  *
  * Data is written to the file using a SD multiple block write command.
  */
+
+
+#define __SAM3X8E__
+#include <Adafruit_GFX.h>   
+//#include <Scheduler.h>
 #include <SdFat.h>
 #include <SdFatUtil.h>
 #include <StdioStream.h>
 #include "AnalogBinLogger.h"
+#include <UTFT.h>
+#include <UTouch.h>
+#include <UTFT_Buttons.h>
+
+
+
+
+// Declare which fonts we will be using
+//UTFT myGLCD(ITDB32S,25,26,27,28);
+
+extern uint8_t SmallFont[];
+extern uint8_t BigFont[];
+extern uint8_t Dingbats1_XL[];
+extern uint8_t SmallSymbolFont[];
+
+// Настройка монитора
+
+UTFT myGLCD(ITDB32S,25,26,27,28);
+
+UTouch        myTouch(6,5,4,3,2);
+//
+//// Finally we set up UTFT_Buttons :)
+UTFT_Buttons  myButtons(&myGLCD, &myTouch);
+
+// ADC speed one channel 480,000 samples/sec (no enable per read)
+//           one channel 288,000 samples/sec (enable per read)
+
+
+
+
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
 // numbers may be repeated.
@@ -58,7 +93,7 @@ const float SAMPLE_INTERVAL = 1.0/SAMPLE_RATE;
 //------------------------------------------------------------------------------
 // Reference voltage.  See the processor data-sheet for reference details.
 // uint8_t const ADC_REF = 0; // External Reference AREF pin.
-uint8_t const ADC_REF = (1 << REFS0);  // Vcc Reference. 
+// !+ uint8_t const ADC_REF = (1 << REFS0);  // Vcc Reference. 
 // uint8_t const ADC_REF = (1 << REFS1);  // Internal 1.1 (only 644 1284P Mega)
 // uint8_t const ADC_REF = (1 << REFS1) | (1 << REFS0);  // Internal 1.1 or 2.56
 //------------------------------------------------------------------------------
@@ -92,6 +127,8 @@ const uint8_t SD_CS_PIN = 53;
 // buffers.  QUEUE_DIM must be a power of two larger than
 //(BUFFER_BLOCK_COUNT + 1).
 //
+
+/*
 #if RAMEND < 0X8FF
 #error Too little SRAM
 //
@@ -119,6 +156,14 @@ const uint8_t BUFFER_BLOCK_COUNT = 28;
 // Dimension for queues of 512 byte SD blocks.
 const uint8_t QUEUE_DIM = 32;  // Must be a power of two!
 #endif  // RAMEND
+*/
+
+const uint8_t BUFFER_BLOCK_COUNT = 28;
+// Dimension for queues of 512 byte SD blocks.
+const uint8_t QUEUE_DIM = 32;  // Must be a power of two!
+
+
+
 //==============================================================================
 // End of configuration constants.
 //==============================================================================
@@ -194,6 +239,7 @@ volatile bool timerFlag = false;
 // ADC done interrupt.
 ISR(ADC_vect) 
 {
+	/*
   // Read ADC data.   
 #if RECORD_EIGHT_BITS // Выбор разрядности АЦП
   uint8_t d = ADCH;
@@ -250,15 +296,17 @@ ISR(ADC_vect)
 		isrBufNeeded = true;
 		isrOver = 0;
 	  }
+  */
 }
 
 //------------------------------------------------------------------------------
 // timer1 interrupt to clear OCF1B
 ISR(TIMER1_COMPB_vect)  // Проверка успевает ли записать АЦП данные вовремя.
-{
+{/*
   // Make sure ADC ISR responded to timer event. Убедитесь в том, ADC ISR ответил на события таймера.
   if (timerFlag) timerError = true;
   timerFlag = true;
+  */
 }
 //==============================================================================
 // Error messages stored in flash.
@@ -282,13 +330,14 @@ void fatalBlink() {
   }
 }
 //==============================================================================
-#if ADPS0 != 0 || ADPS1 != 1 || ADPS2 != 2
-#error unexpected ADC prescaler bits
-#endif
+//#if ADPS0 != 0 || ADPS1 != 1 || ADPS2 != 2
+//#error unexpected ADC prescaler bits
+//#endif
 //------------------------------------------------------------------------------
 // initialize ADC and timer1
 void adcInit(metadata_t* meta) 
 {
+	/*
 	  uint8_t adps;  // prescaler bits for ADCSRA 
 	  uint32_t ticks = F_CPU*SAMPLE_INTERVAL + 0.5;  // Sample interval cpu cycles.
 
@@ -405,6 +454,8 @@ void adcInit(metadata_t* meta)
 		Serial.print(' ');
 		Serial.print(meta->pinNumber[i], DEC);
 	  }
+
+	  
 	  Serial.println(); 
 	  Serial.print(F("ADC bits: "));
 	  Serial.println(meta->recordEightBits ? 8 : 10);
@@ -414,11 +465,14 @@ void adcInit(metadata_t* meta)
 	  Serial.println(sampleRate);  
 	  Serial.print(F("Sample interval usec: "));
 	  Serial.println(1000000.0/sampleRate, 4); 
+
+	  */
 }
 //------------------------------------------------------------------------------
 // enable ADC and timer1 interrupts
 void adcStart() 
 {
+	/*
   // initialize ISR
   isrBufNeeded = true;
   isrOver = 0;
@@ -438,12 +492,15 @@ void adcStart()
   TCNT1 = 0;
   TIFR1 = 1 << OCF1B;
   TIMSK1 = 1 << OCIE1B;
+  */
 }
 //------------------------------------------------------------------------------
 void adcStop() 
 {
+	/*
   TIMSK1 = 0;
   ADCSRA = 0;
+  */
 }
 //------------------------------------------------------------------------------
 // Convert binary file to CSV file.
@@ -828,6 +885,14 @@ void setup(void)
 	sd.initErrorPrint();
 	fatalBlink();
   }
+
+   ADC_MR |= 0x00000100 ; // ADC full speed
+
+ 
+ /* ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
+  adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   */
+
+
 }
 //------------------------------------------------------------------------------
 void loop(void) {

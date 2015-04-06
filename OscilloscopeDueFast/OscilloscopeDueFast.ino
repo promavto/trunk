@@ -1,10 +1,6 @@
-// IMPORTANT: Adafruit_TFTLCD LIBRARY MUST BE SPECIFICALLY
-// CONFIGURED FOR EITHER THE TFT SHIELD OR THE BREAKOUT BOARD.
-// SEE RELEVANT COMMENTS IN Adafruit_TFTLCD.h FOR SETUP.
-#define __SAM3X8E__
 
+#define __SAM3X8E__
 #include <Adafruit_GFX.h>   
-//#include <Adafruit_TFTLCD.h> 
 #include <Scheduler.h>
 
 #include <UTFT.h>
@@ -34,7 +30,7 @@ UTFT_Buttons  myButtons(&myGLCD, &myTouch);
 
 
 // analog stuff
-uint32_t analogInPin5 = A0;
+uint32_t analogInPin = A0;
 int analog_data[320], analog_data_old[320] ;
 int trig_1, trig_2 ;
 int i,j ;
@@ -62,10 +58,6 @@ int points_lines = 1; // 1 => lines
 #define ADC_LCDR * (volatile unsigned int *) (0x400C0020) /*last converted low 12 bits*/
 #define ADC_DATA 0x00000FFF 
 
-ISR(ADC_vect)
-{
-
-}
 
 //=== setup ==============================================================
 void setup(void) 
@@ -100,8 +92,8 @@ void setup(void)
   min_ADC = 100; max_ADC = 100; trig_1 = 50;  trig_2 = 150;
   
   // init the ADC
-  if (analogInPin5 < A0) analogInPin5 += A0;
-  ulChannel = g_APinDescription[analogInPin5].ulADCChannelNumber ;
+  if (analogInPin < A0) analogInPin += A0;
+  ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
   adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   
 }
 
