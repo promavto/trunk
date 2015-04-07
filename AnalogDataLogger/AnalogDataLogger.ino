@@ -107,9 +107,13 @@ float StartSample = 0;
 float EndSample = 0;
 //float V_koeff = 0.0488;
 float koeff_h = 7.759;
-int Max = 0;
-int Min = 500;
+int MaxAnalog = 0;
+unsigned long SrednAnalog = 0;
+unsigned long SrednCount = 0;
+bool Set_x = false;
+int MinAnalog = 500;
 int mode = 0;
+
 int mode1 = 0;             //Переключение чувствительности
 int dTime = 1;
 int tmode = 0;
@@ -2271,12 +2275,26 @@ void print_set1()
 
 	myGLCD.setBackColor( 0, 0, 255);
 
+	if(Set_x == true)
+	{
+	   myGLCD.print("V Max", 265, 50);
+	   myGLCD.print(" /x  ", 265, 65);
+	}
+	else
+	{
+	   myGLCD.print("V Max", 265, 50);
+	   myGLCD.print("     ", 265, 65);
+	}
+
 	myGLCD.print("V/del.", 260, 95);
 	myGLCD.print("      ", 260, 110);
 	if (mode1 == 0)myGLCD.print("1", 275, 110);
 	if (mode1 == 1)myGLCD.print("0.5", 268, 110);
 	if (mode1 == 2)myGLCD.print("0.2", 268, 110);
 	if (mode1 == 3)myGLCD.print("0.1", 268, 110);
+
+	myGLCD.print("Port", 260, 140);
+	myGLCD.printNumI(port, 260, 160);
 }
 void oscilloscope()
 {
@@ -2343,9 +2361,9 @@ void oscilloscope()
 					waitForIt(250, 45, 310, 85);
 					tmode ++;
 					if (tmode > 2)tmode = 0;
-					if (tmode == 0) Trigger = Min;
-					if (tmode == 1) Trigger = Max/2;//;
-					if (tmode == 2) Trigger = Max-10;//20;
+					if (tmode == 0) Trigger = MinAnalog;
+					if (tmode == 1) Trigger = MaxAnalog/2;//;
+					if (tmode == 2) Trigger = MaxAnalog-10;//20;
 					print_set();
 				 }
 			 if ((y_osc>=90) && (y_osc<=130))  // Port select   row
@@ -2381,8 +2399,8 @@ void oscilloscope()
 		for( xpos = 0;	xpos < 240; xpos ++) 
 			{
 				Sample[xpos] = analogRead(port);    //
-				Max = max(Max, Sample[xpos]);
-				Min = min(Min, Sample[xpos]);
+				MaxAnalog = max(MaxAnalog, Sample[xpos]);
+				MinAnalog = min(MinAnalog, Sample[xpos]);
 				delayMicroseconds(dTime); //dTime
 			}
 		EndSample = micros();
@@ -2439,10 +2457,8 @@ void oscilloscope_time()
 	uint32_t logTime;
 	uint32_t SAMPLE_INTERVAL_MS = 250;
 	int32_t diff;
-	
-
 	for( xpos = 0; xpos < 239;	xpos ++)
-	//while(1) 
+
 	{
 		OldSample[xpos] = 0;
 	}
@@ -2459,7 +2475,7 @@ void oscilloscope_time()
 						if ((y_osc>=1) && (y_osc<=160))  // Delay row
 						{
 							waitForIt(2, 1, 240, 160);
-					        break;
+							break;
 						} 
 					}
 
@@ -2473,21 +2489,37 @@ void oscilloscope_time()
 			if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
 			  {
 				  if ((y_osc>=1) && (y_osc<=40))  // Delay row
-				  {
-					waitForIt(250, 1, 310, 40);
-					mode ++ ;
-					if (mode > 3) mode = 0;   
-					// Select delay times you can change values to suite your needs
-					if (mode == 0) SAMPLE_INTERVAL_MS = 250;
-					if (mode == 1) SAMPLE_INTERVAL_MS = 1500;
-					if (mode == 2) SAMPLE_INTERVAL_MS = 3000;
-					if (mode == 3) SAMPLE_INTERVAL_MS = 4500;
+					  {
+						waitForIt(250, 1, 310, 40);
+						mode ++ ;
+						if (mode > 3) mode = 0;   
+						// Select delay times you can change values to suite your needs
+						if (mode == 0) SAMPLE_INTERVAL_MS = 250;
+						if (mode == 1) SAMPLE_INTERVAL_MS = 1500;
+						if (mode == 2) SAMPLE_INTERVAL_MS = 3000;
+						if (mode == 3) SAMPLE_INTERVAL_MS = 4500;
 
-					print_set1();
-				  }
+						print_set1();
+					  }
 
-			 if ((y_osc>=90) && (y_osc<=130))  // Port select   row
-				 {
+				if ((y_osc>=45) && (y_osc<=85))  // Trigger  row
+					 {
+						waitForIt(250, 45, 310, 85);
+						if(Set_x == true) 
+						{
+                             Set_x = false;
+						}
+						else
+						{
+							Set_x = true;
+						}
+
+						Serial.println(Set_x);
+						print_set1();
+					 }
+
+				if ((y_osc>=90) && (y_osc<=130))  // Port select   row
+					{
 					waitForIt(250, 90, 310, 130);
 					mode1 ++ ;
 					if (mode1 > 3) mode1 = 0;   
@@ -2496,6 +2528,14 @@ void oscilloscope_time()
 					if (mode1 == 2) koeff_h = 1.939;
 					if (mode1 == 3) koeff_h = 0.969;
 					print_set1();
+					}
+
+				if ((y_osc>=135) && (y_osc<=175))  // Port select   row
+				 {
+					waitForIt(250, 135, 310, 175);
+						port ++ ;
+					if (port > 3) port = 0;   
+						print_set1();
 				 }
 
 		   }
@@ -2505,13 +2545,9 @@ void oscilloscope_time()
 	logTime = micros();
 	StartSample = micros();
 
-
-
-
 	for( xpos = 1; xpos < 240;	xpos ++)
 
-	{
-		 
+	 {
 		 DrawGrid1();
 		 if (myTouch.dataAvailable())
 			{
@@ -2526,28 +2562,29 @@ void oscilloscope_time()
 						{
 							waitForIt(2, 1, 240, 160);
 							myGLCD.print("STOP", CENTER, 200);
-					        break;
+							break;
 						} 
 					}
-
-		}
+			}
 
 		 logTime += 1000UL*SAMPLE_INTERVAL_MS;
-			   Max = 0;
+			   MaxAnalog = 0;
 				do
 				 {
-					 Max = max(Max, analogRead(port));
-					 delayMicroseconds(20);      //dTime
+					 MaxAnalog = max(MaxAnalog, analogRead(port));
+				     SrednAnalog += MaxAnalog;
+					 SrednCount++;
+					 delayMicroseconds(20);                  //
 					 diff = micros() - logTime;
 					 EndSample = micros();
 					 if(EndSample - StartSample > 1000000 )
 					 {
 						StartSample  =   EndSample ;
-						sec_osc++;
+						sec_osc++;                          // Подсчет секунд
 						if (sec_osc >= 60)
 							{
 							  sec_osc = 0;
-							  min_osc++;
+							  min_osc++;                    // Подсчет минут
 							}
 
 						myGLCD.setBackColor( 0, 0, 0);
@@ -2561,19 +2598,29 @@ void oscilloscope_time()
 
 				 } while (diff < 0);
 
-					Sample[xpos] = Max;
+				 if(Set_x == true)
+					 {
+						 MaxAnalog =  SrednAnalog / SrednCount;
+						 SrednAnalog = 0;
+						 SrednCount = 0;
+					 }
 
+				Sample[xpos] = MaxAnalog;
 				ypos1 = 255-(OldSample[ xpos -1 ]/koeff_h) - hpos; 
-	
-				myGLCD.setColor( 255, 255, 255);
 				ypos2 = 255-(Sample[ xpos]/koeff_h)- hpos;
 
 				if(ypos1<0) ypos1 = 0;
 				if(ypos2<0) ypos2 = 0;
 				if(ypos1>220) ypos1 = 220;
 				if(ypos2>220) ypos2 = 220;
-
+				myGLCD.setColor( 255, 255, 255);
+				myGLCD.setBackColor( 0, 0, 0);
 				myGLCD.drawLine (xpos, ypos1, xpos+1 , ypos2);
+				myGLCD.drawLine (xpos, ypos1+1, xpos+1 , ypos2+1);
+
+				    Serial.print(xpos+1);
+				    Serial.print(" - ");
+					Serial.println(ypos2);
 				OldSample[xpos] = Sample[ xpos];
 
 	} 
@@ -2980,7 +3027,7 @@ void setup(void) {
 	AD9850.powerDown();                //set signal output to LOW
 	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
 	//myGLCD.print("Setup Ok!", CENTER, 10);
-	 Serial.print(F("Setup Ok!"));
+	 Serial.println(F("Setup Ok!"));
 }
 //------------------------------------------------------------------------------
 void loop(void) 
