@@ -96,7 +96,7 @@ int ret                = 0;                // Признак прерывания операции
 int x_kn = 30;  // Смещение кнопок по Х
 int dgvh;
 const int hpos = 95; //set 0v on horizontal  grid
-int port = 4;
+int port = 0;
 int x_osc,y_osc;
 int Input = 0;
 int Old_Input = 0;
@@ -116,7 +116,7 @@ int tmode = 0;
 int Trigger = 0;
 int SampleSize = 0;
 float SampleTime = 0;
-
+uint32_t SAMPLE_INTERVAL_MS = 250;
 
 
 //Настройка звукового генератора
@@ -2218,6 +2218,66 @@ void print_set()
 	if (mode1 == 2)myGLCD.print("0.2", 268, 110);
 	if (mode1 == 3)myGLCD.print("0.1", 268, 110);
 }
+void print_set1()
+{
+	myGLCD.setBackColor( 0, 0, 255);
+	myGLCD.setFont( SmallFont);
+	myGLCD.setColor (255, 255,255);
+	myGLCD.print("Delay", 260, 5);
+	myGLCD.print("     ", 260, 20);
+	if (mode == 0)myGLCD.print("1min", 265, 20);
+	if (mode == 1)myGLCD.print("6min", 265, 20);
+	if (mode == 2)myGLCD.print("12min", 260, 20);
+	if (mode == 3)myGLCD.print("18min", 260, 20);
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.print("0",1, 163);
+	if (mode == 0)
+	{
+		myGLCD.print("10", 35, 163);
+		myGLCD.print("20", 75, 163);
+		myGLCD.print("30", 115, 163);
+		myGLCD.print("40", 155, 163);
+		myGLCD.print("50", 195, 163);
+		myGLCD.print("60", 233, 163);
+	}
+	if (mode == 1)
+	{
+		myGLCD.print("1 ", 38, 163);
+		myGLCD.print("2 ", 78, 163);
+		myGLCD.print("3 ", 118, 163);
+		myGLCD.print("4 ", 158, 163);
+		myGLCD.print("5 ", 198, 163);
+		myGLCD.print("6 ", 233, 163);
+	}
+	if (mode == 2)
+	{
+		myGLCD.print("2 ", 38, 163);
+		myGLCD.print("4 ", 78, 163);
+		myGLCD.print("6 ", 118, 163);
+		myGLCD.print("8 ", 158, 163);
+		myGLCD.print("10", 195, 163);
+		myGLCD.print("12", 233, 163);
+	}
+
+	if (mode == 3)
+	{
+		myGLCD.print("3 ", 38, 163);
+		myGLCD.print("6 ", 78, 163);
+		myGLCD.print("9 ", 118, 163);
+		myGLCD.print("12 ", 155, 163);
+		myGLCD.print("15", 195, 163);
+		myGLCD.print("18", 233, 163);
+	}
+
+	myGLCD.setBackColor( 0, 0, 255);
+
+	myGLCD.print("V/del.", 260, 95);
+	myGLCD.print("      ", 260, 110);
+	if (mode1 == 0)myGLCD.print("1", 275, 110);
+	if (mode1 == 1)myGLCD.print("0.5", 268, 110);
+	if (mode1 == 2)myGLCD.print("0.2", 268, 110);
+	if (mode1 == 3)myGLCD.print("0.1", 268, 110);
+}
 void oscilloscope()
 {
 	uint32_t bgnBlock, endBlock;
@@ -2369,15 +2429,15 @@ void oscilloscope_time()
 	myGLCD.setBackColor( 0, 0, 0);
 	delay(500);
 	myGLCD.clrScr();
-	buttons();
+	buttons1();
 	int xpos;
 	int ypos1;
 	int ypos2;
 	int sec_osc = 0;
 	int min_osc = 0;
-	print_set();
+	print_set1();
 	uint32_t logTime;
-	const uint32_t SAMPLE_INTERVAL_MS = 1250;
+	uint32_t SAMPLE_INTERVAL_MS = 250;
 	int32_t diff;
 	
 
@@ -2386,17 +2446,8 @@ void oscilloscope_time()
 	{
 		OldSample[xpos] = 0;
 	}
-
-
-	logTime = micros();
-	StartSample = micros();
-
-	for( xpos = 1; xpos < 240;	xpos ++)
-	//while(1) 
-	{
-		 
-		 DrawGrid();
-		 if (myTouch.dataAvailable())
+	DrawGrid1();
+	while(1) 
 			{
 				delay(10);
 				myTouch.read();
@@ -2407,7 +2458,8 @@ void oscilloscope_time()
 					{
 						if ((y_osc>=1) && (y_osc<=160))  // Delay row
 						{
-							break;
+							waitForIt(2, 1, 240, 160);
+					        break;
 						} 
 					}
 
@@ -2424,68 +2476,73 @@ void oscilloscope_time()
 				  {
 					waitForIt(250, 1, 310, 40);
 					mode ++ ;
-					if (mode > 10) mode = 0;   
+					if (mode > 3) mode = 0;   
 					// Select delay times you can change values to suite your needs
-					if (mode == 0) dTime = 1;
-					if (mode == 1) dTime = 10;
-					if (mode == 2) dTime = 20;
-					if (mode == 3) dTime = 50;
-					if (mode == 4) dTime = 100;
-					if (mode == 5) dTime = 200;
-					if (mode == 6) dTime = 300;
-					if (mode == 7) dTime = 500;
-					if (mode == 8) dTime = 1000;
-					if (mode == 9) dTime = 5000;
-					if (mode == 10) dTime = 10000;
-					print_set();
+					if (mode == 0) SAMPLE_INTERVAL_MS = 250;
+					if (mode == 1) SAMPLE_INTERVAL_MS = 1500;
+					if (mode == 2) SAMPLE_INTERVAL_MS = 3000;
+					if (mode == 3) SAMPLE_INTERVAL_MS = 4500;
+
+					print_set1();
 				  }
-			 if ((y_osc>=45) && (y_osc<=85))  // Trigger  row
-				 {
-					waitForIt(250, 45, 310, 85);
-					tmode ++;
-					if (tmode > 2)tmode = 0;
-					if (tmode == 0) Trigger = Min;
-					if (tmode == 1) Trigger = Max/2;//;
-					if (tmode == 2) Trigger = Max-10;//20;
-					print_set();
-				 }
+
 			 if ((y_osc>=90) && (y_osc<=130))  // Port select   row
 				 {
 					waitForIt(250, 90, 310, 130);
 					mode1 ++ ;
-					myGLCD.clrScr();
-					buttons();
 					if (mode1 > 3) mode1 = 0;   
 					if (mode1 == 0) koeff_h = 7.759;
 					if (mode1 == 1) koeff_h = 3.879;
 					if (mode1 == 2) koeff_h = 1.939;
 					if (mode1 == 3) koeff_h = 0.969;
-					print_set();
+					print_set1();
 				 }
-			 if ((y_osc>=135) && (y_osc<=175))  // Port select   row
-				 {
-					waitForIt(250, 135, 310, 175);
-					//break;
-				 }
+
 		   }
-				
-			 if ((y_osc>=205) && (y_osc<=239))  //  Delay Button
+		}
+
+
+	logTime = micros();
+	StartSample = micros();
+
+
+
+
+	for( xpos = 1; xpos < 240;	xpos ++)
+
+	{
+		 
+		 DrawGrid1();
+		 if (myTouch.dataAvailable())
+			{
+				delay(10);
+				myTouch.read();
+				x_osc=myTouch.getX();
+				y_osc=myTouch.getY();
+
+				if ((x_osc>=2) && (x_osc<=240))  //  Delay Button
 					{
-						 touch_osc();
+						if ((y_osc>=1) && (y_osc<=160))  // Delay row
+						{
+							waitForIt(2, 1, 240, 160);
+							myGLCD.print("STOP", CENTER, 200);
+					        break;
+						} 
 					}
+
 		}
 
 		 logTime += 1000UL*SAMPLE_INTERVAL_MS;
-		       Max = 0;
+			   Max = 0;
 				do
 				 {
 					 Max = max(Max, analogRead(port));
 					 delayMicroseconds(20);      //dTime
-  			      	 diff = micros() - logTime;
+					 diff = micros() - logTime;
 					 EndSample = micros();
 					 if(EndSample - StartSample > 1000000 )
 					 {
-                        StartSample  =   EndSample ;
+						StartSample  =   EndSample ;
 						sec_osc++;
 						if (sec_osc >= 60)
 							{
@@ -2495,21 +2552,16 @@ void oscilloscope_time()
 
 						myGLCD.setBackColor( 0, 0, 0);
 						myGLCD.setFont( BigFont);
-						myGLCD.print("Min", 8, 175);
-						myGLCD.printNumI(min_osc, 60, 175);
-						myGLCD.print("Sec", 120, 175);
-						myGLCD.print("   ", 170, 175);
-						myGLCD.printNumI(sec_osc, 170, 175);
-
-						//Serial.print(min_osc);
-						//Serial.print(" - ");
-						//Serial.println(sec_osc);
+						myGLCD.print("Min", 8, 180);
+						myGLCD.printNumI(min_osc, 60, 180);
+						myGLCD.print("Sec", 120, 180);
+						myGLCD.print("   ", 170, 180);
+						myGLCD.printNumI(sec_osc, 170, 180);
 					 }
 
 				 } while (diff < 0);
 
-				 	Sample[xpos] = Max;
-
+					Sample[xpos] = Max;
 
 				ypos1 = 255-(OldSample[ xpos -1 ]/koeff_h) - hpos; 
 	
@@ -2525,11 +2577,16 @@ void oscilloscope_time()
 				OldSample[xpos] = Sample[ xpos];
 
 	} 
-koeff_h = 7.759;
-mode1 = 0;
-Trigger = 0;
-myGLCD.setFont( BigFont);
-while (myTouch.dataAvailable()){}
+
+	koeff_h = 7.759;
+	mode1 = 0;
+	Trigger = 0;
+	myGLCD.setFont( BigFont);
+
+	while (!myTouch.dataAvailable()){}
+	delay(50);
+	while (myTouch.dataAvailable()){}
+	delay(50);
 }
 void buttons()
 {
@@ -2570,6 +2627,47 @@ void buttons()
 	myGLCD.print("<", 8, 214);
 	myGLCD.print(">", 253, 214);
 	myGLCD.setColor(0, 0, 255);
+	//myGLCD.setFont( SmallFont);
+}
+void buttons1()
+{
+	myGLCD.setColor(0, 0, 255);
+	myGLCD.fillRoundRect (250, 1, 310, 40);
+	myGLCD.fillRoundRect (250, 45, 310, 85);
+	myGLCD.fillRoundRect (250, 90, 310, 130);
+	myGLCD.fillRoundRect (250, 135, 310, 175);
+
+	//myGLCD.fillRoundRect (5+x_kn, 219, 30+x_kn, 238);
+	//myGLCD.fillRoundRect (35+x_kn, 219, 60+x_kn, 238);
+	//myGLCD.fillRoundRect (65+x_kn, 219, 90+x_kn, 238);
+	//myGLCD.fillRoundRect (95+x_kn, 219, 120+x_kn, 238);
+	//myGLCD.fillRoundRect (125+x_kn, 219, 150+x_kn, 238);
+	//myGLCD.fillRoundRect (155+x_kn, 219, 180+x_kn, 238);
+	//myGLCD.fillRoundRect (185+x_kn, 219, 210+x_kn, 238);
+	//myGLCD.fillRoundRect (217+x_kn, 206, 244+x_kn, 238);
+	//myGLCD.fillRoundRect (280, 206, 310, 238);
+
+	//myGLCD.setColor(VGA_YELLOW);
+	//myGLCD.fillRoundRect (1+x_kn, 206, 214+x_kn, 212);       //Желтая полоса
+	//myGLCD.fillRoundRect (1, 206, 28, 238);                  // Кнопка "<"
+	//myGLCD.fillRoundRect (217+x_kn, 206, 244+x_kn, 238);     // Кнопка ">"
+
+	//myGLCD.setBackColor( 0, 0, 255);
+	//myGLCD.setFont( SmallFont);
+	//myGLCD.setColor (255, 255,255);
+	//myGLCD.print("1s", 12+x_kn, 222);
+	//myGLCD.print("5s", 42+x_kn, 222);
+	//myGLCD.print("10s", 67+x_kn, 222);
+	//myGLCD.print("1m", 102+x_kn, 222);
+	//myGLCD.print("5m", 132+x_kn, 222);
+	//myGLCD.print("10m", 157+x_kn, 222);
+	//myGLCD.print("15m", 187+x_kn, 222);
+
+	//myGLCD.setBackColor( 0, 0, 0);
+	//myGLCD.setFont( BigFont);
+	//myGLCD.print("<", 8, 214);
+	//myGLCD.print(">", 253, 214);
+	//myGLCD.setColor(0, 0, 255);
 	//myGLCD.setFont( SmallFont);
 }
 void DrawGrid()
