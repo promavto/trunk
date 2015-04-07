@@ -111,6 +111,7 @@ int MaxAnalog = 0;
 unsigned long SrednAnalog = 0;
 unsigned long SrednCount = 0;
 bool Set_x = false;
+int Set_ADC = 10;
 int MinAnalog = 500;
 int mode = 0;
 
@@ -2293,8 +2294,11 @@ void print_set1()
 	if (mode1 == 2)myGLCD.print("0.2", 268, 110);
 	if (mode1 == 3)myGLCD.print("0.1", 268, 110);
 
-	myGLCD.print("Port", 260, 140);
-	myGLCD.printNumI(port, 260, 160);
+	myGLCD.print("Port", 265, 140);
+	myGLCD.printNumI(port, 275, 156);
+
+	myGLCD.print(" ADC ", 262, 185);
+	myGLCD.printNumI(Set_ADC, 272, 202);
 }
 void oscilloscope()
 {
@@ -2486,6 +2490,7 @@ void oscilloscope_time()
 				myGLCD.drawRoundRect (250, 45, 310, 85);
 				myGLCD.drawRoundRect (250, 90, 310, 130);
 				myGLCD.drawRoundRect (250, 135, 310, 175);
+				myGLCD.drawRoundRect (250, 180, 310, 220);
 			if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
 			  {
 				  if ((y_osc>=1) && (y_osc<=40))  // Delay row
@@ -2514,7 +2519,7 @@ void oscilloscope_time()
 							Set_x = true;
 						}
 
-						Serial.println(Set_x);
+					//	Serial.println(Set_x);
 						print_set1();
 					 }
 
@@ -2534,9 +2539,27 @@ void oscilloscope_time()
 				 {
 					waitForIt(250, 135, 310, 175);
 						port ++ ;
-					if (port > 3) port = 0;   
+					if (port > 5) port = 0;   
 						print_set1();
 				 }
+
+				if ((y_osc>= 180) && (y_osc<=220))  // Port select   row
+				 {
+					waitForIt(250, 180, 310, 220);
+		
+					if(Set_ADC == 12) 
+						{
+                             Set_ADC = 10;
+
+
+						}
+					else
+						{
+							Set_ADC = 12;
+						}
+					    analogReadResolution(Set_ADC); 
+						print_set1();
+                  }
 
 		   }
 		}
@@ -2586,7 +2609,7 @@ void oscilloscope_time()
 							  sec_osc = 0;
 							  min_osc++;                    // Подсчет минут
 							}
-
+						Serial.println(analogRead(port));
 						myGLCD.setBackColor( 0, 0, 0);
 						myGLCD.setFont( BigFont);
 						myGLCD.print("Min", 8, 180);
@@ -2600,11 +2623,13 @@ void oscilloscope_time()
 
 				 if(Set_x == true)
 					 {
+		
 						 MaxAnalog =  SrednAnalog / SrednCount;
 						 SrednAnalog = 0;
 						 SrednCount = 0;
 					 }
 
+				if (Set_ADC==12) MaxAnalog = MaxAnalog/4;
 				Sample[xpos] = MaxAnalog;
 				ypos1 = 255-(OldSample[ xpos -1 ]/koeff_h) - hpos; 
 				ypos2 = 255-(Sample[ xpos]/koeff_h)- hpos;
@@ -2617,16 +2642,12 @@ void oscilloscope_time()
 				myGLCD.setBackColor( 0, 0, 0);
 				myGLCD.drawLine (xpos, ypos1, xpos+1 , ypos2);
 				myGLCD.drawLine (xpos, ypos1+1, xpos+1 , ypos2+1);
-
-				    Serial.print(xpos+1);
-				    Serial.print(" - ");
-					Serial.println(ypos2);
 				OldSample[xpos] = Sample[ xpos];
 
 	} 
 
 	koeff_h = 7.759;
-	mode1 = 0;
+//	mode1 = 0;
 	Trigger = 0;
 	myGLCD.setFont( BigFont);
 
@@ -2683,39 +2704,7 @@ void buttons1()
 	myGLCD.fillRoundRect (250, 45, 310, 85);
 	myGLCD.fillRoundRect (250, 90, 310, 130);
 	myGLCD.fillRoundRect (250, 135, 310, 175);
-
-	//myGLCD.fillRoundRect (5+x_kn, 219, 30+x_kn, 238);
-	//myGLCD.fillRoundRect (35+x_kn, 219, 60+x_kn, 238);
-	//myGLCD.fillRoundRect (65+x_kn, 219, 90+x_kn, 238);
-	//myGLCD.fillRoundRect (95+x_kn, 219, 120+x_kn, 238);
-	//myGLCD.fillRoundRect (125+x_kn, 219, 150+x_kn, 238);
-	//myGLCD.fillRoundRect (155+x_kn, 219, 180+x_kn, 238);
-	//myGLCD.fillRoundRect (185+x_kn, 219, 210+x_kn, 238);
-	//myGLCD.fillRoundRect (217+x_kn, 206, 244+x_kn, 238);
-	//myGLCD.fillRoundRect (280, 206, 310, 238);
-
-	//myGLCD.setColor(VGA_YELLOW);
-	//myGLCD.fillRoundRect (1+x_kn, 206, 214+x_kn, 212);       //Желтая полоса
-	//myGLCD.fillRoundRect (1, 206, 28, 238);                  // Кнопка "<"
-	//myGLCD.fillRoundRect (217+x_kn, 206, 244+x_kn, 238);     // Кнопка ">"
-
-	//myGLCD.setBackColor( 0, 0, 255);
-	//myGLCD.setFont( SmallFont);
-	//myGLCD.setColor (255, 255,255);
-	//myGLCD.print("1s", 12+x_kn, 222);
-	//myGLCD.print("5s", 42+x_kn, 222);
-	//myGLCD.print("10s", 67+x_kn, 222);
-	//myGLCD.print("1m", 102+x_kn, 222);
-	//myGLCD.print("5m", 132+x_kn, 222);
-	//myGLCD.print("10m", 157+x_kn, 222);
-	//myGLCD.print("15m", 187+x_kn, 222);
-
-	//myGLCD.setBackColor( 0, 0, 0);
-	//myGLCD.setFont( BigFont);
-	//myGLCD.print("<", 8, 214);
-	//myGLCD.print(">", 253, 214);
-	//myGLCD.setColor(0, 0, 255);
-	//myGLCD.setFont( SmallFont);
+	myGLCD.fillRoundRect (250, 180, 310, 220);
 }
 void DrawGrid()
 {
@@ -2995,7 +2984,8 @@ void menu_ADC()
 
 //------------------------------------------------------------------------------
 void setup(void) {
-  if (ERROR_LED_PIN >= 0) {
+  if (ERROR_LED_PIN >= 0) 
+  {
 	pinMode(ERROR_LED_PIN, OUTPUT);
   }
   Serial.begin(9600);
@@ -3020,7 +3010,7 @@ void setup(void) {
 	//myTouch.setPrecision(PREC_HI);
 	myButtons.setTextFont(BigFont);
 	myButtons.setSymbolFont(Dingbats1_XL);
-	analogReadResolution(10); 
+	analogReadResolution(Set_ADC); 
   // Настройка звукового генератора  
 	AD9850.reset();                    //reset module
 	delay(1000);
