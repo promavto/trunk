@@ -17,7 +17,7 @@ void drawDownButton(int x, int y)
   myGLCD.drawRoundRect(x, y, x+32, y+25);
   myGLCD.setColor(128, 128, 255);
   for (int i=0; i<15; i++)
-    myGLCD.drawLine(x+6+(i/1.5), y+5+i, x+27-(i/1.5), y+5+i);
+  myGLCD.drawLine(x+6+(i/1.5), y+5+i, x+27-(i/1.5), y+5+i);
 }
 
 void showDOW(byte dow)
@@ -136,7 +136,7 @@ byte validateDateForMonth(byte d, byte m, word y)
   return d;
 }
 
-void setClock()
+void setClockRTC()
 {
 // int sec, min, hour, dow, date, mon, year;
 
@@ -196,15 +196,16 @@ void setClock()
   
   // Print current time and date
   myGLCD.setColor(255, 255, 255);
-   clock_read();
-
-    t_temp_date=date;
+  // clock_read();
+    rtc_clock.get_time(&hh,&mm,&ss);
+    rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
+    t_temp_date=dd;
     t_temp_mon=mon;
-    t_temp_year=year;
+    t_temp_year=yyyy;
     t_temp_dow=dow;
-    t_temp_hour=hour;
-    t_temp_min=min;
-    t_temp_sec=sec;
+    t_temp_hour=hh;
+    t_temp_min=mm;
+    t_temp_sec=ss;
 
 
 //  t_temp = rtc.getTime();
@@ -602,18 +603,22 @@ void setClock()
   {
     if (ct|cd)
 	{
-		t_temp_year = t_temp_year-2000;
-	  Wire.beginTransmission(0x68);//DS1307 write the initial time
-	  Wire.write(0);
-	  Wire.requestFrom(0x68, 7);
-	  Wire.write(bin_to_bcd(t_temp_sec));
-	  Wire.write(bin_to_bcd(t_temp_min));
-	  Wire.write(bin_to_bcd(t_temp_hour));
-	  Wire.write(bin_to_bcd(t_temp_dow));
-	  Wire.write(bin_to_bcd(t_temp_date));
-	  Wire.write(bin_to_bcd(t_temp_mon));
-	  Wire.write(bin_to_bcd(t_temp_year));	
-	  Wire.endTransmission();
+
+	  t_temp_year = t_temp_year-2000;
+	  rtc_clock.set_time(t_temp_hour, t_temp_min,t_temp_sec);
+      rtc_clock.set_date(t_temp_date, t_temp_mon, t_temp_year);
+
+	  //Wire.beginTransmission(0x68);//DS1307 write the initial time
+	  //Wire.write(0);
+	  //Wire.requestFrom(0x68, 7);
+	  //Wire.write(bin_to_bcd(t_temp_sec));
+	  //Wire.write(bin_to_bcd(t_temp_min));
+	  //Wire.write(bin_to_bcd(t_temp_hour));
+	  //Wire.write(bin_to_bcd(t_temp_dow));
+	  //Wire.write(bin_to_bcd(t_temp_date));
+	  //Wire.write(bin_to_bcd(t_temp_mon));
+	  //Wire.write(bin_to_bcd(t_temp_year));	
+	  //Wire.endTransmission();
 	}
    
   }
