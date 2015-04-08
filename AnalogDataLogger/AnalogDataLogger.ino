@@ -3401,28 +3401,9 @@ void SD_info()
 void SD_format()
 {
 	char c;
-  cout << pstr(
-	"\n"
-	"This sketch can erase and/or format SD/SDHC cards.\n"
-	"\n"
-	"Erase uses the card's fast flash erase command.\n"
-	"Flash erase sets all data to 0X00 for most cards\n"
-	"and 0XFF for a few vendor's cards.\n"
-	"\n"
-	"Cards larger than 2 GB will be formatted FAT32 and\n"
-	"smaller cards will be formatted FAT16.\n"
-	"\n"
-	"Warning, all data on the card will be erased.\n"
-	"Enter 'Y' to continue: ");
-  while (!Serial.available()) {}
-  delay(400);  // catch Due restart problem
-  
-  c = Serial.read();
-  cout << c << endl;
-  if (c != 'Y') {
-	cout << pstr("Quiting, you did not enter 'Y'.\n");
-	return;
-  }
+	 Draw_menu_formatSD();
+	  menu_formatSD();
+	  // Переделать
   // read any existing Serial data
   while (Serial.read() >= 0) {}
   
@@ -3465,7 +3446,71 @@ void SD_format()
 	formatCard();
   }
 }
+void Draw_menu_formatSD()
+{
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 255);
+	for (int x=0; x<4; x++)
+		{
+			myGLCD.setColor(0, 0, 255);
+			myGLCD.fillRoundRect (30, 20+(50*x), 290,60+(50*x));
+			myGLCD.setColor(255, 255, 255);
+			myGLCD.drawRoundRect (30, 20+(50*x), 290,60+(50*x));
+		}
+	myGLCD.print( "Erase skip format", CENTER, 30);     // 
+	myGLCD.print( "Erase and format", CENTER, 80);      
+	myGLCD.print( "Quick format", CENTER, 130);     
+	myGLCD.print( txt_SD_menu4, CENTER, 180);      
+}
+void menu_formatSD()
+{
+		// discard any input
+	while (Serial.read() >= 0) {} // Удалить все символы из буфера
 
+	char c;
+
+	while (true)
+		{
+		delay(10);
+		if (myTouch.dataAvailable())
+			{
+				myTouch.read();
+				int	x=myTouch.getX();
+				int	y=myTouch.getY();
+
+				if ((x>=30) && (x<=290))       // Upper row
+					{
+					if ((y>=20) && (y<=60))    // Button: 1
+						{
+							waitForIt(30, 20, 290, 60);
+							myGLCD.clrScr();
+			
+						Draw_menu_formatSD();
+						}
+					if ((y>=70) && (y<=110))   // Button: 2
+						{
+							waitForIt(30, 70, 290, 110);
+							myGLCD.clrScr();
+		
+						Draw_menu_formatSD();
+						}
+					if ((y>=120) && (y<=160))  // Button: 3
+						{
+							waitForIt(30, 120, 290, 160);
+							myGLCD.clrScr();
+				
+				        	Draw_menu_formatSD();
+						}
+					if ((y>=170) && (y<=220))  // Button: 4
+						{
+							waitForIt(30, 170, 290, 210);
+							break;
+						}
+				}
+			}
+	   }
+
+}
 void touch_osc()  //  Нижнее меню осциллографа
 {
 	delay(10);

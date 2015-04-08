@@ -132,6 +132,8 @@ void Draw_menu_SD();
 void menu_SD();
 void SD_info();
 void SD_format();
+void Draw_menu_formatSD();
+void menu_formatSD();
 void touch_osc();
 void Draw_menu_ADC1();
 void menu_ADC();
