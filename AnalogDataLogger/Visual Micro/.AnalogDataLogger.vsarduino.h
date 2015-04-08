@@ -68,6 +68,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portInputRegister(P)
 #define portModeRegister(P)
 
+void dateTime(uint16_t* date, uint16_t* time);
 void acquireData(data_t* data);
 void printData(Print* pr, data_t* data);
 void printHeader(Print* pr);
@@ -115,7 +116,20 @@ void Draw_menu_ADC1();
 void menu_ADC();
 void setup(void);
 void loop(void);
+void drawUpButton(int x, int y);
+void drawDownButton(int x, int y);
+void showDOW(byte dow);
+int bin_to_bcd(int temp);
+byte validateDate(byte d, byte m, word y);
+byte validateDateForMonth(byte d, byte m, word y);
+void setClock();
+char uCase(char c);
+void buttonWait(int x, int y);
+byte calcDOW(byte d, byte m, int y);
+void waitForTouchRelease();
 
 #include <AnalogDataLogger.ino>
 #include <UserDataType.h>
+#include <setTimeDate.ino>
+#include <utils.ino>
 #endif

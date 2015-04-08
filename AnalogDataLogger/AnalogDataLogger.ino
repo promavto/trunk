@@ -23,6 +23,9 @@
 #include <UTouch.h>
 #include <UTFT_Buttons.h>
 #include "Wire.h"
+#include <rtc_clock.h>
+
+
 
 //------------------------------------------------------------------------------
 // User data functions.  Modify these functions for your data items.
@@ -49,6 +52,11 @@ boolean default_colors = true;
 uint8_t menu_redraw_required = 0;
 
 //----------------------Конец  Настройки дисплея --------------------------------
+
+
+
+
+
 //**************************  Меню прибора ***************************************
 
 const int clockCenterX=119;
@@ -56,6 +64,11 @@ const int clockCenterY=119;
 int oldsec=0;
 char* str[] = {"MON","TUE","WED","THU","FRI","SAT","SUN"};
 char* str_mon[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+
+RTC_clock rtc_clock(XTAL);
+
+char* daynames[]={"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+
 
 //-----------------------------------------------------------------------------------------------
 uint8_t sec = 0;       //Initialization time
@@ -89,8 +102,7 @@ int ret                = 0;                // Признак прерывания операции
 // int kbut1, kbut2, kbut3, kbut4, kbut5, kbut6, kbut7, kbut8, kbut9, kbut0, kbut_save,kbut_clear, kbut_exit;
 // int kbutA, kbutB, kbutC, kbutD, kbutE, kbutF;
  int m2 = 1; // Переменная номера меню
-
-
+ 
 //=====================================================================================
 
 int x_kn = 30;  // Смещение кнопок по Х
@@ -123,7 +135,6 @@ int SampleSize = 0;
 float SampleTime = 0;
 uint32_t SAMPLE_INTERVAL_MS = 250;
 
-
 //Настройка звукового генератора
 #define CLK     8  // Назначение выводов генератора сигналов
 #define FQUP    9  // Назначение выводов генератора сигналов
@@ -132,7 +143,6 @@ uint32_t SAMPLE_INTERVAL_MS = 250;
 AH_AD9850 AD9850(CLK, FQUP, BitData, RESET);// настройка звукового генератора
 
 //***************** Назначение переменных для хранения текстов*****************************************************
-
 
 char  txt_menu1_1[]          = "PE\x81\x86""CTPATOP";                                                       // "РЕГИСТРАТОР"
 char  txt_menu1_2[]          = "CAMO\x89\x86""CE\x8C";                                                      // "САМОПИСЕЦ"
@@ -155,7 +165,6 @@ char  txt_menu5_2[]          = "MENU 5-2";//"";                                 
 char  txt_menu5_3[]          = "MENU 5-3";//"Set Adr Coord L";                                              // 
 char  txt_menu5_4[]          = "MENU 5-4";//"Set Adr Network";                                              // 
 
-
 char  txt_info1[]            = "B""\x97""o""\x99"" ""\x99""a""\xA2\xA2\xAB""x";                             // Ввод данных
 char  txt_info2[]            = "\x86\xA2\xA5op\xA1""a""\xA6\x9D\xAF";                                       // Информация
 char  txt_info3[]            = "Hac\xA4po\x9E\x9F""a c\x9D""c\xA4""e\xA1\xAB";                              // Настройка системы
@@ -177,7 +186,6 @@ char  txt_SD_menu1[]         = "View File";                                     
 char  txt_SD_menu2[]         = "Info SD";                                                                  //
 char  txt_SD_menu3[]         = "Format SD";                                                                //
 char  txt_SD_menu4[]         = "EXIT";           
-
 
 char  txt_info6[]             = "Info: ";                                //Info: 
 char  txt_info7[]             = "Writing:"; 
@@ -206,9 +214,16 @@ char  txt_info29[]            = "";
 char  txt_info30[]            = ""; 
 
 
+void dateTime(uint16_t* date, uint16_t* time) // Программа записи времени и даты файла
+{
+  DateTime now = rtc_clock.now();
 
+  // return date using FAT_DATE macro to format fields
+  *date = FAT_DATE(now.year(), now.month(), now.day());
 
-
+  // return time using FAT_TIME macro to format fields
+  *time = FAT_TIME(now.hour(), now.minute(), now.second());
+}
 
 
 // Acquire a data record.
@@ -317,9 +332,6 @@ const uint16_t DATA_DIM = (512 - 4)/sizeof(data_t);
 
 //Compute fill so block size is 512 bytes.  FILL_DIM may be zero.
 const uint16_t FILL_DIM = 512 - 4 - DATA_DIM*sizeof(data_t);
-
-
-
 
 struct block_t 
 {
@@ -537,7 +549,6 @@ void dumpData()
 	Draw_menu_ADC1();
 
 }
-
 
 void dumpData_Osc() 
 {
@@ -2491,19 +2502,17 @@ void oscilloscope_time()
 				myGLCD.drawRoundRect (250, 90, 310, 130);
 				myGLCD.drawRoundRect (250, 135, 310, 175);
 				myGLCD.drawRoundRect (250, 180, 310, 220);
-			if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
+			if ((x_osc>=250) && (x_osc<=310))               //  Delay Button
 			  {
-				  if ((y_osc>=1) && (y_osc<=40))  // Delay row
+				  if ((y_osc>=1) && (y_osc<=40))            // Delay row
 					  {
 						waitForIt(250, 1, 310, 40);
 						mode ++ ;
 						if (mode > 3) mode = 0;   
-						// Select delay times you can change values to suite your needs
 						if (mode == 0) SAMPLE_INTERVAL_MS = 250;
 						if (mode == 1) SAMPLE_INTERVAL_MS = 1500;
 						if (mode == 2) SAMPLE_INTERVAL_MS = 3000;
 						if (mode == 3) SAMPLE_INTERVAL_MS = 4500;
-
 						print_set1();
 					  }
 
@@ -2512,14 +2521,12 @@ void oscilloscope_time()
 						waitForIt(250, 45, 310, 85);
 						if(Set_x == true) 
 						{
-                             Set_x = false;
+							 Set_x = false;
 						}
 						else
 						{
 							Set_x = true;
 						}
-
-					//	Serial.println(Set_x);
 						print_set1();
 					 }
 
@@ -2549,21 +2556,18 @@ void oscilloscope_time()
 		
 					if(Set_ADC == 12) 
 						{
-                             Set_ADC = 10;
-
-
+							 Set_ADC = 10;
 						}
 					else
 						{
 							Set_ADC = 12;
 						}
-					    analogReadResolution(Set_ADC); 
+						analogReadResolution(Set_ADC); 
 						print_set1();
-                  }
+				  }
 
 		   }
 		}
-
 
 	logTime = micros();
 	StartSample = micros();
@@ -2595,7 +2599,7 @@ void oscilloscope_time()
 				do
 				 {
 					 MaxAnalog = max(MaxAnalog, analogRead(port));
-				     SrednAnalog += MaxAnalog;
+					 SrednAnalog += MaxAnalog;
 					 SrednCount++;
 					 delayMicroseconds(20);                  //
 					 diff = micros() - logTime;
@@ -2812,7 +2816,6 @@ void menu_SD()
 			}
 	   }
 }
-
 void touch_osc()  //  Нижнее меню осциллографа
 {
 	delay(10);
@@ -2983,20 +2986,21 @@ void menu_ADC()
 }
 
 //------------------------------------------------------------------------------
-void setup(void) {
+void setup(void) 
+{
   if (ERROR_LED_PIN >= 0) 
   {
 	pinMode(ERROR_LED_PIN, OUTPUT);
   }
   Serial.begin(9600);
-  
   Serial.print(F("FreeRam: "));
   Serial.println(FreeRam());
   Serial.print(F("Records/block: "));
   Serial.println(DATA_DIM);
   if (sizeof(block_t) != 512) error("Invalid block size");
   // initialize file system.
-  if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED)) {
+  if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED))
+  {
 	sd.initErrorPrint();
 	fatalBlink();
   }
@@ -3016,47 +3020,16 @@ void setup(void) {
 	delay(1000);
 	AD9850.powerDown();                //set signal output to LOW
 	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
-	//myGLCD.print("Setup Ok!", CENTER, 10);
-	 Serial.println(F("Setup Ok!"));
+	rtc_clock.init();
+    rtc_clock.set_time(__TIME__);
+    rtc_clock.set_date(__DATE__);
+
+
+	Serial.println(F("Setup Ok!"));
 }
 //------------------------------------------------------------------------------
 void loop(void) 
 {
 	draw_Glav_Menu();
 	swichMenu();
-
-
-	/*
-  // discard any input
-  while (Serial.read() >= 0) {}
-  Serial.println();
-  Serial.println(F("type:"));
-  Serial.println(F("c - convert file to CSV")); 
-  Serial.println(F("d - dump data to Serial"));  
-  Serial.println(F("e - overrun error details"));
-  Serial.println(F("r - record data"));
-
-  while(!Serial.available()) {}
-  char c = tolower(Serial.read());
-  
-  // Discard extra Serial data.
-  do {
-	delay(10);
-  } while (Serial.read() >= 0);
-  
-  if (ERROR_LED_PIN >= 0) {
-	digitalWrite(ERROR_LED_PIN, LOW);
-  }
-  if (c == 'c') {
-	binaryToCsv();
-  } else if (c == 'd') {
-	dumpData();
-  } else if (c == 'e') {    
-	checkOverrun();
-  } else if (c == 'r') {
-	logData();
-  } else {
-	Serial.println(F("Invalid entry"));
-  }
-  */
 }
