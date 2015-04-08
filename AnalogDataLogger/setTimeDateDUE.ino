@@ -608,17 +608,7 @@ void setClockRTC()
 	  rtc_clock.set_time(t_temp_hour, t_temp_min,t_temp_sec);
       rtc_clock.set_date(t_temp_date, t_temp_mon, t_temp_year);
 
-	  //Wire.beginTransmission(0x68);//DS1307 write the initial time
-	  //Wire.write(0);
-	  //Wire.requestFrom(0x68, 7);
-	  //Wire.write(bin_to_bcd(t_temp_sec));
-	  //Wire.write(bin_to_bcd(t_temp_min));
-	  //Wire.write(bin_to_bcd(t_temp_hour));
-	  //Wire.write(bin_to_bcd(t_temp_dow));
-	  //Wire.write(bin_to_bcd(t_temp_date));
-	  //Wire.write(bin_to_bcd(t_temp_mon));
-	  //Wire.write(bin_to_bcd(t_temp_year));	
-	  //Wire.endTransmission();
+	 
 	}
    
   }
