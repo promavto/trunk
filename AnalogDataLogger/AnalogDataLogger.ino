@@ -408,7 +408,8 @@ void debugPrint() {
 #endif  // DEBUG_PRINT
 //------------------------------------------------------------------------------
 // write cached block to the card
-uint8_t writeCache(uint32_t lbn) {
+uint8_t writeCache(uint32_t lbn) 
+{
   return card.writeBlock(lbn, cache.data);
 }
 //------------------------------------------------------------------------------
@@ -499,7 +500,8 @@ uint8_t lbnToSector(uint32_t lbn) {
 }
 //------------------------------------------------------------------------------
 // format and write the Master Boot Record
-void writeMbr() {
+void writeMbr() 
+{
   clearCache(true);
   part_t* p = cache.mbr.part;
   p->boot = 0;
@@ -530,14 +532,17 @@ void writeMbr() {
 }
 //------------------------------------------------------------------------------
 // generate serial number from card size and micros since boot
-uint32_t volSerialNumber() {
+uint32_t volSerialNumber() 
+{
   return (cardSizeBlocks << 8) + micros();
 }
 //------------------------------------------------------------------------------
 // format the SD as FAT16
-void makeFat16() {
+void makeFat16() 
+{
   uint32_t nc;
-  for (dataStart = 2 * BU16;; dataStart += BU16) {
+  for (dataStart = 2 * BU16;; dataStart += BU16) 
+  {
 	nc = (cardSizeBlocks - dataStart)/sectorsPerCluster;
 	fatSize = (nc + 2 + 255)/256;
 	uint32_t r = BU16 + 1 + 2 * fatSize + 32;
@@ -600,7 +605,8 @@ void makeFat16() {
 }
 //------------------------------------------------------------------------------
 // format the SD as FAT32
-void makeFat32() {
+void makeFat32() 
+{
   uint32_t nc;
   relSector = BU32;
   for (dataStart = 2 * BU32;; dataStart += BU32) {
@@ -686,7 +692,8 @@ void makeFat32() {
 //------------------------------------------------------------------------------
 // flash erase all data
 //uint32_t const ERASE_SIZE = 262144L;
-void eraseCard() {
+void eraseCard() 
+{
   cout << endl << pstr("Erasing\n");
   uint32_t firstBlock = 0;
   uint32_t lastBlock;
@@ -709,7 +716,8 @@ void eraseCard() {
   cout << pstr("Erase done\n");
 }
 //------------------------------------------------------------------------------
-void formatCard() {
+void formatCard() 
+{
   cout << endl;
   cout << pstr("Formatting\n");
   initSizes();
@@ -725,9 +733,6 @@ void formatCard() {
 #endif  // DEBUG_PRINT
   cout << pstr("Format done\n");
 }
-
-
-
 
 //------------------------------------------------------------------------------
 // store error strings in flash
@@ -1317,7 +1322,8 @@ void logData()
   emptyHead = queueNext(emptyHead);
   
   // Put rest of buffers in the empty queue.
-  for (uint8_t i = 0; i < BUFFER_BLOCK_COUNT; i++) {
+  for (uint8_t i = 0; i < BUFFER_BLOCK_COUNT; i++) 
+  {
 	emptyQueue[emptyHead] = &block[i];
 	emptyHead = queueNext(emptyHead);
   }
@@ -3322,7 +3328,7 @@ void menu_SD()
 						{
 							waitForIt(30, 120, 290, 160);
 							myGLCD.clrScr();
-							SD_format();
+						    menu_formatSD();
 							Draw_menu_SD();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
@@ -3400,9 +3406,11 @@ void SD_info()
 }
 void SD_format()
 {
+
+	// Не применять!, реализовано в menu_formatSD();
 	char c;
-	 Draw_menu_formatSD();
-	  menu_formatSD();
+	// Draw_menu_formatSD();
+	// menu_formatSD();
 	  // Переделать
   // read any existing Serial data
   while (Serial.read() >= 0) {}
@@ -3419,7 +3427,8 @@ void SD_format()
   while (!Serial.available()) {}
   c = Serial.read();
   cout << c << endl;
-  if (!strchr("EFQ", c)) {
+  if (!strchr("EFQ", c)) 
+  {
 	cout << pstr("Quiting, invalid option entered.") << endl;
 	return;
   }
@@ -3432,6 +3441,9 @@ void SD_format()
 	 "Is chip select correct at the top of this sketch?\n");
 	sdError("card.init failed");
   }
+
+
+
   cardSizeBlocks = card.cardSize();
   if (cardSizeBlocks == 0) sdError("cardSize");
   cardCapacityMB = (cardSizeBlocks + 2047)/2048;
@@ -3439,10 +3451,12 @@ void SD_format()
   cout << pstr("Card Size: ") << cardCapacityMB;
   cout << pstr(" MB, (MB = 1,048,576 bytes)") << endl;
 
-  if (c == 'E' || c == 'F') {
+  if (c == 'E' || c == 'F') 
+  {
 	eraseCard();
   }
-  if (c == 'F' || c == 'Q') {
+  if (c == 'F' || c == 'Q')
+  {
 	formatCard();
   }
 }
@@ -3464,8 +3478,27 @@ void Draw_menu_formatSD()
 }
 void menu_formatSD()
 {
+
+	 if (!card.init(spiSpeed, SD_CS_PIN)) 
+  {
+	cout << pstr(
+	 "\nSD initialization failure!\n"
+	 "Is the SD card inserted correctly?\n"
+	 "Is chip select correct at the top of this sketch?\n");
+	sdError("card.init failed");
+  }
+
+  cardSizeBlocks = card.cardSize();
+  if (cardSizeBlocks == 0) sdError("cardSize");
+  cardCapacityMB = (cardSizeBlocks + 2047)/2048;
+
+  cout << pstr("Card Size: ") << cardCapacityMB;
+  cout << pstr(" MB, (MB = 1,048,576 bytes)") << endl;
+
+  Draw_menu_formatSD();
+
 		// discard any input
-	while (Serial.read() >= 0) {} // Удалить все символы из буфера
+	//while (Serial.read() >= 0) {} // Удалить все символы из буфера
 
 	char c;
 
@@ -3484,21 +3517,21 @@ void menu_formatSD()
 						{
 							waitForIt(30, 20, 290, 60);
 							myGLCD.clrScr();
-			
+			                eraseCard();
 						Draw_menu_formatSD();
 						}
 					if ((y>=70) && (y<=110))   // Button: 2
 						{
 							waitForIt(30, 70, 290, 110);
 							myGLCD.clrScr();
-		
+		                    eraseCard();
 						Draw_menu_formatSD();
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
 						{
 							waitForIt(30, 120, 290, 160);
 							myGLCD.clrScr();
-				
+				            formatCard();
 				        	Draw_menu_formatSD();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
@@ -3697,7 +3730,7 @@ void setup(void)
   if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED))
   {
 	sd.initErrorPrint();
-	fatalBlink();
+	//fatalBlink();
   }
 	myGLCD.InitLCD();
 	myGLCD.clrScr();
