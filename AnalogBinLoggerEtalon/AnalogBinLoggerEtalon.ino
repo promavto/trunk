@@ -84,8 +84,8 @@ uint32_t ulChannel;
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
 // numbers may be repeated.
-//const uint8_t PIN_LIST[] = {0, 1, 2, 3};
-const uint8_t PIN_LIST[] = {0};
+const uint8_t PIN_LIST[] = {0, 1, 2, 3};
+//const uint8_t PIN_LIST[] = {0};
 
 
 int analogInPin = 0;
@@ -274,7 +274,6 @@ void firstHandler()
 
 	 ADC_CR = ADC_START ;                 // Запустить преобразование
 	 uint16_t d = ADC_LCDR & ADC_DATA ;   // Записать данные АЦП в d
-
 	
   if (isrBufNeeded && emptyHead == emptyTail) 
 	  {
@@ -286,14 +285,28 @@ void firstHandler()
 		return;
 	  }
   // Start ADC 
-  //if (PIN_COUNT > 1) 
-	 // {
+  if (PIN_COUNT > 1)   // Подготовка параметров для следующего измерения
+	  {
+
+		    analogInPin = adcmux[adcindex];
+            ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
+            adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   
+
+
+			 Serial.print(adcindex); 
+			 Serial.print(" -   "); 
+			 Serial.print(analogInPin); 
+			 Serial.print(" - "); 
+			 Serial.println(d); 
+
 		//ADMUX = adcmux[adcindex];
 		//ADCSRB = adcsrb[adcindex];
 		//ADCSRA = adcsra[adcindex];
 		//if (adcindex == 0) timerFlag = false;
-		//adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
-	 // }
+		adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
+	  }
+
+
   //else  // Иначе  ошибка
 	 // {
 		//timerFlag = false;
@@ -440,11 +453,16 @@ void adcInit(metadata_t* meta)
 	
 	  uint8_t adps;  // prescaler bits for ADCSRA 
 	  uint32_t ticks = F_CPU*SAMPLE_INTERVAL + 0.5;  // Sample interval cpu cycles.
+	//  Serial.println( ticks);  
 /*
-	  if (ADC_REF & ~((1 << REFS0) | (1 << REFS1))) 
+     // Определение источника опорного напряжения
+	  if (ADC_REF & ~((1 << REFS0) | (1 << REFS1)))  
 	  {
 		error("Invalid ADC reference");
 	  }
+*/
+
+/*
 	#ifdef ADC_PRESCALER
 	  if (ADC_PRESCALER > 7 || ADC_PRESCALER < 2) 
 	  {
@@ -461,6 +479,11 @@ void adcInit(metadata_t* meta)
 		 if (adcCycles >= (MIN_ADC_CYCLES << adps)) break;
 	  }
 	#endif  // ADC_PRESCALER
+
+	*/
+	/*
+
+
 	  meta->adcFrequency = F_CPU >> adps;
 	  if (meta->adcFrequency > (RECORD_EIGHT_BITS ? 2000000 : 1000000)) {
 		error("Sample Rate Too High");
@@ -471,7 +494,7 @@ void adcInit(metadata_t* meta)
 	  ticks >>= adps;
 	  ticks <<= adps;
 	#endif  // ROUND_SAMPLE_INTERVAL
-
+	*/
 	  if (PIN_COUNT > sizeof(meta->pinNumber)/sizeof(meta->pinNumber[0])) 
 	  {
 		error("Too many pins");
@@ -486,18 +509,20 @@ void adcInit(metadata_t* meta)
 		meta->pinNumber[i] = pin;
 	
 	   // Set ADC reference and low three bits of analog pin number.   
-		adcmux[i] = (pin & 7) | ADC_REF;
-		if (RECORD_EIGHT_BITS) adcmux[i] |= 1 << ADLAR;
-	
-		// If this is the first pin, trigger on timer/counter 1 compare match B.
-		adcsrb[i] = i == 0 ? (1 << ADTS2) | (1 << ADTS0) : 0;
-	#ifdef MUX5
-		if (pin > 7) adcsrb[i] |= (1 << MUX5);
-	#endif  // MUX5
-		adcsra[i] = (1 << ADEN) | (1 << ADIE) | adps;
-		adcsra[i] |= i == 0 ? 1 << ADATE : 1 << ADSC;
-	  }
+		adcmux[i] = pin ;
 
+
+//		if (RECORD_EIGHT_BITS) adcmux[i] |= 1 << ADLAR;
+	//
+	//	// If this is the first pin, trigger on timer/counter 1 compare match B.
+	//	adcsrb[i] = i == 0 ? (1 << ADTS2) | (1 << ADTS0) : 0;
+	//#ifdef MUX5
+	//	if (pin > 7) adcsrb[i] |= (1 << MUX5);
+	//#endif  // MUX5
+	//	adcsra[i] = (1 << ADEN) | (1 << ADIE) | adps;
+	//	adcsra[i] |= i == 0 ? 1 << ADATE : 1 << ADSC;
+	  }
+	  /*
 	  // Setup timer1
 	  TCCR1A = 0;
 	  uint8_t tshift;
@@ -544,13 +569,14 @@ void adcInit(metadata_t* meta)
   
 	  // multiply by prescaler
 	  ticks <<= tshift;
-  
+  */
 	  // Sample interval in CPU clock ticks.
 	  meta->sampleInterval = ticks;
 	  meta->cpuFrequency = F_CPU;
 	  float sampleRate = (float)meta->cpuFrequency/meta->sampleInterval;
 	  Serial.print(F("Sample pins:"));
-	  for (int i = 0; i < meta->pinCount; i++) {
+	  for (int i = 0; i < meta->pinCount; i++) 
+	  {
 		Serial.print(' ');
 		Serial.print(meta->pinNumber[i], DEC);
 	  }
@@ -566,7 +592,7 @@ void adcInit(metadata_t* meta)
 	  Serial.print(F("Sample interval usec: "));
 	  Serial.println(1000000.0/sampleRate, 4); 
 
-	  */
+	 
 }
 //------------------------------------------------------------------------------
 // enable ADC and timer1 interrupts
@@ -788,7 +814,7 @@ void logData()
   Serial.println();
   
   // Initialize ADC and timer1.
- // adcInit((metadata_t*) &block[0]);
+  adcInit((metadata_t*) &block[0]);
   
   // Find unused file name.
   if (BASE_NAME_SIZE > 6) 
@@ -890,7 +916,7 @@ void logData()
 
   // Start logging interrupts.
 
-   Timer3.start(50);
+   Timer3.start(50000);
 //  adcStart();
   while (1) 
 	  {
@@ -1025,7 +1051,7 @@ void setup(void)
 	AD9850.reset();                    //reset module
 	delay(1000);
 	AD9850.powerDown();                //set signal output to LOW
-	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
+	AD9850.set_frequency(0,0,50);    //set power=UP, phase=0, 1kHz frequency 
 
 
 

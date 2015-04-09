@@ -72,6 +72,9 @@
     <ClInclude Include="AnalogBinLogger.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="UserDataType.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="Visual Micro\.AnalogBinLoggerEtalon.vsarduino.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
