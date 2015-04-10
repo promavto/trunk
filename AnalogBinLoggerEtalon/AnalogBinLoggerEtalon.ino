@@ -22,8 +22,7 @@
 
 
 #define __SAM3X8E__
-#include <Adafruit_GFX.h>   
-//#include <Scheduler.h>
+
 #include <SdFat.h>
 #include <SdFatUtil.h>
 #include <StdioStream.h>
@@ -84,8 +83,8 @@ uint32_t ulChannel;
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
 // numbers may be repeated.
-const uint8_t PIN_LIST[] = {0, 1, 2, 3};
-//const uint8_t PIN_LIST[] = {0};
+//const uint8_t PIN_LIST[] = {0, 1, 2, 3};
+const uint8_t PIN_LIST[] = {2};
 
 
 int analogInPin = 0;
@@ -271,7 +270,6 @@ void firstHandler()
 	ledOn = !ledOn;
 	digitalWrite(ERROR_LED_PIN, ledOn); // Led on, off, on, off...
 
-
 	 ADC_CR = ADC_START ;                 // Запустить преобразование
 	 uint16_t d = ADC_LCDR & ADC_DATA ;   // Записать данные АЦП в d
 	
@@ -285,26 +283,26 @@ void firstHandler()
 		return;
 	  }
   // Start ADC 
-  if (PIN_COUNT > 1)   // Подготовка параметров для следующего измерения
-	  {
+  //if (PIN_COUNT > 1)   // Подготовка параметров для следующего измерения
+	 // {
 
-		    analogInPin = adcmux[adcindex];
-            ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
-            adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   
+		//	analogInPin = adcmux[adcindex];
+		//	ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
+		//	adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   
 
 
-			 Serial.print(adcindex); 
-			 Serial.print(" -   "); 
-			 Serial.print(analogInPin); 
-			 Serial.print(" - "); 
-			 Serial.println(d); 
+		//	 Serial.print(adcindex); 
+		//	 Serial.print(" -   "); 
+		//	 Serial.print(analogInPin); 
+		//	 Serial.print(" - "); 
+		//	 Serial.println(d); 
 
-		//ADMUX = adcmux[adcindex];
-		//ADCSRB = adcsrb[adcindex];
-		//ADCSRA = adcsra[adcindex];
-		//if (adcindex == 0) timerFlag = false;
-		adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
-	  }
+		////ADMUX = adcmux[adcindex];
+		////ADCSRB = adcsrb[adcindex];
+		////ADCSRA = adcsra[adcindex];
+		////if (adcindex == 0) timerFlag = false;
+		//adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
+	 // }
 
 
   //else  // Иначе  ошибка
@@ -455,7 +453,7 @@ void adcInit(metadata_t* meta)
 	  uint32_t ticks = F_CPU*SAMPLE_INTERVAL + 0.5;  // Sample interval cpu cycles.
 	//  Serial.println( ticks);  
 /*
-     // Определение источника опорного напряжения
+	 // Определение источника опорного напряжения
 	  if (ADC_REF & ~((1 << REFS0) | (1 << REFS1)))  
 	  {
 		error("Invalid ADC reference");
@@ -916,7 +914,7 @@ void logData()
 
   // Start logging interrupts.
 
-   Timer3.start(50000);
+   Timer3.start(20);
 //  adcStart();
   while (1) 
 	  {
@@ -1051,7 +1049,7 @@ void setup(void)
 	AD9850.reset();                    //reset module
 	delay(1000);
 	AD9850.powerDown();                //set signal output to LOW
-	AD9850.set_frequency(0,0,50);    //set power=UP, phase=0, 1kHz frequency 
+	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
 
 
 
