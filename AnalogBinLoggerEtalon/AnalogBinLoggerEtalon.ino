@@ -69,14 +69,22 @@ AH_AD9850 AD9850(CLK, FQUP, BitData, RESET);// настройка звукового генератора
 // ADC speed one channel 480,000 samples/sec (no enable per read)
 //           one channel 288,000 samples/sec (enable per read)
 
-// ADC_MR is 0x400C0004
 #define ADC_MR * (volatile unsigned int *) (0x400C0004) /*adc mode word*/
 #define ADC_CR * (volatile unsigned int *) (0x400C0000) /*write a 2 to start convertion*/
 #define ADC_ISR * (volatile unsigned int *) (0x400C0030) /*status reg -- bit 24 is data ready*/
 #define ADC_ISR_DRDY 0x01000000
+
 #define ADC_START 2
 #define ADC_LCDR * (volatile unsigned int *) (0x400C0020) /*last converted low 12 bits*/
 #define ADC_DATA 0x00000FFF 
+#define ADC_STARTUP_FAST 12
+
+
+#define ADC_CHER * (volatile unsigned int *) (0x400C0010) /*ADC Channel Enable Register  Только запись*/
+#define ADC_CHSR * (volatile unsigned int *) (0x400C0018) /*ADC Channel Status Register  Только чтение */
+#define ADC_CDR0 * (volatile unsigned int *) (0x400C0050) /*ADC Channel Только чтение */
+#define ADC_ISR_EOC0 0x00000001
+
 
 uint32_t ulChannel;
 
@@ -85,9 +93,9 @@ uint32_t ulChannel;
 // numbers may be repeated.
 //const uint8_t PIN_LIST[] = {0, 1, 2, 3};
 const uint8_t PIN_LIST[] = {2};
+//const uint8_t PIN_LIST[] = {0,2};
 
-
-int analogInPin = 0;
+int analogInPin = A0;
 //------------------------------------------------------------------------------
 // Sample rate in samples per second.
 const float SAMPLE_RATE = 5000;  // Must be 0.25 or greater.
@@ -255,10 +263,10 @@ uint16_t isrOver = 0;
 
 // ADC configuration for each pin. Конфигурация АЦП для каждого контакта.
 
-uint8_t adcmux[PIN_COUNT]; // PIN_COUNT - количество входов.
+volatile uint8_t adcmux[PIN_COUNT]; // PIN_COUNT - количество входов.
 uint8_t adcsra[PIN_COUNT]; //
 uint8_t adcsrb[PIN_COUNT]; // 
-uint8_t adcindex = 1;
+volatile uint8_t adcindex = 1;
 
 // Insure no timer events are missed.
 volatile bool timerError = false;
@@ -267,12 +275,50 @@ volatile bool timerFlag = false;
 bool ledOn = false;
 void firstHandler()
 {
-	ledOn = !ledOn;
-	digitalWrite(ERROR_LED_PIN, ledOn); // Led on, off, on, off...
+	//ledOn = !ledOn;
+	//digitalWrite(ERROR_LED_PIN, ledOn); // Led on, off, on, off...
 
-	 ADC_CR = ADC_START ;                 // Запустить преобразование
-	 uint16_t d = ADC_LCDR & ADC_DATA ;   // Записать данные АЦП в d
-	
+	//analogInPin = adcmux[adcindex];
+	//switch (adcmux[adcindex]) 
+	//{
+
+ //   case 1:
+ //     analogInPin = A1;
+ //     break;
+ //   case 2:
+ //      analogInPin = A2;
+ //     break;
+	//case 3:
+ //      analogInPin = A3;
+ //     break;
+ //   default: 
+ //    analogInPin = A0;
+ //     // default необязателен 
+ // }
+
+	// analogInPin = A2;
+
+	//Serial.print(analogInPin); 
+	//Serial.print(" -   "); 
+	//ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
+	//adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );  
+//	delayMicroseconds(5);
+////	Serial.println(ulChannel); 
+
+	ADC_CHER=0xF0; // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
+
+	ADC_CR = ADC_START ;                 // Запустить преобразование
+
+	// while((ADC_ISR & 0xC0)!=0xC0);// wait for two conversions (pin A0[7]  and A1[6]....)
+	 while (!(ADC_ISR & ADC_ISR_DRDY));
+	uint16_t d = ADC->ADC_CDR[5];  
+
+	//uint16_t d = ADC_LCDR & ADC_DATA ;   // Записать данные АЦП в d
+
+//	adc_disable_channel( ADC, (adc_channel_num_t)ulChannel );  
+
+	//uint16_t d = analogRead( analogInPin);
+
   if (isrBufNeeded && emptyHead == emptyTail) 
 	  {
 		// no buffers - count overrun 
@@ -282,27 +328,35 @@ void firstHandler()
 		timerFlag = false;
 		return;
 	  }
+
+  /*
+			 Serial.print(adcindex); 
+			 Serial.print(" -   "); 
+			 Serial.print(analogInPin); 
+			 Serial.print(" - "); 
+			 Serial.print(d); 
+			  Serial.print(" - -  "); */
+
   // Start ADC 
-  //if (PIN_COUNT > 1)   // Подготовка параметров для следующего измерения
-	 // {
+  if (PIN_COUNT > 1)   // Подготовка параметров для следующего измерения
+	  {
 
-		//	analogInPin = adcmux[adcindex];
-		//	ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
-		//	adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   
+		/*	analogInPin = adcmux[adcindex];
+			ulChannel = g_APinDescription[analogInPin+54].ulADCChannelNumber ;
+			adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );  */
 
+			 //Serial.print(adcindex); 
+			 //Serial.print(" -   "); 
+			 //Serial.print(analogInPin); 
+			 //Serial.print(" - "); 
+			 //Serial.println(d); 
 
-		//	 Serial.print(adcindex); 
-		//	 Serial.print(" -   "); 
-		//	 Serial.print(analogInPin); 
-		//	 Serial.print(" - "); 
-		//	 Serial.println(d); 
-
-		////ADMUX = adcmux[adcindex];
-		////ADCSRB = adcsrb[adcindex];
-		////ADCSRA = adcsra[adcindex];
-		////if (adcindex == 0) timerFlag = false;
-		//adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
-	 // }
+		//ADMUX = adcmux[adcindex];
+		//ADCSRB = adcsrb[adcindex];
+		//ADCSRA = adcsra[adcindex];
+		//if (adcindex == 0) timerFlag = false;
+		adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
+	  }
 
 
   //else  // Иначе  ошибка
@@ -505,10 +559,12 @@ void adcInit(metadata_t* meta)
 		uint8_t pin = PIN_LIST[i];
 		if (pin >= NUM_ANALOG_INPUTS) error("Invalid Analog pin number");
 		meta->pinNumber[i] = pin;
+
+
 	
 	   // Set ADC reference and low three bits of analog pin number.   
 		adcmux[i] = pin ;
-
+		Serial.println(adcmux[i]);
 
 //		if (RECORD_EIGHT_BITS) adcmux[i] |= 1 << ADLAR;
 	//
@@ -1016,7 +1072,7 @@ void setup(void)
   {
 	pinMode(ERROR_LED_PIN, OUTPUT);
   }
-  Serial.begin(9600);
+  Serial.begin(115200);
   
   // Read the first sample pin to init the ADC.
   analogRead(PIN_LIST[0]);
@@ -1032,7 +1088,17 @@ void setup(void)
   }
 
    ADC_MR |= 0x00000100 ; // ADC full speed
+ //  ADC_CHER=0xC0; // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3      
 
+
+
+    //Serial.print("ADC_CHSR - ");
+    // Serial.println(ADC_CHSR);
+	   //Serial.print(0x00000100 );
+	   //Serial.print(" - ");
+	   // Serial.println(0x80);
+
+  // adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX*2, 4);
 
    myGLCD.InitLCD();
 	myGLCD.clrScr();
@@ -1056,9 +1122,14 @@ void setup(void)
 
 
 
-   analogInPin = PIN_LIST[0];
-  ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
-  adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   
+  analogInPin = PIN_LIST[0]+54;
+
+  //  if (analogInPin < A0) analogInPin += A0;
+	 Serial.print("analogInPin - ");
+	  Serial.println(analogInPin);
+  //ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
+  //adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   
+  //adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX, ADC_STARTUP_FAST);
 	Timer3.attachInterrupt(firstHandler); // Every 500ms
 	Timer4.attachInterrupt(secondHandler).setFrequency(1);
 	//  	Timer3.attachInterrupt(firstHandler).start(500000); // Every 500ms
