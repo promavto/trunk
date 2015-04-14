@@ -1092,8 +1092,8 @@ void setup(void)
 
 
 
-    //Serial.print("ADC_CHSR - ");
-    // Serial.println(ADC_CHSR);
+	//Serial.print("ADC_CHSR - ");
+	// Serial.println(ADC_CHSR);
 	   //Serial.print(0x00000100 );
 	   //Serial.print(" - ");
 	   // Serial.println(0x80);
