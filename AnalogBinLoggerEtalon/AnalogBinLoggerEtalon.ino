@@ -72,8 +72,8 @@ AH_AD9850 AD9850(CLK, FQUP, BitData, RESET);// настройка звукового генератора
 
 #define ADC_CHER * (volatile unsigned int *) (0x400C0010) /*ADC Channel Enable Register  Только запись*/
 #define ADC_CHSR * (volatile unsigned int *) (0x400C0018) /*ADC Channel Status Register  Только чтение */
-#define ADC_CDR0 * (volatile unsigned int *) (0x400C0050) /*ADC Channel Только чтение */
-#define ADC_ISR_EOC0 0x00000001
+//#define ADC_CDR0 * (volatile unsigned int *) (0x400C0050) /*ADC Channel Только чтение */
+//#define ADC_ISR_EOC0 0x00000001
 
 
 uint32_t ulChannel;
@@ -278,7 +278,7 @@ void adcInit(metadata_t* meta)
 	  }
  
 	  Serial.println(); 
-	  Serial.print(F("ADC bits: 12 "));
+	  Serial.println(F("ADC bits: 12 "));
 	  Serial.print(F("ADC interval usec: "));
 	  Serial.println(set_strob);
 	  //Serial.print(F("Sample Rate: "));
@@ -324,17 +324,17 @@ void binaryToCsv()
   csvStream.print(F("Interval,"));
    Serial.println(F("Interval "));
 //  float intervalMicros = 1.0e6*pm->sampleInterval/(float)pm->cpuFrequency;
-  float intervalMicros = 100;
+  float intervalMicros = set_strob;
   csvStream.print(intervalMicros, 4);
   csvStream.println(F(",usec"));
-   Serial.println(F("Head 0 "));
- /* for (uint8_t i = 0; i < pm->pinCount; i++) 
+ //  Serial.println(F("Head 0 "));
+  for (uint8_t i = 0; i < pm->pinCount; i++) 
   {
 	if (i) csvStream.putc(',');
 	csvStream.print(F("pin"));
 	csvStream.print(pm->pinNumber[i]);
-  }*/
-  Serial.println(F("Head 1 "));
+  }
+//  Serial.println(F("Head 1 "));
   csvStream.println(); 
   uint32_t tPct = millis();
   while (!Serial.available() && binFile.read(&buf, 512) == 512) 
@@ -743,8 +743,8 @@ void setup(void)
 	AD9850.powerDown();                //set signal output to LOW
 	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
 
-	Channel_0 = 0;
-	Channel_1 = 1;
+	Channel_0 = 1;
+	Channel_1 = 0;
 	Channel_2 = 1;
 	Channel_3 = 0;
 
