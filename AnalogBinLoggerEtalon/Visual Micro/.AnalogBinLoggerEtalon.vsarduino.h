@@ -74,12 +74,11 @@ void secondHandler();
 void error_P(const char* msg);
 void fatalBlink();
 void adcInit(metadata_t* meta);
-void adcStart();
-void adcStop();
 void binaryToCsv();
 void checkOverrun();
 void dumpData();
 void logData();
+void chench_analog();
 void setup(void);
 void loop(void);
 

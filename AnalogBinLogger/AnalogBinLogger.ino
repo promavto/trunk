@@ -284,11 +284,11 @@ void dateTime(uint16_t* date, uint16_t* time) // Программа записи времени и даты
 //------------------------------------------------------------------------------
 // Analog pin number list for a sample.  Pins may be in any order and pin
 // numbers may be repeated.
-const uint8_t PIN_LIST[] = {0};
+const uint8_t PIN_LIST[] = {3};
 //const uint8_t PIN_LIST[] = {0, 1, 2, 3};
 //------------------------------------------------------------------------------
 // Sample rate in samples per second.
-const float SAMPLE_RATE = 10000;  // Must be 0.25 or greater.
+const float SAMPLE_RATE = 5000;  // Must be 0.25 or greater.
 
 // The interval between samples in seconds, SAMPLE_INTERVAL, may be set to a
 // constant instead of being calculated from SAMPLE_RATE.  SAMPLE_RATE is not
@@ -507,6 +507,13 @@ ISR(ADC_vect)
   uint16_t d = ADC;
 #endif  // RECORD_EIGHT_BITS
 
+    /* 	Serial.print("ADMUX - ");
+		Serial.print(ADMUX);
+		Serial.print("  adcindex - ");
+		Serial.println(adcindex);
+*/
+
+
   if (isrBufNeeded && emptyHead == emptyTail) 
 	{
 		// no buffers - count overrun нет буферов - рассчитывайте перерасход памяти
@@ -524,6 +531,10 @@ ISR(ADC_vect)
 		ADCSRA = adcsra[adcindex];
 		if (adcindex == 0) timerFlag = false;
 		adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
+	/*	Serial.print("ADMUX - ");
+		Serial.print(ADMUX);
+		Serial.print("  adcindex - ");
+		Serial.println(adcindex);*/
 	}
   else 
 	{

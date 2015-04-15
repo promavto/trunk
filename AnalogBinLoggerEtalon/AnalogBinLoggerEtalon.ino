@@ -20,7 +20,6 @@
  * Data is written to the file using a SD multiple block write command.
  */
 
-
 #define __SAM3X8E__
 
 #include <SdFat.h>
@@ -32,7 +31,6 @@
 #include <UTFT_Buttons.h>
 #include <DueTimer.h>
 #include <AH_AD9850.h>
-
 
 // Declare which fonts we will be using
 //UTFT myGLCD(ITDB32S,25,26,27,28);
@@ -51,20 +49,12 @@ UTouch        myTouch(6,5,4,3,2);
 //// Finally we set up UTFT_Buttons :)
 UTFT_Buttons  myButtons(&myGLCD, &myTouch);
 
-
 //Настройка звукового генератора
 #define CLK     8  // Назначение выводов генератора сигналов
 #define FQUP    9  // Назначение выводов генератора сигналов
 #define BitData 10 // Назначение выводов генератора сигналов
 #define RESET   11 // Назначение выводов генератора сигналов
 AH_AD9850 AD9850(CLK, FQUP, BitData, RESET);// настройка звукового генератора
-
-
-
-
-
-
-
 
 // ADC speed one channel 480,000 samples/sec (no enable per read)
 //           one channel 288,000 samples/sec (enable per read)
@@ -89,54 +79,15 @@ AH_AD9850 AD9850(CLK, FQUP, BitData, RESET);// настройка звукового генератора
 uint32_t ulChannel;
 
 //------------------------------------------------------------------------------
-// Analog pin number list for a sample.  Pins may be in any order and pin
-// numbers may be repeated.
-//const uint8_t PIN_LIST[] = {0, 1, 2, 3};
-const uint8_t PIN_LIST[] = {2};
-//const uint8_t PIN_LIST[] = {0,2};
+// Analog pin number list for a sample. 
+int Channel_0 = 1;
+int Channel_1 = 0;
+int Channel_2 = 0;
+int Channel_3 = 0;
+int Channel_x = 0;
+int count_pin = 0;
+int set_strob = 20;
 
-int analogInPin = A0;
-//------------------------------------------------------------------------------
-// Sample rate in samples per second.
-const float SAMPLE_RATE = 5000;  // Must be 0.25 or greater.
-
-// The interval between samples in seconds, SAMPLE_INTERVAL, may be set to a
-// constant instead of being calculated from SAMPLE_RATE.  SAMPLE_RATE is not
-// used in the code below.  For example, setting SAMPLE_INTERVAL = 2.0e-4
-// will result in a 200 microsecond sample interval.
-const float SAMPLE_INTERVAL = 1.0/SAMPLE_RATE;
-
-// Setting ROUND_SAMPLE_INTERVAL non-zero will cause the sample interval to
-// be rounded to a a multiple of the ADC clock period and will reduce sample
-// time jitter.
-#define ROUND_SAMPLE_INTERVAL 1
-//------------------------------------------------------------------------------
-// ADC clock rate.
-// The ADC clock rate is normally calculated from the pin count and sample
-// interval.  The calculation attempts to use the lowest possible ADC clock
-// rate.
-//
-// You can select an ADC clock rate by defining the symbol ADC_PRESCALER to
-// one of these values.  You must choose an appropriate ADC clock rate for
-// your sample interval. 
-// #define ADC_PRESCALER 7 // F_CPU/128 125 kHz on an Uno
-// #define ADC_PRESCALER 6 // F_CPU/64  250 kHz on an Uno
-// #define ADC_PRESCALER 5 // F_CPU/32  500 kHz on an Uno
-// #define ADC_PRESCALER 4 // F_CPU/16 1000 kHz on an Uno
-// #define ADC_PRESCALER 3 // F_CPU/8  2000 kHz on an Uno (8-bit mode only)
-//------------------------------------------------------------------------------
-// Reference voltage.  See the processor data-sheet for reference details.
-// uint8_t const ADC_REF = 0; // External Reference AREF pin.
-// !+ uint8_t const ADC_REF = (1 << REFS0);  // Vcc Reference. 
-// uint8_t const ADC_REF = (1 << REFS1);  // Internal 1.1 (only 644 1284P Mega)
-// uint8_t const ADC_REF = (1 << REFS1) | (1 << REFS0);  // Internal 1.1 or 2.56
-//------------------------------------------------------------------------------
-// File definitions.
-//
-// Maximum file size in blocks.
-// The program creates a contiguous file with FILE_BLOCK_COUNT 512 byte blocks.
-// This file is flash erased using special SD commands.  The file will be
-// truncated if logging is stopped early.
 const uint32_t FILE_BLOCK_COUNT = 256000;
 
 // log file base name.  Must be six characters or less.
@@ -155,54 +106,11 @@ const int8_t ERROR_LED_PIN = 13;
 // SD chip select pin.
 const uint8_t SD_CS_PIN = 53;
 
-
 //------------------------------------------------------------------------------
-// Buffer definitions.
-//
-// The logger will use SdFat's buffer plus BUFFER_BLOCK_COUNT additional 
-// buffers.  QUEUE_DIM must be a power of two larger than
-//(BUFFER_BLOCK_COUNT + 1).
-//
-
-
-// The logger will use SdFat's buffer plus BUFFER_BLOCK_COUNT additional 
-// buffers.
-
-/*
-#if RAMEND < 0X8FF
-#error Too little SRAM
-//
-#elif RAMEND < 0X10FF
-// Use total of two 512 byte buffers.
-const uint8_t BUFFER_BLOCK_COUNT = 1;
-// Dimension for queues of 512 byte SD blocks.
-const uint8_t QUEUE_DIM = 4;  // Must be a power of two!
-//
-#elif RAMEND < 0X20FF
-// Use total of five 512 byte buffers.
-const uint8_t BUFFER_BLOCK_COUNT = 4;
-// Dimension for queues of 512 byte SD blocks.
-const uint8_t QUEUE_DIM = 8;  // Must be a power of two!
-//
-#elif RAMEND < 0X40FF
-// Use total of 13 512 byte buffers.
-const uint8_t BUFFER_BLOCK_COUNT = 12;
-// Dimension for queues of 512 byte SD blocks.
-const uint8_t QUEUE_DIM = 16;  // Must be a power of two!
-//
-#else  // RAMEND
-// Use total of 29 512 byte buffers.
-const uint8_t BUFFER_BLOCK_COUNT = 28;
-// Dimension for queues of 512 byte SD blocks.
-const uint8_t QUEUE_DIM = 32;  // Must be a power of two!
-#endif  // RAMEND
-*/
 
 const uint8_t BUFFER_BLOCK_COUNT = 12;
 // Dimension for queues of 512 byte SD blocks.
 const uint8_t QUEUE_DIM = 16;  // Must be a power of two!
-
-
 
 //==============================================================================
 // End of configuration constants.
@@ -214,20 +122,7 @@ const uint8_t QUEUE_DIM = 16;  // Must be a power of two!
 //Размер базовой части имени файла. Должно быть не больше, чем шесть.
 const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
 
-// Number of analog pins to log. Количество аналоговых входов, зарегистрировать.
-const uint8_t PIN_COUNT = sizeof(PIN_LIST)/sizeof(PIN_LIST[0]);  
 
-// Minimum ADC clock cycles per sample interval
-//Минимальное количество измерений  АЦП за интервал дискретизации
-const uint16_t MIN_ADC_CYCLES = 15;
-
-// Extra cpu cycles to setup ADC with more than one pin per sample.
-// Дополнительные циклов процессора настройки АЦП с более чем одним штифтом на образец.
-const uint16_t ISR_SETUP_ADC = 100;
-
-// Maximum cycles for timer0 system interrupt, millis, micros.
-// Максимальные циклы для системы TIMER0 прерывания, Millis, Micros.
-const uint16_t ISR_TIMER0 = 160;
 //==============================================================================
 SdFat sd;
 
@@ -235,8 +130,7 @@ SdBaseFile binFile;
 
 char binName[13] = FILE_BASE_NAME "00.BIN";
 
-
-const size_t SAMPLES_PER_BLOCK = DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
+size_t SAMPLES_PER_BLOCK ;//= DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
 typedef block16_t block_t;
 
 block_t* emptyQueue[QUEUE_DIM];
@@ -261,13 +155,6 @@ bool isrBufNeeded = true;
 // overrun count
 uint16_t isrOver = 0;
 
-// ADC configuration for each pin. Конфигурация АЦП для каждого контакта.
-
-volatile uint8_t adcmux[PIN_COUNT]; // PIN_COUNT - количество входов.
-uint8_t adcsra[PIN_COUNT]; //
-uint8_t adcsrb[PIN_COUNT]; // 
-volatile uint8_t adcindex = 1;
-
 // Insure no timer events are missed.
 volatile bool timerError = false;
 volatile bool timerFlag = false;
@@ -275,49 +162,10 @@ volatile bool timerFlag = false;
 bool ledOn = false;
 void firstHandler()
 {
-	//ledOn = !ledOn;
-	//digitalWrite(ERROR_LED_PIN, ledOn); // Led on, off, on, off...
-
-	//analogInPin = adcmux[adcindex];
-	//switch (adcmux[adcindex]) 
-	//{
-
- //   case 1:
- //     analogInPin = A1;
- //     break;
- //   case 2:
- //      analogInPin = A2;
- //     break;
-	//case 3:
- //      analogInPin = A3;
- //     break;
- //   default: 
- //    analogInPin = A0;
- //     // default необязателен 
- // }
-
-	// analogInPin = A2;
-
-	//Serial.print(analogInPin); 
-	//Serial.print(" -   "); 
-	//ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
-	//adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );  
-//	delayMicroseconds(5);
-////	Serial.println(ulChannel); 
-
-	ADC_CHER=0xF0; // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
-
+	ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
 	ADC_CR = ADC_START ;                 // Запустить преобразование
 
-	// while((ADC_ISR & 0xC0)!=0xC0);// wait for two conversions (pin A0[7]  and A1[6]....)
-	 while (!(ADC_ISR & ADC_ISR_DRDY));
-	uint16_t d = ADC->ADC_CDR[5];  
-
-	//uint16_t d = ADC_LCDR & ADC_DATA ;   // Записать данные АЦП в d
-
-//	adc_disable_channel( ADC, (adc_channel_num_t)ulChannel );  
-
-	//uint16_t d = analogRead( analogInPin);
+   while (!(ADC_ISR & ADC_ISR_DRDY));
 
   if (isrBufNeeded && emptyHead == emptyTail) 
 	  {
@@ -328,43 +176,6 @@ void firstHandler()
 		timerFlag = false;
 		return;
 	  }
-
-  /*
-			 Serial.print(adcindex); 
-			 Serial.print(" -   "); 
-			 Serial.print(analogInPin); 
-			 Serial.print(" - "); 
-			 Serial.print(d); 
-			  Serial.print(" - -  "); */
-
-  // Start ADC 
-  if (PIN_COUNT > 1)   // Подготовка параметров для следующего измерения
-	  {
-
-		/*	analogInPin = adcmux[adcindex];
-			ulChannel = g_APinDescription[analogInPin+54].ulADCChannelNumber ;
-			adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );  */
-
-			 //Serial.print(adcindex); 
-			 //Serial.print(" -   "); 
-			 //Serial.print(analogInPin); 
-			 //Serial.print(" - "); 
-			 //Serial.println(d); 
-
-		//ADMUX = adcmux[adcindex];
-		//ADCSRB = adcsrb[adcindex];
-		//ADCSRA = adcsra[adcindex];
-		//if (adcindex == 0) timerFlag = false;
-		adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
-	  }
-
-
-  //else  // Иначе  ошибка
-	 // {
-		//timerFlag = false;
-	 // }
-
-
 
  // Check for buffer needed.  Проверьте буфера, необходимого.
   if (isrBufNeeded) 
@@ -377,101 +188,28 @@ void firstHandler()
 		isrBufNeeded = false;    
 	  }
   // Store ADC data.
-  isrBuf->data[isrBuf->count++] = d; // Записать данные в буфер по счетчику "isrBuf->count++"
 
-  // Check for buffer full. Проверка заполнения буфера
-  if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK)  //  PIN_COUNT*SAMPLES_PER_BLOCK
+		if (Channel_0 == 1 ) isrBuf->data[isrBuf->count++] = ADC->ADC_CDR[7];
+		if (Channel_1 == 1 ) isrBuf->data[isrBuf->count++] = ADC->ADC_CDR[6];
+		if (Channel_2 == 1 ) isrBuf->data[isrBuf->count++] = ADC->ADC_CDR[5];
+		if (Channel_3 == 1 ) isrBuf->data[isrBuf->count++] = ADC->ADC_CDR[4];
+ 
+  if (isrBuf->count >= count_pin*SAMPLES_PER_BLOCK)  //  SAMPLES_PER_BLOCK -количество памяти выделенное на  один вход 
 								 // SAMPLES_PER_BLOCK = DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
 	  {
 		// Put buffer isrIn full queue.  Положите буфер isrIn полной очереди.
 		uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
 		fullQueue[tmp] = (block_t*)isrBuf;
 		fullHead = queueNext(tmp);
-   
 		// Set buffer needed and clear overruns.
 		isrBufNeeded = true;
 		isrOver = 0;
 	  }
-
-	//Serial.println("[-  ] First Handler!");
 }
 
 void secondHandler()
 {
 	Serial.println("[ - ] Second Handler!");
-}
-
-// ADC done interrupt.
-ISR(ADC_vect) 
-{
-	/*
-  // Read ADC data.   
-#if RECORD_EIGHT_BITS // Выбор разрядности АЦП
-  uint8_t d = ADCH;
-#else  // RECORD_EIGHT_BITS
-  // This will access ADCL first. 
-  uint16_t d = ADC;   // Записать данные АЦП в d
-#endif  // RECORD_EIGHT_BITS
-
-  if (isrBufNeeded && emptyHead == emptyTail) 
-	  {
-		// no buffers - count overrun 
-		if (isrOver < 0XFFFF) isrOver++;
-	
-		// Avoid missed timer error. Избежать пропущенных ошибку таймера.
-		timerFlag = false;
-		return;
-	  }
-  // Start ADC 
-  if (PIN_COUNT > 1) 
-	  {
-		ADMUX = adcmux[adcindex];
-		ADCSRB = adcsrb[adcindex];
-		ADCSRA = adcsra[adcindex];
-		if (adcindex == 0) timerFlag = false;
-		adcindex =  adcindex < (PIN_COUNT - 1) ? adcindex + 1 : 0;
-	  }
-  else  // Иначе  ошибка
-	  {
-		timerFlag = false;
-	  }
-  // Check for buffer needed.  Проверьте буфера, необходимого.
-  if (isrBufNeeded) 
-	  {   
-		// Remove buffer from empty queue. Удалить буфер из пустого очереди.
-		isrBuf = emptyQueue[emptyTail];
-		emptyTail = queueNext(emptyTail);
-		isrBuf->count = 0;            // Счнтчик в 0
-		isrBuf->overrun = isrOver;    // 
-		isrBufNeeded = false;    
-	  }
-  // Store ADC data.
-  isrBuf->data[isrBuf->count++] = d; // Записать данные в буфер по счетчику "isrBuf->count++"
-
-  // Check for buffer full. Проверка заполнения буфера
-  if (isrBuf->count >= PIN_COUNT*SAMPLES_PER_BLOCK)  //  PIN_COUNT*SAMPLES_PER_BLOCK
-								 // SAMPLES_PER_BLOCK = DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
-	  {
-		// Put buffer isrIn full queue.  Положите буфер isrIn полной очереди.
-		uint8_t tmp = fullHead;  // Avoid extra fetch of volatile fullHead.
-		fullQueue[tmp] = (block_t*)isrBuf;
-		fullHead = queueNext(tmp);
-   
-		// Set buffer needed and clear overruns.
-		isrBufNeeded = true;
-		isrOver = 0;
-	  }
-  */
-}
-
-//------------------------------------------------------------------------------
-// timer1 interrupt to clear OCF1B
-ISR(TIMER1_COMPB_vect)  // Проверка успевает ли записать АЦП данные вовремя.
-{/*
-  // Make sure ADC ISR responded to timer event. Убедитесь в том, ADC ISR ответил на события таймера.
-  if (timerFlag) timerError = true;
-  timerFlag = true;
-  */
 }
 //==============================================================================
 // Error messages stored in flash.
@@ -484,8 +222,10 @@ void error_P(const char* msg)
 }
 //------------------------------------------------------------------------------
 //
-void fatalBlink() {
-  while (true) {
+void fatalBlink() 
+{
+  while (true) 
+  {
 	if (ERROR_LED_PIN >= 0) {
 	  digitalWrite(ERROR_LED_PIN, HIGH);
 	  delay(200);
@@ -495,137 +235,39 @@ void fatalBlink() {
   }
 }
 //==============================================================================
-//#if ADPS0 != 0 || ADPS1 != 1 || ADPS2 != 2
-//#error unexpected ADC prescaler bits
-//#endif
-//------------------------------------------------------------------------------
+
 // initialize ADC and timer1
 void adcInit(metadata_t* meta) 
 {
-	
-	  uint8_t adps;  // prescaler bits for ADCSRA 
-	  uint32_t ticks = F_CPU*SAMPLE_INTERVAL + 0.5;  // Sample interval cpu cycles.
-	//  Serial.println( ticks);  
-/*
-	 // Определение источника опорного напряжения
-	  if (ADC_REF & ~((1 << REFS0) | (1 << REFS1)))  
-	  {
-		error("Invalid ADC reference");
-	  }
-*/
 
-/*
-	#ifdef ADC_PRESCALER
-	  if (ADC_PRESCALER > 7 || ADC_PRESCALER < 2) 
-	  {
-		error("Invalid ADC prescaler");
-	  }
-	  adps = ADC_PRESCALER;
-	#else  // ADC_PRESCALER
-	  // Allow extra cpu cycles to change ADC settings if more than one pin.
-	  int32_t adcCycles = (ticks - ISR_TIMER0)/PIN_COUNT;
-						  - (PIN_COUNT > 1 ? ISR_SETUP_ADC : 0);
-					  
-	  for (adps = 7; adps > 0; adps--) 
-	  {
-		 if (adcCycles >= (MIN_ADC_CYCLES << adps)) break;
-	  }
-	#endif  // ADC_PRESCALER
-
-	*/
-	/*
-
-
-	  meta->adcFrequency = F_CPU >> adps;
-	  if (meta->adcFrequency > (RECORD_EIGHT_BITS ? 2000000 : 1000000)) {
-		error("Sample Rate Too High");
-	  }
-	#if ROUND_SAMPLE_INTERVAL
-	  // Round so interval is multiple of ADC clock.Круглый так интервала кратно синхронизации АЦП.
-	  ticks += 1 << (adps - 1);
-	  ticks >>= adps;
-	  ticks <<= adps;
-	#endif  // ROUND_SAMPLE_INTERVAL
-	*/
-	  if (PIN_COUNT > sizeof(meta->pinNumber)/sizeof(meta->pinNumber[0])) 
-	  {
-		error("Too many pins");
-	  }
-	  meta->pinCount = PIN_COUNT;
+	  meta->pinCount = count_pin;
 	  meta->recordEightBits = RECORD_EIGHT_BITS;
   
-	  for (int i = 0; i < PIN_COUNT; i++)  
-	  {
-		uint8_t pin = PIN_LIST[i];
-		if (pin >= NUM_ANALOG_INPUTS) error("Invalid Analog pin number");
-		meta->pinNumber[i] = pin;
+		 int i = 0;
+		if (Channel_0 == 1 )
+			{
+				meta->pinNumber[i] = 0;
+				i++;
+			}
+		if (Channel_1 == 1 )
+			{
+				meta->pinNumber[i] = 1;
+				i++;
+			}
+		
+		if (Channel_2 == 1 ) 
+			{
+				meta->pinNumber[i] = 2;
+				i++;
+			}
 
+		if (Channel_3 == 1 ) 
+			{
+			   meta->pinNumber[i] = 3;
+			}
 
-	
-	   // Set ADC reference and low three bits of analog pin number.   
-		adcmux[i] = pin ;
-		Serial.println(adcmux[i]);
-
-//		if (RECORD_EIGHT_BITS) adcmux[i] |= 1 << ADLAR;
-	//
-	//	// If this is the first pin, trigger on timer/counter 1 compare match B.
-	//	adcsrb[i] = i == 0 ? (1 << ADTS2) | (1 << ADTS0) : 0;
-	//#ifdef MUX5
-	//	if (pin > 7) adcsrb[i] |= (1 << MUX5);
-	//#endif  // MUX5
-	//	adcsra[i] = (1 << ADEN) | (1 << ADIE) | adps;
-	//	adcsra[i] |= i == 0 ? 1 << ADATE : 1 << ADSC;
-	  }
-	  /*
-	  // Setup timer1
-	  TCCR1A = 0;
-	  uint8_t tshift;
-	  if (ticks < 0X10000) 
-	  {
-		// no prescale, CTC mode
-		TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS10);
-		tshift = 0;
-	  }
-	  else if (ticks < 0X10000*8) 
-	  {
-		// prescale 8, CTC mode
-		TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS11);
-		tshift = 3;
-	  } 
-	  else if (ticks < 0X10000*64) 
-	  {
-		// prescale 64, CTC mode
-		TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS11) | (1 << CS10);
-		tshift = 6;
-	  }
-	  else if (ticks < 0X10000*256) 
-	  {
-		// prescale 256, CTC mode
-		TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS12);
-		tshift = 8;
-	  }
-	  else if (ticks < 0X10000*1024) 
-	  {
-		// prescale 1024, CTC mode
-		TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS12) | (1 << CS10);
-		tshift = 10;
-	  }
-	  else 
-	  {
-		error("Sample Rate Too Slow");
-	  }
-	  // divide by prescaler
-	  ticks >>= tshift;
-	  // set TOP for timer reset
-	  ICR1 = ticks - 1;
-	  // compare for ADC start
-	  OCR1B = 0;
-  
-	  // multiply by prescaler
-	  ticks <<= tshift;
-  */
 	  // Sample interval in CPU clock ticks.
-	  meta->sampleInterval = ticks;
+//	  meta->sampleInterval = ticks;
 	  meta->cpuFrequency = F_CPU;
 	  float sampleRate = (float)meta->cpuFrequency/meta->sampleInterval;
 	  Serial.print(F("Sample pins:"));
@@ -634,54 +276,17 @@ void adcInit(metadata_t* meta)
 		Serial.print(' ');
 		Serial.print(meta->pinNumber[i], DEC);
 	  }
-
-	  
+ 
 	  Serial.println(); 
-	  Serial.print(F("ADC bits: "));
-	  Serial.println(meta->recordEightBits ? 8 : 10);
-	  Serial.print(F("ADC clock kHz: "));
-	  Serial.println(meta->adcFrequency/1000);
-	  Serial.print(F("Sample Rate: "));
-	  Serial.println(sampleRate);  
-	  Serial.print(F("Sample interval usec: "));
-	  Serial.println(1000000.0/sampleRate, 4); 
-
-	 
+	  Serial.print(F("ADC bits: 12 "));
+	  Serial.print(F("ADC interval usec: "));
+	  Serial.println(set_strob);
+	  //Serial.print(F("Sample Rate: "));
+	  //Serial.println(sampleRate);  
+	  //Serial.print(F("Sample interval usec: "));
+	  //Serial.println(1000000.0/sampleRate, 4); 
 }
-//------------------------------------------------------------------------------
-// enable ADC and timer1 interrupts
-void adcStart() 
-{
-	/*
-  // initialize ISR
-  isrBufNeeded = true;
-  isrOver = 0;
-  adcindex = 1;
 
-  // Clear any pending interrupt.
-  ADCSRA |= 1 << ADIF;
-  
-  // Setup for first pin.
-  ADMUX = adcmux[0];
-  ADCSRB = adcsrb[0];
-  ADCSRA = adcsra[0];
-
-  // Enable timer1 interrupts.
-  timerError = false;
-  timerFlag = false;
-  TCNT1 = 0;
-  TIFR1 = 1 << OCF1B;
-  TIMSK1 = 1 << OCIE1B;
-  */
-}
-//------------------------------------------------------------------------------
-void adcStop() 
-{
-	/*
-  TIMSK1 = 0;
-  ADCSRA = 0;
-  */
-}
 //------------------------------------------------------------------------------
 // Convert binary file to CSV file.
 
@@ -740,9 +345,9 @@ void binaryToCsv()
 	  csvStream.print(F("OVERRUN,"));
 	  csvStream.println(buf.overrun);     
 	}
-	for (uint16_t j = 0; j < buf.count; j += PIN_COUNT) 
+	for (uint16_t j = 0; j < buf.count; j += count_pin) 
 	{
-	  for (uint16_t i = 0; i < PIN_COUNT; i++) 
+	  for (uint16_t i = 0; i < count_pin; i++) 
 	  {
 		if (i) csvStream.putc(',');
 		csvStream.print(buf.data[i + j]);     
@@ -844,7 +449,7 @@ void dumpData()
 	for (uint16_t i = 0; i < buf.count; i++) 
 	{
 	  Serial.print(buf.data[i], DEC);
-	  if ((i+1)%PIN_COUNT) 
+	  if ((i+1)%count_pin) 
 	  {
 		Serial.print(',');
 	  } else {
@@ -970,8 +575,8 @@ void logData()
 
   // Start logging interrupts.
 
-   Timer3.start(20);
-//  adcStart();
+   Timer3.start(set_strob);
+
   while (1) 
 	  {
 		if (fullHead != fullTail) 
@@ -1009,7 +614,6 @@ void logData()
 				// File full so stop ISR calls.
 
 			   Timer3.stop();
-			//	adcStop();
 				break;
 			  }
 			}
@@ -1021,11 +625,10 @@ void logData()
 		{
 		  // Stop ISR calls.
 			 Timer3.stop();
-		//  adcStop();
-		  if (isrBuf != 0 && isrBuf->count >= PIN_COUNT) 
+		  if (isrBuf != 0 && isrBuf->count >= count_pin) 
 		  {
 			// Truncate to last complete sample.
-			isrBuf->count = PIN_COUNT*(isrBuf->count/PIN_COUNT);
+			isrBuf->count = count_pin*(isrBuf->count/count_pin);
 			// Put buffer in full queue.
 			fullQueue[fullHead] = isrBuf;
 			fullHead = queueNext(fullHead);
@@ -1058,12 +661,48 @@ void logData()
   Serial.print(F("Record time sec: "));
   Serial.println(0.001*(t1 - t0), 3);
   Serial.print(F("Sample count: "));
-  Serial.println(count/PIN_COUNT);
+  Serial.println(count/count_pin);
   Serial.print(F("Samples/sec: "));
-  Serial.println((1000.0/PIN_COUNT)*count/(t1-t0));
+  Serial.println((1000.0/count_pin)*count/(t1-t0));
   Serial.print(F("Overruns: "));
   Serial.println(overruns);
   Serial.println(F("Done"));
+}
+
+void chench_analog()
+{
+
+		   Channel_x = 0;
+		   count_pin = 0;
+	 
+		if (Channel_0 == 1 )
+			{
+				Channel_x|=0x80;
+			//	PIN_LIST[count_pin] = 0;
+				count_pin++;
+			}
+		if (Channel_1 == 1 )
+			{
+				Channel_x|=0x40;
+			//	PIN_LIST[count_pin] = 1;
+				count_pin++;
+			}
+		
+		if (Channel_2 == 1 ) 
+			{
+				Channel_x|=0x20;
+			//	PIN_LIST[count_pin] = 2;
+				count_pin++;
+			}
+
+		if (Channel_3 == 1 ) 
+			{
+				Channel_x|=0x10;
+			//	PIN_LIST[count_pin] = 3;
+				count_pin++;
+			}
+
+		 SAMPLES_PER_BLOCK = DATA_DIM16/count_pin;
 }
 //------------------------------------------------------------------------------
 void setup(void) 
@@ -1073,9 +712,7 @@ void setup(void)
 	pinMode(ERROR_LED_PIN, OUTPUT);
   }
   Serial.begin(115200);
-  
-  // Read the first sample pin to init the ADC.
-  analogRead(PIN_LIST[0]);
+ 
   
   Serial.print(F("FreeRam: "));
   Serial.println(FreeRam());
@@ -1088,19 +725,8 @@ void setup(void)
   }
 
    ADC_MR |= 0x00000100 ; // ADC full speed
- //  ADC_CHER=0xC0; // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3      
 
-
-
-	//Serial.print("ADC_CHSR - ");
-	// Serial.println(ADC_CHSR);
-	   //Serial.print(0x00000100 );
-	   //Serial.print(" - ");
-	   // Serial.println(0x80);
-
-  // adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX*2, 4);
-
-   myGLCD.InitLCD();
+	myGLCD.InitLCD();
 	myGLCD.clrScr();
 	myGLCD.setFont(BigFont);
 	myGLCD.setBackColor(0, 0, 255);
@@ -1117,18 +743,13 @@ void setup(void)
 	AD9850.powerDown();                //set signal output to LOW
 	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
 
+	Channel_0 = 0;
+	Channel_1 = 1;
+	Channel_2 = 1;
+	Channel_3 = 0;
 
+	chench_analog();
 
-
-
-
-  analogInPin = PIN_LIST[0]+54;
-
-  //  if (analogInPin < A0) analogInPin += A0;
-	 Serial.print("analogInPin - ");
-	  Serial.println(analogInPin);
-  //ulChannel = g_APinDescription[analogInPin].ulADCChannelNumber ;
-  //adc_enable_channel( ADC, (adc_channel_num_t)ulChannel );   
   //adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX, ADC_STARTUP_FAST);
 	Timer3.attachInterrupt(firstHandler); // Every 500ms
 	Timer4.attachInterrupt(secondHandler).setFrequency(1);
