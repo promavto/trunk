@@ -1294,8 +1294,7 @@ void logData()
   myGLCD.print("                    ", CENTER, 135);
   myGLCD.print(txt_info28, CENTER, 135);
   // Start logging interrupts.
-  overruns = 0;
-   Timer3.start(set_strob);
+  Timer3.start(set_strob);
 
   while (1) 
 	  {
