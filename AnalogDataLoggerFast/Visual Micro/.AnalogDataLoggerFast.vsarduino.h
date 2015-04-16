@@ -68,6 +68,27 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portInputRegister(P)
 #define portModeRegister(P)
 
+void dateTime(uint16_t* date, uint16_t* time);
+void sdError_P(const char* str);
+void debugPrint();
+uint8_t writeCache(uint32_t lbn);
+void initSizes();
+void clearCache(uint8_t addSig);
+void clearFatDir(uint32_t bgn, uint32_t count);
+uint16_t lbnToCylinder(uint32_t lbn);
+uint8_t lbnToHead(uint32_t lbn);
+uint8_t lbnToSector(uint32_t lbn);
+void writeMbr();
+uint32_t volSerialNumber();
+void makeFat16();
+void makeFat32();
+void eraseCard();
+void formatCard();
+void sdErrorMsg_P(const char* str);
+uint8_t cidDmp();
+uint8_t csdDmp();
+uint8_t partDmp();
+void volDmp();
 inline uint8_t queueNext(uint8_t ht);
 void firstHandler();
 void secondHandler();
@@ -79,9 +100,59 @@ void checkOverrun();
 void dumpData();
 void logData();
 void chench_analog();
+int bcd2bin(int temp);
+void clock_print_serial();
+void drawDisplay();
+void drawMark(int h);
+void drawSec(int s);
+void drawMin(int m);
+void drawHour(int h, int m);
+void printDate();
+void clearDate();
+void AnalogClock();
+void draw_Glav_Menu();
+void swichMenu();
+void print_up();
+void klav123();
+void updateStr(int val);
+void waitForIt(int x1, int y1, int x2, int y2);
+void reset_klav();
+void Draw_menu_Osc();
+void menu_Oscilloscope();
+void trigger();
+void print_set();
+void print_set1();
+void oscilloscope();
+void oscilloscope_time();
+void buttons();
+void buttons1();
+void DrawGrid();
+void DrawGrid1();
+void Draw_menu_SD();
+void menu_SD();
+void SD_info();
+void SD_format();
+void Draw_menu_formatSD();
+void menu_formatSD();
+void touch_osc();
+void Draw_menu_ADC1();
+void menu_ADC();
 void setup(void);
 void loop(void);
+void drawUpButton(int x, int y);
+void drawDownButton(int x, int y);
+void showDOW(byte dow);
+int bin_to_bcd(int temp);
+byte validateDate(byte d, byte m, word y);
+byte validateDateForMonth(byte d, byte m, word y);
+void setClockRTC();
+char uCase(char c);
+void buttonWait(int x, int y);
+byte calcDOW(byte d, byte m, int y);
+void waitForTouchRelease();
 
 #include <AnalogDataLoggerFast.ino>
 #include <AnalogBinLogger.h>
+#include <setTimeDateDUE.ino>
+#include <utils.ino>
 #endif

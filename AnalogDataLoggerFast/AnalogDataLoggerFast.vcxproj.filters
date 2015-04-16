@@ -16,17 +16,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="AnalogDataLoggerFast.ino" />
-    <None Include="setTimeDateDUE.ino" />
-    <None Include="utils.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Visual Micro\.AnalogDataLoggerFast.vsarduino.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
     <ClInclude Include="AnalogBinLogger.h">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
-    <ClInclude Include="UserDataType.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
   </ItemGroup>
