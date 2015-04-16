@@ -271,7 +271,7 @@ int Channel_2 = 0;
 int Channel_3 = 0;
 int Channel_x = 0;
 int count_pin = 0;
-int set_strob = 20;
+int set_strob = 100;
 
 const uint32_t FILE_BLOCK_COUNT = 256000;
 
@@ -836,9 +836,6 @@ void volDmp() {
   }
 }
 
-
-
-
 //------------------------------------------------------------------------------
 
 char binName[13] = FILE_BASE_NAME "00.BIN";
@@ -1184,7 +1181,10 @@ void logData()
   block_t block[BUFFER_BLOCK_COUNT];
   
   Serial.println();
-  
+  myGLCD.clrScr();
+  myGLCD.setBackColor(0, 0, 0);
+  myGLCD.print(txt_info12, CENTER, 2);
+   
   // Initialize ADC and timer1.
   adcInit((metadata_t*) &block[0]);
   
@@ -1213,6 +1213,7 @@ void logData()
   if (sd.exists(TMP_FILE_NAME)) 
 	  {
 		Serial.println(F("Deleting tmp file"));
+		myGLCD.print(txt_info13,LEFT, 135);              //
 		if (!sd.remove(TMP_FILE_NAME)) 
 			{
 			  error("Can't remove tmp file");
@@ -1220,6 +1221,7 @@ void logData()
 	  }
   // Create new file.
   Serial.println(F("Creating new file"));
+  myGLCD.print(txt_info27,LEFT, 155);//
   binFile.close();
   if (!binFile.createContiguous(sd.vwd(),
 	TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) 
@@ -1237,6 +1239,7 @@ void logData()
  
   // Flash erase all data in the file.
   Serial.println(F("Erasing all data"));
+  myGLCD.print(txt_info14,LEFT, 175);  //Erasing all data
   uint32_t bgnErase = bgnBlock;
   uint32_t endErase;
   while (bgnErase < endBlock) 
@@ -1276,6 +1279,8 @@ void logData()
   // Give SD time to prepare for big write.
   delay(1000);
   Serial.println(F("Logging - type any character to stop"));
+  myGLCD.setColor(VGA_LIME);
+  myGLCD.print(txt_info15, CENTER, 200);
   // Wait for Serial Idle.
   Serial.flush();
   delay(10);
@@ -1285,19 +1290,21 @@ void logData()
   uint32_t overruns = 0;
   uint32_t count = 0;
   uint32_t maxLatency = 0;
-
+  myGLCD.setColor(255,150,50);
+  myGLCD.print("                    ", CENTER, 135);
+  myGLCD.print(txt_info28, CENTER, 135);
   // Start logging interrupts.
-
+  overruns = 0;
    Timer3.start(set_strob);
 
   while (1) 
 	  {
 		if (fullHead != fullTail) 
 			{
-			  // Get address of block to write.
+			  // Get address of block to write.  Получить адрес блока, чтобы написать
 			  block_t* pBlock = fullQueue[fullTail];
 	  
-			  // Write block to SD.
+			  // Write block to SD.  Написать блок SD
 			  uint32_t usec = micros();
 			  if (!sd.card()->writeData((uint8_t*)pBlock)) 
 				  {
@@ -1310,108 +1317,148 @@ void logData()
 	  
 			  // Add overruns and possibly light LED. 
 			  if (pBlock->overrun) 
-			  {
-				overruns += pBlock->overrun;
-				if (ERROR_LED_PIN >= 0) 
-					{
-					  digitalWrite(ERROR_LED_PIN, HIGH);
-					}
-			  }
+				  {
+					overruns += pBlock->overrun;
+					if (ERROR_LED_PIN >= 0) 
+						{
+						  digitalWrite(ERROR_LED_PIN, HIGH);
+						}
+				  }
 			  // Move block to empty queue.
 			  emptyQueue[emptyHead] = pBlock;
 			  emptyHead = queueNext(emptyHead);
 			  fullTail = queueNext(fullTail);
 			  bn++;
 			  if (bn == FILE_BLOCK_COUNT) 
-			  {
-				// File full so stop ISR calls.
+				  {
+					// File full so stop ISR calls.
 
-			   Timer3.stop();
-				break;
-			  }
+				   Timer3.stop();
+					break;
+				  }
 			}
-			if (timerError) 
-		{
-		  error("Missed timer event - rate too high");
-		}
-		if (Serial.available()) 
-		{
-		  // Stop ISR calls.
-			 Timer3.stop();
-		  if (isrBuf != 0 && isrBuf->count >= count_pin) 
-		  {
-			// Truncate to last complete sample.
-			isrBuf->count = count_pin*(isrBuf->count/count_pin);
-			// Put buffer in full queue.
-			fullQueue[fullHead] = isrBuf;
-			fullHead = queueNext(fullHead);
-			isrBuf = 0;
-		  }
-		  if (fullHead == fullTail) break;
-		}
+		 if (timerError) 
+			{
+			  error("Missed timer event - rate too high");
+			}
+		if (myTouch.dataAvailable()) 
+			{
+				myGLCD.setColor(VGA_YELLOW);
+				myGLCD.print("                    ", CENTER, 135);
+				myGLCD.print("Stop record", CENTER, 135);
+				myGLCD.setColor(255, 255, 255);
+			  // Stop ISR calls.
+				 Timer3.stop();
+
+			  if (isrBuf != 0 && isrBuf->count >= count_pin) 
+				  {
+					// Truncate to last complete sample.
+					isrBuf->count = count_pin*(isrBuf->count/count_pin);
+					// Put buffer in full queue.
+					fullQueue[fullHead] = isrBuf;
+					fullHead = queueNext(fullHead);
+					isrBuf = 0;
+				  }
+
+			  if (fullHead == fullTail) break;
+			  	while (myTouch.dataAvailable()){}
+				delay(1000);
+				break;
+			}
 	  }
   if (!sd.card()->writeStop()) 
-  {
-	error("writeStop failed");
-  }
+	  {
+		error("writeStop failed");
+	  }
   // Truncate file if recording stopped early.
   if (bn != FILE_BLOCK_COUNT) 
-  {    
-	Serial.println(F("Truncating file"));
-	if (!binFile.truncate(512L * bn)) 
-	{
-	  error("Can't truncate file");
-	}
-  }
+	  {    
+		Serial.println(F("Truncating file"));
+		if (!binFile.truncate(512L * bn)) 
+		{
+		  error("Can't truncate file");
+		}
+	  }
   if (!binFile.rename(sd.vwd(), binName)) 
-   {
-	 error("Can't rename file");
-   }
-  Serial.print(F("File renamed: "));
-  Serial.println(binName);
-  Serial.print(F("Max block write usec: "));
-  Serial.println(maxLatency);
-  Serial.print(F("Record time sec: "));
-  Serial.println(0.001*(t1 - t0), 3);
-  Serial.print(F("Sample count: "));
-  Serial.println(count/count_pin);
-  Serial.print(F("Samples/sec: "));
-  Serial.println((1000.0/count_pin)*count/(t1-t0));
-  Serial.print(F("Overruns: "));
-  Serial.println(overruns);
-  Serial.println(F("Done"));
+	   {
+		 error("Can't rename file");
+	   }
+  //Serial.print(F("File renamed: "));
+  //Serial.println(binName);
+  //Serial.print(F("Max block write usec: "));
+  //Serial.println(maxLatency);
+  //Serial.print(F("Record time sec: "));
+  //Serial.println(0.001*(t1 - t0), 3);
+  //Serial.print(F("Sample count: "));
+  //Serial.println(count/count_pin);
+  //Serial.print(F("Samples/sec: "));
+  //Serial.println((1000.0/count_pin)*count/(t1-t0));
+  //Serial.print(F("Overruns: "));
+  //Serial.println(overruns);
+  //Serial.println(F("Done"));
+  //delay(100);
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.print(txt_info6,CENTER, 5);//
+	myGLCD.print(txt_info16,LEFT, 25);//
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.print(binName,RIGHT , 25);
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.print(txt_info17,LEFT, 45);//
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.printNumI(maxLatency, RIGHT, 45);// 
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.print(txt_info18,LEFT, 65);//
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.printNumF(0.001*(t1 - t0),2, RIGHT, 65);// 
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.print(txt_info19,LEFT, 85);//
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.printNumI(count, RIGHT, 85);// 
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.print(txt_info20,LEFT, 105);//
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.printNumF((1000.0)*count/(t1-t0),2, RIGHT, 105);// 
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.print(txt_info21,LEFT, 125);//
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.printNumI(overruns, RIGHT, 125);// 
+	myGLCD.setColor(255, 255, 255);
+	delay(500);
+	myGLCD.setColor(VGA_LIME);
+	myGLCD.print(txt_info11,CENTER, 200);
+	myGLCD.setColor(255, 255, 255);
+	while (!myTouch.dataAvailable()){}
+	while (myTouch.dataAvailable()){}
+	Draw_menu_ADC1();
 }
 
 void chench_analog()
 {
-
+	//Подготовка номера аналогового сигнала, количества каналов и кода настройки АЦП
 		   Channel_x = 0;
 		   count_pin = 0;
 	 
 		if (Channel_0 == 1 )
 			{
 				Channel_x|=0x80;
-			//	PIN_LIST[count_pin] = 0;
 				count_pin++;
 			}
 		if (Channel_1 == 1 )
 			{
 				Channel_x|=0x40;
-			//	PIN_LIST[count_pin] = 1;
 				count_pin++;
 			}
 		
 		if (Channel_2 == 1 ) 
 			{
 				Channel_x|=0x20;
-			//	PIN_LIST[count_pin] = 2;
 				count_pin++;
 			}
 
 		if (Channel_3 == 1 ) 
 			{
 				Channel_x|=0x10;
-			//	PIN_LIST[count_pin] = 3;
 				count_pin++;
 			}
 
@@ -3229,7 +3276,7 @@ void menu_SD()
 						{
 							waitForIt(30, 120, 290, 160);
 							myGLCD.clrScr();
-						    menu_formatSD();
+							menu_formatSD();
 							Draw_menu_SD();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
@@ -3418,22 +3465,22 @@ void menu_formatSD()
 						{
 							waitForIt(30, 20, 290, 60);
 							myGLCD.clrScr();
-			                eraseCard();
+							eraseCard();
 						Draw_menu_formatSD();
 						}
 					if ((y>=70) && (y<=110))   // Button: 2
 						{
 							waitForIt(30, 70, 290, 110);
 							myGLCD.clrScr();
-		                    eraseCard();
+							eraseCard();
 						Draw_menu_formatSD();
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
 						{
 							waitForIt(30, 120, 290, 160);
 							myGLCD.clrScr();
-				            formatCard();
-				        	Draw_menu_formatSD();
+							formatCard();
+							Draw_menu_formatSD();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
 						{
@@ -3673,6 +3720,7 @@ void setup(void)
 	
   // use uppercase in hex and use 0X base prefix
   cout << uppercase << showbase << endl;
+  set_strob = 100;
 
   // pstr stores strings in flash to save RAM
   cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;
@@ -3685,35 +3733,42 @@ void setup(void)
 //------------------------------------------------------------------------------
 void loop(void) 
 {
-  // discard any input
-
-  while (Serial.read() >= 0) {}
-  Serial.println();
-  Serial.println(F("type:"));
-  Serial.println(F("c - convert file to CSV")); 
-  Serial.println(F("d - dump data to Serial"));  
-  Serial.println(F("e - overrun error details"));
-  Serial.println(F("r - record ADC data"));
-//  Timer3.start(100);
-  while(!Serial.available()) {}
-  char c = tolower(Serial.read());
-  if (ERROR_LED_PIN >= 0) {
-	digitalWrite(ERROR_LED_PIN, LOW);
-  }
-  // Read any extra Serial data.
-  do {
-	delay(10);
-  } while (Serial.read() >= 0);
   
-  if (c == 'c') {
-	binaryToCsv();
-  } else if (c == 'd') {
-	dumpData();
-  } else if (c == 'e') {    
-	checkOverrun();
-  } else if (c == 'r') {
-	logData();
-  } else {
-	Serial.println(F("Invalid entry"));
-  }
+	draw_Glav_Menu();
+	swichMenu();
+	
+//	
+//	
+//	
+//	// discard any input
+//
+//  while (Serial.read() >= 0) {}
+//  Serial.println();
+//  Serial.println(F("type:"));
+//  Serial.println(F("c - convert file to CSV")); 
+//  Serial.println(F("d - dump data to Serial"));  
+//  Serial.println(F("e - overrun error details"));
+//  Serial.println(F("r - record ADC data"));
+////  Timer3.start(100);
+//  while(!Serial.available()) {}
+//  char c = tolower(Serial.read());
+//  if (ERROR_LED_PIN >= 0) {
+//	digitalWrite(ERROR_LED_PIN, LOW);
+//  }
+//  // Read any extra Serial data.
+//  do {
+//	delay(10);
+//  } while (Serial.read() >= 0);
+//  
+//  if (c == 'c') {
+//	binaryToCsv();
+//  } else if (c == 'd') {
+//	dumpData();
+//  } else if (c == 'e') {    
+//	checkOverrun();
+//  } else if (c == 'r') {
+//	logData();
+//  } else {
+//	Serial.println(F("Invalid entry"));
+//  }
 }
