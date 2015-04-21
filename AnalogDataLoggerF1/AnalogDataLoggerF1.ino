@@ -330,10 +330,10 @@ const uint8_t SD_CS_PIN = 53;
 uint32_t const ERASE_SIZE = 262144L;
 //------------------------------------------------------------------------------
 
-const uint8_t BUFFER_BLOCK_COUNT = 12;
+const uint8_t BUFFER_BLOCK_COUNT = 24;//12;
 // Dimension for queues of 512 byte SD blocks.
 // Размер очередей по 512 байт памяти SD блоков.
-const uint8_t QUEUE_DIM = 16;  // Must be a power of two! Должно быть степенью двойки!
+const uint8_t QUEUE_DIM = 32;//16;  // Must be a power of two! Должно быть степенью двойки!
 
 //==============================================================================
 // End of configuration constants.
@@ -908,7 +908,7 @@ uint8_t emptyHead;
 uint8_t emptyTail;
 
 block_t* fullQueue[QUEUE_DIM];
-volatile uint8_t fullHead;  // volatile insures non-interrupt code sees changes.
+volatile uint8_t fullHead;  // volatile insures non-interrupt code sees changes. обеспечивает код без прерывания видит изменения
 uint8_t fullTail;
 
 // queueNext assumes QUEUE_DIM is a power of two
@@ -919,7 +919,7 @@ inline uint8_t queueNext(uint8_t ht) {return (ht + 1) & (QUEUE_DIM -1);}
 // Pointer to current buffer.
 block_t* isrBuf;
 
-// Need new buffer if true.
+// Need new buffer if true. Необходим новый  буфер, если true
 bool isrBufNeeded = true;
 
 // overrun count
@@ -932,17 +932,15 @@ volatile bool timerFlag = false;
 bool ledOn = false;
 void firstHandler()
 {
-
-
-
+	 int time_start = micros();
 	ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
 	ADC_CR = ADC_START ; 	// Запустить преобразование
 
-   while (!(ADC_ISR & ADC_ISR_DRDY));
+  // while (!(ADC_ISR & ADC_ISR_DRDY));
 
-  if (isrBufNeeded && emptyHead == emptyTail) 
+  if (isrBufNeeded && emptyHead == emptyTail)   //  Необходим новый  буфер, если true 
 	  {
-		// no buffers - count overrun 
+		// no buffers - count overrun нет буферов - рассчитывайте перерасход
 		if (isrOver < 0XFFFF) isrOver++;
 	
 		// Avoid missed timer error. Избежать пропущенных ошибку таймера.
@@ -961,7 +959,10 @@ void firstHandler()
 		isrBufNeeded = false;    
 	  }
   // Store ADC data.
-
+   //while (!(ADC_ISR & ADC_ISR_DRDY));
+  while (!(ADC_ISR_DRDY));
+      //  int time_period = micros() - time_start;
+     //   isrBuf->data[isrBuf->count++] = time_period;
 		if (Channel_0 == 1 ) isrBuf->data[isrBuf->count++] = ADC->ADC_CDR[7];
 		if (Channel_1 == 1 ) isrBuf->data[isrBuf->count++] = ADC->ADC_CDR[6];
 		if (Channel_2 == 1 ) isrBuf->data[isrBuf->count++] = ADC->ADC_CDR[5];
@@ -978,6 +979,7 @@ void firstHandler()
 		isrBufNeeded = true;
 		isrOver = 0;
 	  }
+ 
 }
 
 void secondHandler()
@@ -1049,6 +1051,7 @@ void adcInit(metadata_t* meta)
 	//  isrOver = 0;
   
 		 int i = 0;
+	
 		if (Channel_0 == 1 )
 			{
 				meta->pinNumber[i] = 0;
@@ -1385,19 +1388,21 @@ void logData()
 			}
 		bgnErase = endErase + 1;
 	  }
+
   // Start a multiple block write.
   if (!sd.card()->writeStart(bgnBlock, FILE_BLOCK_COUNT)) 
 	  {
 		error("writeBegin failed");
 	  }
   // Write metadata. Написать метаданные.
+
   if (!sd.card()->writeData((uint8_t*)&block[0])) 
 	  {
 		error("Write metadata failed");
 	  } 
-  // Initialize queues.
-  emptyHead = emptyTail = 0;
-  fullHead = fullTail = 0;
+  // Initialize queues. Инициализация очереди
+  emptyHead = emptyTail = 0;  // Начало и окончание равно 0
+  fullHead = fullTail = 0;    // 
   
   // Use SdFat buffer for one block.
   emptyQueue[emptyHead] = (block_t*)cache;
@@ -3843,13 +3848,13 @@ void setup(void)
 
 	Channel_0 = 1;
 	Channel_1 = 0;
-	Channel_2 = 0;
+	Channel_2 = 1;
 	Channel_3 = 0;
 
 	chench_analog();
 
   //adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX, ADC_STARTUP_FAST);
-	Timer3.attachInterrupt(firstHandler); // Every 500ms
+	Timer3.attachInterrupt(firstHandler); // Every 50us
 	Timer4.attachInterrupt(secondHandler).setFrequency(1);
 	//  	Timer3.attachInterrupt(firstHandler).start(500000); // Every 500ms
 	//Timer4.attachInterrupt(secondHandler).setFrequency(1).start();
@@ -3861,7 +3866,7 @@ void setup(void)
 	
   // use uppercase in hex and use 0X base prefix
   cout << uppercase << showbase << endl;
-  set_strob = 50;
+  set_strob = 100;
 
   // pstr stores strings in flash to save RAM
   cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;

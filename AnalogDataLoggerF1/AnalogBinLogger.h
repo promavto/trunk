@@ -37,7 +37,7 @@ struct adcdata_t
   unsigned short overrun;  // count of overruns since last block
   union 
   {
-    unsigned char  u8[DATA_DIM8];
+	unsigned char  u8[DATA_DIM8];
     unsigned short u16[DATA_DIM16];
   } data;
 };
