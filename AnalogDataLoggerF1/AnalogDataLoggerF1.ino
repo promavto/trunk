@@ -330,10 +330,10 @@ const uint8_t SD_CS_PIN = 53;
 uint32_t const ERASE_SIZE = 262144L;
 //------------------------------------------------------------------------------
 
-const uint8_t BUFFER_BLOCK_COUNT = 24;//12;
+const uint8_t BUFFER_BLOCK_COUNT = 12;//12;
 // Dimension for queues of 512 byte SD blocks.
 // Размер очередей по 512 байт памяти SD блоков.
-const uint8_t QUEUE_DIM = 32;//16;  // Must be a power of two! Должно быть степенью двойки!
+const uint8_t QUEUE_DIM = 16;//16;  // Must be a power of two! Должно быть степенью двойки!
 
 //==============================================================================
 // End of configuration constants.
@@ -961,8 +961,8 @@ void firstHandler()
   // Store ADC data.
    //while (!(ADC_ISR & ADC_ISR_DRDY));
   while (!(ADC_ISR_DRDY));
-      //  int time_period = micros() - time_start;
-     //   isrBuf->data[isrBuf->count++] = time_period;
+	  //  int time_period = micros() - time_start;
+	 //   isrBuf->data[isrBuf->count++] = time_period;
 		if (Channel_0 == 1 ) isrBuf->data[isrBuf->count++] = ADC->ADC_CDR[7];
 		if (Channel_1 == 1 ) isrBuf->data[isrBuf->count++] = ADC->ADC_CDR[6];
 		if (Channel_2 == 1 ) isrBuf->data[isrBuf->count++] = ADC->ADC_CDR[5];
@@ -1018,7 +1018,7 @@ void adcInit(metadata_t* meta)
   uint8_t adps;  // prescaler bits for ADCSRA 
   uint32_t ticks = F_CPU*SAMPLE_INTERVAL + 0.5;  // Sample interval cpu cycles.
 
-  #ifdef ADC_PRESCALER
+#ifdef ADC_PRESCALER
   if (ADC_PRESCALER > 7 || ADC_PRESCALER < 2) {
 	error("Invalid ADC prescaler");
   }
@@ -1033,7 +1033,8 @@ void adcInit(metadata_t* meta)
   }
 #endif  // ADC_PRESCALER
    meta->adcFrequency = F_CPU >> adps;
-  if (meta->adcFrequency > (RECORD_EIGHT_BITS ? 2000000 : 1000000)) {
+  if (meta->adcFrequency > (RECORD_EIGHT_BITS ? 2000000 : 1000000)) 
+  {
 	error("Sample Rate Too High");
   }
 
@@ -1131,8 +1132,6 @@ void adcStart() {
   TIMSK1 = 1 << OCIE1B;*/
 }
 
-
-
 //------------------------------------------------------------------------------
 // Convert binary file to CSV file.
 
@@ -1146,6 +1145,10 @@ void binaryToCsv()
   uint32_t t0 = millis();
   char csvName[13];
   StdioStream csvStream;
+
+  myGLCD.clrScr();
+  myGLCD.setBackColor(0, 0, 0);
+  myGLCD.print(txt_info6,CENTER, 5);//
   
   if (!binFile.isOpen()) 
   {
@@ -1166,6 +1169,12 @@ void binaryToCsv()
   Serial.print(F("Writing: "));
   Serial.print(csvName);
   Serial.println(F(" - type any character to stop"));
+  myGLCD.print(txt_info7,LEFT, 35);//
+  myGLCD.setColor(VGA_YELLOW);
+  myGLCD.print(csvName,RIGHT, 35);// 
+  myGLCD.setColor(VGA_LIME);
+  myGLCD.print(txt_info11, CENTER, 200);
+  myGLCD.setColor(255, 255, 255);
   pm = (metadata_t*)&buf;
   csvStream.print(F("Interval,"));
    Serial.println(F("Interval "));
@@ -1209,14 +1218,27 @@ void binaryToCsv()
 		lastPct = pct;
 		Serial.print(pct, DEC);
 		Serial.println('%');
+		myGLCD.setColor(VGA_YELLOW);
+		myGLCD.printNumI(pct, 5, 75);// 
+		myGLCD.print(txt_info8,40, 75);//
+		myGLCD.setColor(255, 255, 255);
 	  }
 	}
-	if (Serial.available()) break;
+	if (myTouch.dataAvailable()) break;
   }
-  csvStream.fclose();  
-  Serial.print(F("Done: "));
-  Serial.print(0.001*(millis() - t0));
-  Serial.println(F(" Seconds"));
+	csvStream.fclose();  
+	Serial.print(F("Done: "));
+	Serial.print(0.001*(millis() - t0));
+	Serial.println(F(" Seconds"));
+	myGLCD.print(txt_info9,5, 110);//
+	myGLCD.printNumF((0.001*(millis() - t0)),2, 85, 110);// 
+	myGLCD.print(txt_info10, 210, 110);//
+	//myGLCD.setColor(VGA_LIME);
+	//myGLCD.print(txt_info11, CENTER, 200);
+	myGLCD.setColor(255, 255, 255);
+	delay(2000);
+	Draw_menu_ADC1();
+
 }
 //------------------------------------------------------------------------------
 // read data file and check for overruns
@@ -3848,7 +3870,7 @@ void setup(void)
 
 	Channel_0 = 1;
 	Channel_1 = 0;
-	Channel_2 = 1;
+	Channel_2 = 0;
 	Channel_3 = 0;
 
 	chench_analog();
@@ -3866,7 +3888,7 @@ void setup(void)
 	
   // use uppercase in hex and use 0X base prefix
   cout << uppercase << showbase << endl;
-  set_strob = 100;
+  set_strob = 50;
 
   // pstr stores strings in flash to save RAM
   cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;
