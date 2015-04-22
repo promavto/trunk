@@ -741,6 +741,7 @@ void eraseCard()
   uint32_t firstBlock = 0;
   uint32_t lastBlock;
   uint16_t n = 0;
+  
 
   do {
 	lastBlock = firstBlock + ERASE_SIZE - 1;
@@ -757,7 +758,7 @@ void eraseCard()
   cout << pstr("All data set to ") << setw(4) << int(cache.data[0]) << endl;
   cout << dec << noshowbase << setfill(' ') << right;
   cout << pstr("Erase done\n");
-}
+ }
 //------------------------------------------------------------------------------
 void formatCard() 
 {
@@ -3881,16 +3882,6 @@ void setup(void)
   
   Serial.print(F("FreeRam: "));
   Serial.println(FreeRam());
-
-  // initialize file system.
-  if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED)) 
-  {
-	sd.initErrorPrint();
-	//fatalBlink();
-  }
-
-   ADC_MR |= 0x00000100 ; // ADC full speed
-
 	myGLCD.InitLCD();
 	myGLCD.clrScr();
 	myGLCD.setFont(BigFont);
@@ -3901,6 +3892,33 @@ void setup(void)
 	//myTouch.setPrecision(PREC_HI);
 	myButtons.setTextFont(BigFont);
 	myButtons.setSymbolFont(Dingbats1_XL);
+  // initialize file system.
+  if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED)) 
+  {
+	sd.initErrorPrint();
+
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.setColor(255, 100, 0);
+	myGLCD.print("Can't access SD card",CENTER, 40);
+	myGLCD.print("Do not reformat",CENTER, 70);
+	myGLCD.print("SD card problem?",CENTER, 100);
+	myGLCD.setColor(VGA_LIME);
+	myGLCD.print(txt_info15,CENTER, 200);
+	myGLCD.setColor(255, 255, 255);
+	while (myTouch.dataAvailable()){}
+	delay(50);
+	while (!myTouch.dataAvailable()){}
+	delay(50);
+	myGLCD.clrScr();
+	myGLCD.print("Run Setup", CENTER,120);
+	/*while (myTouch.dataAvailable()){}
+	delay(50);*/
+	//fatalBlink();
+  }
+
+   ADC_MR |= 0x00000100 ; // ADC full speed
+
+
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// Настройка звукового генератора  
 	AD9850.reset();                    //reset module
@@ -3933,6 +3951,8 @@ void setup(void)
   // pstr stores strings in flash to save RAM
   cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;
 
+
+  myGLCD.setBackColor(0, 0, 255);
 	Serial.println(F("Setup Ok!"));
 
 
