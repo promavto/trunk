@@ -74,16 +74,15 @@ char* str_mon[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","
 RTC_clock rtc_clock(XTAL);
 
 char* daynames[]={"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
-//char* process[] = {"|","/","-","X"};
 
 //-----------------------------------------------------------------------------------------------
-//uint8_t sec = 0;       //Initialization time
-//uint8_t min = 0;
-//uint8_t hour = 0;
-//uint8_t dow = 1;
-//uint8_t date = 1;
-//uint8_t mon = 1;
-//uint16_t year = 14;
+uint8_t sec = 0;       //Initialization time
+uint8_t min = 0;
+uint8_t hour = 0;
+uint8_t dow1 = 1;
+uint8_t date = 1;
+uint8_t mon1 = 1;
+uint16_t year = 14;
 unsigned long timeF;
 int flag_time = 0;
 
@@ -1183,10 +1182,36 @@ void binaryToCsv()
   csvStream.print(intervalMicros, 4);
   csvStream.println(F(",usec"));
  //  Serial.println(F("Head 0 "));
+  // csvStream.println(); 
+   csvStream.print(F("Data : "));
+   rtc_clock.get_time(&hh,&mm,&ss);
+   rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
+   dow1=dow;
+   sec = ss;       //Initialization time
+   min = mm;
+   hour = hh;
+   date = dd;
+   mon1 = mon;
+   year = yyyy;
+
+	csvStream.print(date);
+	csvStream.print(F("/"));
+	csvStream.print(mon1);
+	csvStream.print(F("/"));
+	csvStream.print(year);
+	csvStream.print(F("   "));
+
+	csvStream.print(hour);
+	csvStream.print(F(":"));
+	csvStream.print(min);
+	csvStream.print(F(":"));
+	csvStream.print(sec);
+	csvStream.println(); 
+
   for (uint8_t i = 0; i < pm->pinCount; i++) 
   {
 	if (i) csvStream.putc(',');
-	csvStream.print(F("pin"));
+	csvStream.print(F("pin "));
 	csvStream.print(pm->pinNumber[i]);
   }
 //  Serial.println(F("Head 1 "));
@@ -1293,6 +1318,10 @@ void checkOverrun()
 void dumpData() 
 {
   block_t buf;
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.print(txt_info12,CENTER, 40);
+
   if (!binFile.isOpen()) 
   {
 	Serial.println(F("No current binary file"));
@@ -1305,8 +1334,11 @@ void dumpData()
   }
   Serial.println();
   Serial.println(F("Type any character to stop"));
+	myGLCD.setColor(VGA_LIME);
+	myGLCD.print(txt_info15,CENTER, 200);
+	myGLCD.setColor(255, 255, 255);
   delay(1000);
-  while (!Serial.available() && binFile.read(&buf , 512) == 512) 
+  while (!myTouch.dataAvailable() && binFile.read(&buf , 512) == 512) 
   {
 	if (buf.count == 0) break;
 	if (buf.overrun) 
@@ -1326,6 +1358,14 @@ void dumpData()
 	}
   }
   Serial.println(F("Done"));
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.print(txt_info9,CENTER, 80);
+	myGLCD.setColor(255, 255, 255);
+	delay(500);
+	while (myTouch.dataAvailable()){}
+	Draw_menu_ADC1();
+
+
 }
 //------------------------------------------------------------------------------
 // log data
@@ -3846,7 +3886,7 @@ void setup(void)
   if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED)) 
   {
 	sd.initErrorPrint();
-	fatalBlink();
+	//fatalBlink();
   }
 
    ADC_MR |= 0x00000100 ; // ADC full speed
@@ -3870,7 +3910,7 @@ void setup(void)
 
 	Channel_0 = 1;
 	Channel_1 = 0;
-	Channel_2 = 0;
+	Channel_2 = 1;
 	Channel_3 = 0;
 
 	chench_analog();
@@ -3888,7 +3928,7 @@ void setup(void)
 	
   // use uppercase in hex and use 0X base prefix
   cout << uppercase << showbase << endl;
-  set_strob = 50;
+  set_strob = 100;
 
   // pstr stores strings in flash to save RAM
   cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;
