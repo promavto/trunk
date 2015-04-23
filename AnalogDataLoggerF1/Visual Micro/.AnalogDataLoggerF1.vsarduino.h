@@ -101,6 +101,7 @@ void adcStart();
 void binaryToCsv();
 void checkOverrun();
 void dumpData();
+void dumpData_Osc();
 void logData();
 void chench_analog();
 int bcd2bin(int temp);
