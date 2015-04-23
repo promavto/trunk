@@ -813,7 +813,8 @@ uint8_t cidDmp()
   cout << hex << int(cid.mid) << dec << endl;
   cout << F("OEM ID: ") << cid.oid[0] << cid.oid[1] << endl;
   cout << F("Product: ");
-  for (uint8_t i = 0; i < 5; i++) {
+  for (uint8_t i = 0; i < 5; i++) 
+  {
 	cout << cid.pnm[i];
   }
   cout << F("\nVersion: ");
@@ -845,6 +846,10 @@ uint8_t csdDmp() {
   }
   eraseSize++;
   cout << F("cardSize: ") << 0.000512*cardSize;
+   myGLCD.print("cardSize: ", LEFT, 40);
+  myGLCD.printNumI(0.000512*cardSize, RIGHT-60 , 40);
+   myGLCD.print("MB", RIGHT, 40);
+
   cout << F(" MB (MB = 1,000,000 bytes)\n");
 
   cout << F("flashEraseSize: ") << int(eraseSize) << F(" blocks\n");
@@ -887,6 +892,9 @@ uint8_t partDmp() {
 //------------------------------------------------------------------------------
 void volDmp() {
   cout << F("\nVolume is FAT") << int(sd.vol()->fatType()) << endl;
+  myGLCD.print("Volume is      FAT", LEFT, 60);
+  int volFAT = sd.vol()->fatType();
+  myGLCD.printNumI(volFAT, RIGHT , 60);
   cout << F("blocksPerCluster: ") << int(sd.vol()->blocksPerCluster()) << endl;
   cout << F("clusterCount: ") << sd.vol()->clusterCount() << endl;
   cout << F("freeClusters: ");
@@ -894,6 +902,9 @@ void volDmp() {
   cout <<  volFree << endl;
   float fs = 0.000512*volFree*sd.vol()->blocksPerCluster();
   cout << F("freeSpace: ") << fs << F(" MB (MB = 1,000,000 bytes)\n");
+   myGLCD.print("freeSpace: ", LEFT, 80);
+  myGLCD.printNumI(fs, RIGHT-60 , 80);
+   myGLCD.print("MB", RIGHT, 80);
   cout << F("fatStartBlock: ") << sd.vol()->fatStartBlock() << endl;
   cout << F("fatCount: ") << int(sd.vol()->fatCount()) << endl;
   cout << F("blocksPerFat: ") << sd.vol()->blocksPerFat() << endl;
@@ -906,54 +917,76 @@ void volDmp() {
 }
 void  SD_info()
 {
+  myGLCD.clrScr();
+  myGLCD.setBackColor(0, 0, 0);
+ // myGLCD.print(txt_info12, CENTER, 2);
   delay(400);  // catch Due reset problem
-  uint32_t t = millis();
+
+ // uint32_t t = millis();
+   uint32_t t = micros();
   // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
   // breadboards.  use SPI_FULL_SPEED for better performance.
-  if (!sd.cardBegin(SD_CS_PIN, SPI_HALF_SPEED)) 
+ // if (!sd.cardBegin(SD_CS_PIN, SPI_HALF_SPEED)) 
+  if (!sd.cardBegin(SD_CS_PIN, SPI_FULL_SPEED)) 
   {
 	sdErrorMsg("\ncardBegin failed");
-	return;
+	myGLCD.print("cardBegin failed", LEFT, 100);
+	//return;
   }
-  t = millis() - t;
-
+  t = micros() - t;
+ //   t = millis() - t;
   cardSize = sd.card()->cardSize();
   if (cardSize == 0) {
 	sdErrorMsg("cardSize failed");
-	return;
+	myGLCD.print("cardSize failed", LEFT, 120);
+	//return;
   }
-  cout << F("\ninit time: ") << t << " ms" << endl;
+  cout << F("\ninit time: ") << t << " us" << endl;
+  myGLCD.print("Init time : ", LEFT, 0);
+  myGLCD.printNumI(t, RIGHT-60 , 0);
+   myGLCD.print("us", RIGHT, 0);
   cout << F("\nCard type: ");
+  myGLCD.print("Card type: ", LEFT, 20);
   switch (sd.card()->type()) {
   case SD_CARD_TYPE_SD1:
 	cout << F("SD1\n");
+	 myGLCD.print("SD1", RIGHT , 20);
 	break;
 
   case SD_CARD_TYPE_SD2:
 	cout << F("SD2\n");
+	 myGLCD.print("SD2", RIGHT , 20);
 	break;
 
   case SD_CARD_TYPE_SDHC:
-	if (cardSize < 70000000) {
+	if (cardSize < 70000000) 
+	{
 	  cout << F("SDHC\n");
+	   myGLCD.print("SDHC", RIGHT , 20);
 	} else {
 	  cout << F("SDXC\n");
+	   myGLCD.print("SDXC", RIGHT , 20);
 	}
 	break;
 
   default:
 	cout << F("Unknown\n");
+	 myGLCD.print("Unknown", RIGHT , 20);
   }
-  if (!cidDmp()) {
+  if (!cidDmp()) 
+  {
 	return;
   }
-  if (!csdDmp()) {
+  if (!csdDmp()) 
+  {
 	return;
   }
   uint32_t ocr;
-  if (!sd.card()->readOCR(&ocr)) {
+  if (!sd.card()->readOCR(&ocr)) 
+  {
 	sdErrorMsg("\nreadOCR failed");
-	return;
+	 myGLCD.print("readOCR failed", LEFT, 140);
+	//return;
   }
   cout << F("OCR: ") << hex << ocr << dec << endl;
   if (!partDmp()) {
@@ -961,10 +994,17 @@ void  SD_info()
   }
   if (!sd.fsBegin()) {
 	sdErrorMsg("\nFile System initialization failed.\n");
-	return;
+    myGLCD.print("File System failed", LEFT, 160);
+	//return;
   }
   volDmp();
 
+	myGLCD.setColor(VGA_LIME);
+	myGLCD.print(txt_info11,CENTER, 200);
+	myGLCD.setColor(255, 255, 255);
+	while (!myTouch.dataAvailable()){}
+	while (myTouch.dataAvailable()){}
+//	Draw_menu_ADC1();
 
 }
 
@@ -1715,7 +1755,7 @@ void logData()
 	myGLCD.print(txt_info21,LEFT, 125);//
 	myGLCD.setColor(VGA_YELLOW);
 	myGLCD.printNumI(overruns, RIGHT, 125);// 
-	myGLCD.setColor(255, 255, 255);
+//	myGLCD.setColor(255, 255, 255);
 	delay(500);
 	myGLCD.setColor(VGA_LIME);
 	myGLCD.print(txt_info11,CENTER, 200);
@@ -3594,9 +3634,9 @@ void Draw_menu_formatSD()
 			myGLCD.setColor(255, 255, 255);
 			myGLCD.drawRoundRect (30, 20+(50*x), 290,60+(50*x));
 		}
-	myGLCD.print( "Erase skip format", CENTER, 30);     // 
-	myGLCD.print( "Erase and format", CENTER, 80);      
-	myGLCD.print( "Quick format", CENTER, 130);     
+	myGLCD.print( "Erase Full", CENTER, 30);     // 
+	myGLCD.print( "Quick format", CENTER, 80);      
+	myGLCD.print( "      ", CENTER, 130);     
 	myGLCD.print( txt_SD_menu4, CENTER, 180);      
 }
 void menu_formatSD()
@@ -3647,14 +3687,14 @@ void menu_formatSD()
 						{
 							waitForIt(30, 70, 290, 110);
 							myGLCD.clrScr();
-							eraseCard();
+							formatCard();
 						Draw_menu_formatSD();
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
 						{
 							waitForIt(30, 120, 290, 160);
 							myGLCD.clrScr();
-							formatCard();
+						//	formatCard();
 							Draw_menu_formatSD();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
