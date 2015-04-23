@@ -405,11 +405,21 @@ char fat32str[] = "FAT32   ";
 void sdError_F(const __FlashStringHelper* str) {
   cout << F("error: ");
   cout << str << endl;
+  myGLCD.clrScr();
+  myGLCD.setBackColor(0, 0, 0);
+  myGLCD.print("Error: ", CENTER, 80);
+  myGLCD.print(str, CENTER, 120);
   if (card.errorCode()) {
 	cout << F("SD error: ") << hex << int(card.errorCode());
 	cout << ',' << int(card.errorData()) << dec << endl;
   }
-  while (1);
+  	myGLCD.setColor(VGA_LIME);
+	myGLCD.print(txt_info11,CENTER, 200);
+	myGLCD.setColor(255, 255, 255);
+	while (!myTouch.dataAvailable()){}
+	while (myTouch.dataAvailable()){}
+
+ // while (1);
 }
 //------------------------------------------------------------------------------
 #if DEBUG_PRINT
@@ -794,12 +804,18 @@ uint32_t eraseSize;
 void sdErrorMsg_F(const __FlashStringHelper* str) 
 {
   cout << str << endl;
+  myGLCD.clrScr();
+  myGLCD.setBackColor(0, 0, 0);
+  myGLCD.print("Error: ", CENTER, 80);
+  myGLCD.print(str, CENTER, 120);
+
   if (sd.card()->errorCode()) {
 	cout << F("SD errorCode: ");
 	cout << hex << int(sd.card()->errorCode()) << endl;
 	cout << F("SD errorData: ");
 	cout << int(sd.card()->errorData()) << dec << endl;
   }
+  delay(3000);
 }
 //------------------------------------------------------------------------------
 uint8_t cidDmp() 
@@ -1014,12 +1030,17 @@ void  SD_info()
 void sdErrorMsg_P(const char* str) 
 {
   cout << pgm(str) << endl;
+  myGLCD.clrScr();
+  myGLCD.setBackColor(0, 0, 0);
+  myGLCD.print("Error: ", CENTER, 80);
+  myGLCD.print(str, CENTER, 120);
   if (card.errorCode()) {
 	cout << pstr("SD errorCode: ");
 	cout << hex << int(card.errorCode()) << endl;
 	cout << pstr("SD errorData: ");
 	cout << int(card.errorData()) << dec << endl;
   }
+    delay(2000);
 }
 //------------------------------------------------------------------------------
 
@@ -1117,8 +1138,14 @@ void secondHandler()
 //------------------------------------------------------------------------------
 void error_P(const char* msg) 
 {
- // sd.errorPrint_P(msg);
-  fatalBlink();
+  myGLCD.clrScr();
+  myGLCD.setBackColor(0, 0, 0);
+  myGLCD.print("Error: ", CENTER, 80);
+  myGLCD.print(msg, CENTER, 120);
+  delay(2000);
+
+//  sd.errorPrint_P(msg);
+ // fatalBlink();
 }
 //------------------------------------------------------------------------------
 //
@@ -1278,6 +1305,12 @@ void binaryToCsv()
   if (!binFile.isOpen()) 
   {
 	Serial.println(F("No current binary file"));
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.print("Error: ", CENTER, 80);
+	myGLCD.print("No binary file", CENTER, 120);
+	delay(2000);
+	Draw_menu_ADC1();
 	return;
   }
   binFile.rewind();
@@ -1451,6 +1484,12 @@ void dumpData()
   if (!binFile.isOpen()) 
   {
 	Serial.println(F("No current binary file"));
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.print("Error: ", CENTER, 80);
+	myGLCD.print("No binary file", CENTER, 120);
+	delay(2000);
+	Draw_menu_ADC1();
 	return;
   }
   binFile.rewind();
@@ -1637,6 +1676,13 @@ void logData()
 			  if (!sd.card()->writeData((uint8_t*)pBlock)) 
 				  {
 					error("write data failed");
+	//					myGLCD.clrScr();
+					myGLCD.setBackColor(0, 0, 0);
+				//	myGLCD.print("Error: ", CENTER, 80);
+				//	myGLCD.print("No binary file", CENTER, 120);
+					delay(2000);
+					Draw_menu_ADC1();
+					return;
 				  }
 			  usec = micros() - usec;
 			  t1 = millis();
@@ -3641,15 +3687,16 @@ void Draw_menu_formatSD()
 }
 void menu_formatSD()
 {
+  if (!card.init(spiSpeed, SD_CS_PIN)) 
+	  {
+		cout << pstr(
+		 "\nSD initialization failure!\n"
+		 "Is the SD card inserted correctly?\n"
+		 "Is chip select correct at the top of this sketch?\n");
+		sdError("card.init failed");
+		 myGLCD.print("File System failed", CENTER, 120);
 
-	 if (!card.init(spiSpeed, SD_CS_PIN)) 
-  {
-	cout << pstr(
-	 "\nSD initialization failure!\n"
-	 "Is the SD card inserted correctly?\n"
-	 "Is chip select correct at the top of this sketch?\n");
-	sdError("card.init failed");
-  }
+	  }
 
   cardSizeBlocks = card.cardSize();
   if (cardSizeBlocks == 0) sdError("cardSize");
