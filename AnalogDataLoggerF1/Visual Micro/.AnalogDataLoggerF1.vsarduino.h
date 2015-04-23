@@ -69,7 +69,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portModeRegister(P)
 
 void dateTime(uint16_t* date, uint16_t* time);
-void sdError_P(const char* str);
+void sdError_F(const __FlashStringHelper* str);
 void debugPrint();
 uint8_t writeCache(uint32_t lbn);
 void initSizes();
@@ -84,9 +84,13 @@ void makeFat16();
 void makeFat32();
 void eraseCard();
 void formatCard();
-void sdErrorMsg_P(const char* str);
+void sdErrorMsg_F(const __FlashStringHelper* str);
 uint8_t cidDmp();
 uint8_t csdDmp();
+uint8_t partDmp();
+void volDmp();
+void  SD_info();
+void sdErrorMsg_P(const char* str);
 inline uint8_t queueNext(uint8_t ht);
 void firstHandler();
 void secondHandler();
@@ -129,7 +133,6 @@ void DrawGrid();
 void DrawGrid1();
 void Draw_menu_SD();
 void menu_SD();
-void SD_format();
 void Draw_menu_formatSD();
 void menu_formatSD();
 void touch_osc();
