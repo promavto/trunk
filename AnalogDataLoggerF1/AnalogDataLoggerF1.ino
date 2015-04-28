@@ -3366,6 +3366,8 @@ void oscilloscope()
 	int ypos1;
 	int ypos2;
 
+
+
 	int ypos_osc1_0;
 	int ypos_osc1_1;
 	int ypos_osc1_2;
@@ -3376,14 +3378,17 @@ void oscilloscope()
 	int ypos_osc2_2;
 	int ypos_osc2_3;
 
-		for( xpos = 0; xpos < 239;	xpos ++)
 
-	{
-		OldSample_osc[xpos][0] = 0;
-		OldSample_osc[xpos][1] = 0;
-		OldSample_osc[xpos][2] = 0;
-		OldSample_osc[xpos][3] = 0;
-	}
+
+
+	for( xpos = 0; xpos < 239;	xpos ++) // Стереть старые данные
+
+		{
+			OldSample_osc[xpos][0] = 0;
+			OldSample_osc[xpos][1] = 0;
+			OldSample_osc[xpos][2] = 0;
+			OldSample_osc[xpos][3] = 0;
+		}
 
 	print_set();
 
@@ -3556,8 +3561,8 @@ void oscilloscope()
 		/*			}
 				if (Channel1)
 					{*/
-					ypos_osc1_1 = 255-(OldSample_osc[ xpos + 1][1]/koeff_h) - hpos; 
-					ypos_osc2_1 = 255-(OldSample_osc[ xpos + 2][1]/koeff_h) - hpos;
+					    ypos_osc1_1 = 255-(OldSample_osc[ xpos + 1][1]/koeff_h) - hpos; 
+					    ypos_osc2_1 = 255-(OldSample_osc[ xpos + 2][1]/koeff_h) - hpos;
 						if(ypos_osc1_1 < 0) ypos_osc1_1 = 0;
 						if(ypos_osc2_1 < 0) ypos_osc2_1 = 0;
 						if(ypos_osc1_1 > 220) ypos_osc1_1 = 220;
@@ -3574,7 +3579,7 @@ void oscilloscope()
 		/*			}
 				if (Channel3)
 					{*/
-						ypos_osc1_3 = 255-(OldSample_osc[ xpos + 1][2]/koeff_h) - hpos; 
+						ypos_osc1_3 = 255-(OldSample_osc[ xpos + 1][3]/koeff_h) - hpos; 
 						ypos_osc2_3 = 255-(OldSample_osc[ xpos + 2][3]/koeff_h) - hpos;
 						if(ypos_osc1_3 < 0) ypos_osc1_3 = 0;
 						if(ypos_osc2_3 < 0) ypos_osc2_3 = 0;
@@ -3590,12 +3595,17 @@ void oscilloscope()
 				//if(ypos2<0) ypos2 = 0;
 				//if(ypos1>220) ypos1 = 220;
 				//if(ypos2>220) ypos2 = 220;
+
+						myGLCD.setColor( 0, 0, 0);
+						if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
+						myGLCD.drawLine (xpos + 1, ypos_osc1_3, xpos + 2, ypos_osc2_3);
+						myGLCD.drawLine (xpos + 1, ypos_osc1_2, xpos + 2, ypos_osc2_2);
+						myGLCD.drawLine (xpos + 1, ypos_osc1_1, xpos + 2, ypos_osc2_1);
+						myGLCD.drawLine (xpos + 1, ypos_osc1_0, xpos + 2, ypos_osc2_0);
+		
 				if (Channel0)
 					{
-						myGLCD.setColor( 0, 0, 0);
-						myGLCD.drawLine (xpos + 1, ypos_osc1_0, xpos + 2, ypos_osc2_0);
-						if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
-						//Draw the new data
+
 						myGLCD.setColor( 255, 255, 255);
 						ypos_osc1_0 = 255-(Sample_osc[ xpos][0]/koeff_h) - hpos;
 						ypos_osc2_0 = 255-(Sample_osc[ xpos + 1][0]/koeff_h)- hpos;
@@ -3608,9 +3618,6 @@ void oscilloscope()
 
 				if (Channel1)
 					{
-						myGLCD.setColor( 0, 0, 0);
-						myGLCD.drawLine (xpos + 1, ypos_osc1_1, xpos + 2, ypos_osc2_1);
-						if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
 						//Draw the new data
 						//myGLCD.setColor( 0, 0, 255);
 						myGLCD.setColor( VGA_YELLOW);
@@ -3622,18 +3629,39 @@ void oscilloscope()
 						if(ypos_osc2_1 > 220) ypos_osc2_1 = 220;
 						myGLCD.drawLine (xpos, ypos_osc1_1, xpos + 1, ypos_osc2_1);
 					}
+				
+				if (Channel2)
+					{
+						//Draw the new data
+						//myGLCD.setColor( 0, 0, 255);
+						myGLCD.setColor( VGA_RED);
+						ypos_osc1_2 = 255-(Sample_osc[ xpos][2]/koeff_h) - hpos;
+						ypos_osc2_2 = 255-(Sample_osc[ xpos + 1][2]/koeff_h)- hpos;
+						if(ypos_osc1_2 < 0) ypos_osc1_2 = 0;
+						if(ypos_osc2_2 < 0) ypos_osc2_2 = 0;
+						if(ypos_osc1_2 > 220) ypos_osc1_2  = 220;
+						if(ypos_osc2_2 > 220) ypos_osc2_2 = 220;
+						myGLCD.drawLine (xpos, ypos_osc1_2, xpos + 1, ypos_osc2_2);
+					}
+				
+				if (Channel3)
+					{
+						//Draw the new data
+						//myGLCD.setColor( 0, 0, 255);
+						myGLCD.setColor( VGA_BLUE);
+						ypos_osc1_3 = 255-(Sample_osc[ xpos][3]/koeff_h) - hpos;
+						ypos_osc2_3 = 255-(Sample_osc[ xpos + 1][3]/koeff_h)- hpos;
+						if(ypos_osc1_3 < 0) ypos_osc1_3 = 0;
+						if(ypos_osc2_3 < 0) ypos_osc2_3 = 0;
+						if(ypos_osc1_3 > 220) ypos_osc1_3  = 220;
+						if(ypos_osc2_3 > 220) ypos_osc2_3 = 220;
+						myGLCD.drawLine (xpos, ypos_osc1_3, xpos + 1, ypos_osc2_3);
+					}
 
 					OldSample_osc[xpos][0] = Sample_osc[xpos][0];
 					OldSample_osc[xpos][1] = Sample_osc[xpos][1];
 					OldSample_osc[xpos][2] = Sample_osc[xpos][2];
 					OldSample_osc[xpos][3] = Sample_osc[xpos][3];
-
-				//if(ypos1<0) ypos1 = 0;
-				//if(ypos2<0) ypos2 = 0;
-				//if(ypos1>220) ypos1 = 220;
-				//if(ypos2>220) ypos2 = 220;
-				//myGLCD.drawLine (xpos, ypos1, xpos + 1, ypos2);
-				//OldSample[xpos] = Sample[ xpos];
 			}
 	}
 koeff_h = 7.759;
