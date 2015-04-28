@@ -137,6 +137,10 @@ int ret                = 0;                // Признак прерывания операции
 	unsigned long SrednAnalog = 0;
 	unsigned long SrednCount = 0;
 	bool Set_x = false;
+	bool osc_line_off0 = false;
+	bool osc_line_off1 = false;
+	bool osc_line_off2 = false;
+	bool osc_line_off3 = false;
 	int Set_ADC = 10;
 	int MinAnalog = 500;
 	int MinAnalog0 = 500;
@@ -148,6 +152,7 @@ int ret                = 0;                // Признак прерывания операции
 	int mode1 = 0;             //Переключение чувствительности
 	int dTime = 1;
 	int tmode = 0;
+	int t_in_mode = 0;
 	int Trigger = 0;
 	int SampleSize = 0;
 	float SampleTime = 0;
@@ -2012,6 +2017,10 @@ void chench_Channel()
 
 		 SAMPLES_PER_BLOCK = DATA_DIM16/count_pin;
 }
+void chench_Trigger_Channel()
+{
+
+}
 
 //************************** Аналоговые часы ************************************
 int bcd2bin(int temp)//BCD  to decimal
@@ -3223,27 +3232,50 @@ void menu_Oscilloscope()
 void trigger()
 {
 
-	for(int tr = 0; tr < 1000; tr++)
+	for(int tr = 0; tr < 10000; tr++)
 	{
-		 Input = analogRead(port);   //
+		  ADC_CR = ADC_START ; 	// Запустить преобразование
+		 while (!(ADC_ISR_DRDY));
+		switch (t_in_mode) 
+			{
+				case 1:
+					Input = ADC->ADC_CDR[6];
+					break;
+				case 2:
+					Input = ADC->ADC_CDR[5];
+					break;
+				case 3:
+					Input = ADC->ADC_CDR[4];
+					break;
+				default: 
+		      	Input = ADC->ADC_CDR[7];
+			}
+		// Input = analogRead(port);   //
 		 if (Input<Trigger) break;
 	}
 	
-	for(int tr = 0; tr < 1000; tr++)
+	for(int tr = 0; tr < 10000; tr++)
 	{
-		 Input = analogRead(port);   //
+		 ADC_CR = ADC_START ; 	// Запустить преобразование
+		 while (!(ADC_ISR_DRDY));
+  		 switch (t_in_mode) 
+			{
+				case 1:
+					Input = ADC->ADC_CDR[6];
+					break;
+				case 2:
+					Input = ADC->ADC_CDR[5];
+					break;
+				case 3:
+					Input = ADC->ADC_CDR[4];
+					break;
+				default: 
+		      	Input = ADC->ADC_CDR[7];
+			}
+		// Input = analogRead(port);   //
 		if (Input>Trigger) break;
 	}
 
-
-	//do
-	// {
-	//   Input = analogRead(port);   //
-	// }  while (Input<Trigger); 
-	// do
-	// {
-	//	Input = analogRead(port); //
-	// }  while (Input>Trigger);        //Input < Trigger
 }
 void print_set()
 {
@@ -3367,7 +3399,6 @@ void oscilloscope()
 	int ypos2;
 
 
-
 	int ypos_osc1_0;
 	int ypos_osc1_1;
 	int ypos_osc1_2;
@@ -3377,9 +3408,6 @@ void oscilloscope()
 	int ypos_osc2_1;
 	int ypos_osc2_2;
 	int ypos_osc2_3;
-
-
-
 
 	for( xpos = 0; xpos < 239;	xpos ++) // Стереть старые данные
 
@@ -3391,6 +3419,7 @@ void oscilloscope()
 		}
 
 	print_set();
+	buttons_channel();
 
 	while(1) 
 	{
@@ -3437,6 +3466,7 @@ void oscilloscope()
 					if (mode == 9) dTime = 5000;
 					if (mode == 10) dTime = 10000;
 					print_set();
+
 				  }
 			 if ((y_osc>=45) && (y_osc<=85))  // Вторая - триггер
 				 {
@@ -3492,7 +3522,7 @@ void oscilloscope()
 			 if ((y_osc>=205) && (y_osc<=239))  // Нижние кнопки переключения входов
 					{
 						 touch_osc();
-					}
+										}
 		}
 	
 		 if (tmode>0) trigger();
@@ -3548,61 +3578,59 @@ void oscilloscope()
 		// 
 		for( int xpos = 0; xpos < 239;	xpos ++)
 			{
-				// Erase previous display Стереть предыдущий экран
-			/*
-				if (Channel0)
-					{*/
+				//  Стереть предыдущий экран
+				myGLCD.setColor( 0, 0, 0);
+			
+				if (Channel0|osc_line_off0)
+					{
 						ypos_osc1_0 = 255-(OldSample_osc[ xpos + 1][0]/koeff_h) - hpos; 
 						ypos_osc2_0 = 255-(OldSample_osc[ xpos + 2][0]/koeff_h) - hpos;
 						if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
 						if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
 						if(ypos_osc1_0 > 220) ypos_osc1_0 = 220;
 						if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
-		/*			}
-				if (Channel1)
-					{*/
+						myGLCD.drawLine (xpos + 1, ypos_osc1_0, xpos + 2, ypos_osc2_0);
+						osc_line_off0 = true;
+					}
+			
+				if (Channel1|osc_line_off1)
+					{
 					    ypos_osc1_1 = 255-(OldSample_osc[ xpos + 1][1]/koeff_h) - hpos; 
 					    ypos_osc2_1 = 255-(OldSample_osc[ xpos + 2][1]/koeff_h) - hpos;
 						if(ypos_osc1_1 < 0) ypos_osc1_1 = 0;
 						if(ypos_osc2_1 < 0) ypos_osc2_1 = 0;
 						if(ypos_osc1_1 > 220) ypos_osc1_1 = 220;
 						if(ypos_osc2_1 > 220) ypos_osc2_1 = 220;
-		/*			}
-				if (Channel2)
-					{*/
+						myGLCD.drawLine (xpos + 1, ypos_osc1_1, xpos + 2, ypos_osc2_1);
+						osc_line_off1 = true;
+					}
+			
+				if (Channel2|osc_line_off2)
+					{
 						ypos_osc1_2 = 255-(OldSample_osc[ xpos + 1][2]/koeff_h) - hpos; 
 						ypos_osc2_2 = 255-(OldSample_osc[ xpos + 2][2]/koeff_h) - hpos;
 						if(ypos_osc1_2 < 0) ypos_osc1_2 = 0;
 						if(ypos_osc2_2 < 0) ypos_osc2_2 = 0;
-						if(ypos_osc1_2 > 220) ypos_osc1_2 = 220;
-						if(ypos_osc2_2 > 220) ypos_osc2_2 = 220;
-		/*			}
-				if (Channel3)
-					{*/
+						if(ypos_osc1_2 > 200) ypos_osc1_2 = 200;
+						if(ypos_osc2_2 > 200) ypos_osc2_2 = 200;
+						myGLCD.drawLine (xpos + 1, ypos_osc1_2, xpos + 2, ypos_osc2_2);
+						osc_line_off2 = true;
+
+					}
+			
+				if (Channel3|osc_line_off3)
+					{
 						ypos_osc1_3 = 255-(OldSample_osc[ xpos + 1][3]/koeff_h) - hpos; 
 						ypos_osc2_3 = 255-(OldSample_osc[ xpos + 2][3]/koeff_h) - hpos;
 						if(ypos_osc1_3 < 0) ypos_osc1_3 = 0;
 						if(ypos_osc2_3 < 0) ypos_osc2_3 = 0;
 						if(ypos_osc1_3 > 220) ypos_osc1_3 = 220;
 						if(ypos_osc2_3 > 220) ypos_osc2_3 = 220;
-			/*		}
-*/
-
-				//ypos1 = 255-(OldSample[ xpos + 1]/koeff_h) - hpos; 
-				//ypos2 = 255-(OldSample[ xpos + 2]/koeff_h) - hpos;
-
-				//if(ypos1<0) ypos1 = 0;
-				//if(ypos2<0) ypos2 = 0;
-				//if(ypos1>220) ypos1 = 220;
-				//if(ypos2>220) ypos2 = 220;
-
-						myGLCD.setColor( 0, 0, 0);
-						if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
 						myGLCD.drawLine (xpos + 1, ypos_osc1_3, xpos + 2, ypos_osc2_3);
-						myGLCD.drawLine (xpos + 1, ypos_osc1_2, xpos + 2, ypos_osc2_2);
-						myGLCD.drawLine (xpos + 1, ypos_osc1_1, xpos + 2, ypos_osc2_1);
-						myGLCD.drawLine (xpos + 1, ypos_osc1_0, xpos + 2, ypos_osc2_0);
-		
+						osc_line_off3 = true;
+					}
+						if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
+
 				if (Channel0)
 					{
 
@@ -3639,8 +3667,8 @@ void oscilloscope()
 						ypos_osc2_2 = 255-(Sample_osc[ xpos + 1][2]/koeff_h)- hpos;
 						if(ypos_osc1_2 < 0) ypos_osc1_2 = 0;
 						if(ypos_osc2_2 < 0) ypos_osc2_2 = 0;
-						if(ypos_osc1_2 > 220) ypos_osc1_2  = 220;
-						if(ypos_osc2_2 > 220) ypos_osc2_2 = 220;
+						if(ypos_osc1_2 > 200) ypos_osc1_2  = 200;
+						if(ypos_osc2_2 > 200) ypos_osc2_2 = 200;
 						myGLCD.drawLine (xpos, ypos_osc1_2, xpos + 1, ypos_osc2_2);
 					}
 				
@@ -3975,23 +4003,90 @@ void buttons1()
 }
 void buttons_channel()
 {
-	myGLCD.fillRoundRect (10, 210, 60, 239);
-	myGLCD.fillRoundRect (70, 210, 120, 239);
-	myGLCD.fillRoundRect (130, 210, 180, 239);
-	myGLCD.fillRoundRect (190, 210, 240, 239);
-
-	myGLCD.setBackColor( 0, 0, 255);
 	myGLCD.setFont( SmallFont);
-	myGLCD.setColor (255, 255,255);
-	myGLCD.print("0", 32, 212);
-	myGLCD.print("1", 92, 212);
-	myGLCD.print("2", 152, 212);
-	myGLCD.print("3", 212, 212);
 
-	myGLCD.print("BXOD", 20, 226);
-	myGLCD.print("BXOD", 80, 226);
-	myGLCD.print("BXOD", 140, 226);
-	myGLCD.print("BXOD", 200, 226);
+	if (Channel0)
+		{
+			myGLCD.setColor(VGA_LIME);
+			myGLCD.fillRoundRect (10, 210, 60, 239);
+			myGLCD.setBackColor(VGA_LIME);
+			myGLCD.setColor( 0, 0, 0);
+	        myGLCD.print("0", 32, 212);
+			myGLCD.print("BXOD", 20, 226);
+	    }
+	else
+		{
+			myGLCD.setColor( 0, 0, 0);
+			myGLCD.fillRoundRect (10, 210, 60, 239);
+			myGLCD.setBackColor(0, 0, 0);
+			myGLCD.setColor (255, 255,255);
+			myGLCD.print("0", 32, 212);
+			myGLCD.print("BXOD", 20, 226);
+		}
+
+	if (Channel1)
+		{
+			myGLCD.setColor(VGA_LIME);
+			myGLCD.fillRoundRect (70, 210, 120, 239);
+			myGLCD.setBackColor(VGA_LIME);
+			myGLCD.setColor( 0, 0, 0);
+	        myGLCD.print("1", 92, 212);
+			myGLCD.print("BXOD", 80, 226);
+	    }
+	else
+		{
+			myGLCD.setColor( 0, 0, 0);
+			myGLCD.fillRoundRect (70, 210, 120, 239);
+			myGLCD.setBackColor(0, 0, 0);
+			myGLCD.setColor (255, 255,255);
+			myGLCD.print("1", 92, 212);
+			myGLCD.print("BXOD", 80, 226);
+		}
+
+   if (Channel2)
+		{
+			myGLCD.setColor(VGA_LIME);
+			myGLCD.fillRoundRect (130, 210, 180, 239);
+			myGLCD.setBackColor(VGA_LIME);
+			myGLCD.setColor( 0, 0, 0);
+	        myGLCD.print("2", 152, 212);
+			myGLCD.print("BXOD", 140, 226);
+	    }
+	else
+		{
+			myGLCD.setColor( 0, 0, 0);
+			myGLCD.fillRoundRect (130, 210, 180, 239);
+			myGLCD.setBackColor(0, 0, 0);
+			myGLCD.setColor (255, 255,255);
+			myGLCD.print("2", 152, 212);
+			myGLCD.print("BXOD", 140, 226);
+		}
+
+      if (Channel3)
+		{
+			myGLCD.setColor(VGA_LIME);
+			myGLCD.fillRoundRect (190, 210, 240, 239);
+			myGLCD.setBackColor(VGA_LIME);
+			myGLCD.setColor( 0, 0, 0);
+	        myGLCD.print("3", 212, 212);
+			myGLCD.print("BXOD", 200, 226);
+	    }
+	else
+		{
+			myGLCD.setColor( 0, 0, 0);
+			myGLCD.fillRoundRect (190, 210, 240, 239);
+			myGLCD.setBackColor(0, 0, 0);
+			myGLCD.setColor (255, 255,255);
+			myGLCD.print("3", 212, 212);
+			myGLCD.print("BXOD", 200, 226);
+		}
+
+	myGLCD.setColor(0, 0, 255);
+	myGLCD.fillRoundRect (250, 210, 300, 239);
+	myGLCD.setBackColor( 0, 0, 255);
+	myGLCD.setColor (255, 255,255);
+	myGLCD.printNumI(t_in_mode, 272, 212);
+	myGLCD.print("TRIG", 260, 226);
 }
 void DrawGrid()
 {
@@ -4009,12 +4104,14 @@ void DrawGrid()
 	myGLCD.drawRoundRect (250, 45, 310, 85);
 	myGLCD.drawRoundRect (250, 90, 310, 130);
 	myGLCD.drawRoundRect (250, 135, 310, 175);
+
 	myGLCD.drawRoundRect (10, 210, 60, 239);
 	myGLCD.drawRoundRect (70, 210, 120, 239);
 	myGLCD.drawRoundRect (130, 210, 180, 239);
 	myGLCD.drawRoundRect (190, 210, 240, 239);
+	myGLCD.drawRoundRect (250, 210, 300, 239);
 
-	myGLCD.setColor(255, 255, 255);           // 
+	//myGLCD.setColor(255, 255, 255);           // 
 
 }
 void DrawGrid1()
@@ -4198,11 +4295,10 @@ void touch_osc()  //  Нижнее меню осциллографа
 						myGLCD.setColor(VGA_LIME);
 						myGLCD.setBackColor( VGA_LIME);
 						myGLCD.fillRoundRect (10, 210, 60, 239);
-						myGLCD.setColor(0, 0, 255);
-					//	myGLCD.setFont( SmallFont);
+						myGLCD.setColor(0, 0, 0);
 						myGLCD.print("0", 32, 212);
 						myGLCD.print("BXOD", 20, 226);
-
+						osc_line_off0 = true;
 					}
 				else
 					{
@@ -4212,10 +4308,9 @@ void touch_osc()  //  Нижнее меню осциллографа
 						myGLCD.setBackColor( 0,0,0);
 						myGLCD.fillRoundRect (10, 210, 60, 239);
 						myGLCD.setColor(255, 255, 255);
-					//	myGLCD.setFont( SmallFont);
 						myGLCD.print("0", 32, 212);
 						myGLCD.print("BXOD", 20, 226);
-
+						//osc_line_off0 = true;
 					}
 
 				chench_Channel();
@@ -4234,11 +4329,11 @@ void touch_osc()  //  Нижнее меню осциллографа
 					{
 						myGLCD.setColor(VGA_LIME);
 						myGLCD.setBackColor( VGA_LIME);
-						myGLCD.fillRoundRect (10, 210, 60, 239);
-						myGLCD.setColor(0, 0, 255);
+						myGLCD.fillRoundRect (70, 210, 120, 239);
+						myGLCD.setColor(0, 0, 0);
 						myGLCD.print("1", 92, 212);
 						myGLCD.print("BXOD", 80, 226);
-
+						osc_line_off1 = true;
 					}
 				else
 					{
@@ -4246,10 +4341,11 @@ void touch_osc()  //  Нижнее меню осциллографа
 						//buttons();
 						myGLCD.setColor(0,0,0);
 						myGLCD.setBackColor( 0,0,0);
-						myGLCD.fillRoundRect (10, 210, 60, 239);
+						myGLCD.fillRoundRect (70, 210, 120, 239);
 						myGLCD.setColor(255, 255, 255);
 						myGLCD.print("1", 92, 212);
 						myGLCD.print("BXOD", 80, 226);
+						//osc_line_off1 = true;
 					}
 
 				chench_Channel();
@@ -4276,10 +4372,11 @@ void touch_osc()  //  Нижнее меню осциллографа
 					{
 						myGLCD.setColor(VGA_LIME);
 						myGLCD.setBackColor( VGA_LIME);
-						myGLCD.fillRoundRect (10, 210, 60, 239);
-						myGLCD.setColor(0, 0, 255);
+						myGLCD.fillRoundRect (130, 210, 180, 239);
+						myGLCD.setColor(0, 0,0);
 						myGLCD.print("2", 152, 212);
 						myGLCD.print("BXOD", 140, 226);
+						osc_line_off2 = true;
 					}
 				else
 					{
@@ -4287,10 +4384,11 @@ void touch_osc()  //  Нижнее меню осциллографа
 						//buttons();
 						myGLCD.setColor(0,0,0);
 						myGLCD.setBackColor( 0,0,0);
-						myGLCD.fillRoundRect (10, 210, 60, 239);
+						myGLCD.fillRoundRect (130, 210, 180, 239);
 						myGLCD.setColor(255, 255, 255);
 						myGLCD.print("2", 152, 212);
 						myGLCD.print("BXOD", 140, 226);
+						//osc_line_off2 = true;
 					}
 				chench_Channel();
 				//buttons();
@@ -4315,10 +4413,11 @@ void touch_osc()  //  Нижнее меню осциллографа
 					{
 						myGLCD.setColor(VGA_LIME);
 						myGLCD.setBackColor( VGA_LIME);
-						myGLCD.fillRoundRect (10, 210, 60, 239);
-						myGLCD.setColor(0, 0, 255);
+						myGLCD.fillRoundRect (190, 210, 240, 239);
+						myGLCD.setColor(0, 0, 0);
 						myGLCD.print("3", 212, 212);
 						myGLCD.print("BXOD", 200, 226);
+						osc_line_off3 = true;
 					}
 				else
 					{
@@ -4326,10 +4425,11 @@ void touch_osc()  //  Нижнее меню осциллографа
 						//buttons();
 						myGLCD.setColor(0,0,0);
 						myGLCD.setBackColor( 0,0,0);
-						myGLCD.fillRoundRect (10, 210, 60, 239);
+						myGLCD.fillRoundRect (190, 210, 240, 239);
 						myGLCD.setColor(255, 255, 255);
 						myGLCD.print("3", 212, 212);
 						myGLCD.print("BXOD", 200, 226);
+						//osc_line_off3 = true;
 					}
 
 				chench_Channel();
@@ -4344,9 +4444,26 @@ void touch_osc()  //  Нижнее меню осциллографа
 
 				MinAnalog3 = 4095;
 				MaxAnalog3 = 0;
-
 				print_set();
 			}
+
+		if ((x_osc>=250) && (x_osc<=300))  //  
+			{
+				waitForIt(250, 210, 300, 239);
+				t_in_mode ++;
+					if (t_in_mode > 3) t_in_mode = 0;
+					if (t_in_mode == 0) port = 0;
+					if (t_in_mode == 1) port = 1;
+					if (t_in_mode == 2) port = 2;
+					if (t_in_mode == 3) port = 3;
+					myGLCD.setBackColor( 0, 0, 255);
+					myGLCD.setColor (255, 255,255);
+					myGLCD.printNumI(t_in_mode, 272, 212);
+					myGLCD.print("TRIG", 260, 226);
+					print_set();
+			}
+
+
 	}
 }
 void Draw_menu_ADC1()

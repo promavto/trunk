@@ -104,6 +104,7 @@ void dumpData();
 void dumpData_Osc();
 void logData();
 void chench_Channel();
+void chench_Trigger_Channel();
 int bcd2bin(int temp);
 void clock_print_serial();
 void drawDisplay();
