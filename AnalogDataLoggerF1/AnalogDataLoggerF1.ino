@@ -128,7 +128,7 @@ int ret                = 0;                // Признак прерывания операции
 	unsigned long LongFile = 0;
 	float StartSample = 0; 
 	float EndSample = 0;
-	float koeff_h = 7.759;
+	float koeff_h = 7.759*4;
 	int MaxAnalog = 0;
 	int MaxAnalog0 = 0;
 	int MaxAnalog1 = 0;
@@ -1986,42 +1986,6 @@ void logData()
 	Draw_menu_ADC1();
 }
 
-void chench_Channel()
-{
-	//Подготовка номера аналогового сигнала, количества каналов и кода настройки АЦП
-		   Channel_x = 0;
-		   ADC_CHER = Channel_x;
-		   count_pin = 0;
-	 
-		if (Channel0 )
-			{
-				Channel_x|=0x80;
-				count_pin++;
-			}
-		if (Channel1 )
-			{
-				Channel_x|=0x40;
-				count_pin++;
-			}
-		
-		if (Channel2 ) 
-			{
-				Channel_x|=0x20;
-				count_pin++;
-			}
-
-		if (Channel3) 
-			{
-				Channel_x|=0x10;
-				count_pin++;
-			}
-		 ADC_CHER = Channel_x;
-		 SAMPLES_PER_BLOCK = DATA_DIM16/count_pin;
-}
-void chench_Trigger_Channel()
-{
-
-}
 
 //************************** Аналоговые часы ************************************
 int bcd2bin(int temp)//BCD  to decimal
@@ -3233,10 +3197,13 @@ void menu_Oscilloscope()
 void trigger()
 {
 
-	for(int tr = 0; tr < 10000; tr++)
+	 ADC_CHER = Channel_x;
+
+
+	for(int tr = 0; tr < 1000; tr++)
 	{
-		  ADC_CR = ADC_START ; 	// Запустить преобразование
-		 while (!(ADC_ISR_DRDY));
+		ADC_CR = ADC_START ; 	// Запустить преобразование
+		while (!(ADC_ISR_DRDY));
 		switch (t_in_mode) 
 			{
 				case 1:
@@ -3249,13 +3216,14 @@ void trigger()
 					Input = ADC->ADC_CDR[4];
 					break;
 				default: 
-				Input = ADC->ADC_CDR[7];
+				    Input = ADC->ADC_CDR[7];
 			}
-		// Input = analogRead(port);   //
-		 if (Input<Trigger) break;
+		// if (Input<Trigger) break;
+		 if (Input< 15) break;
 	}
-	
-	for(int tr = 0; tr < 10000; tr++)
+	//delayMicroseconds(2);
+
+	for(int tr = 0; tr < 1000; tr++)
 	{
 		 ADC_CR = ADC_START ; 	// Запустить преобразование
 		 while (!(ADC_ISR_DRDY));
@@ -3271,12 +3239,44 @@ void trigger()
 					Input = ADC->ADC_CDR[4];
 					break;
 				default: 
-				Input = ADC->ADC_CDR[7];
+				    Input = ADC->ADC_CDR[7];
 			}
-		// Input = analogRead(port);   //
+	
 		if (Input>Trigger) break;
+		
 	}
+}
+void chench_Channel()
+{
+	//Подготовка номера аналогового сигнала, количества каналов и кода настройки АЦП
+		   Channel_x = 0;
+		   ADC_CHER = Channel_x;
+		   count_pin = 0;
+	 
+		if (Channel0 )
+			{
+				Channel_x|=0x80;
+				count_pin++;
+			}
+		if (Channel1 )
+			{
+				Channel_x|=0x40;
+				count_pin++;
+			}
+		
+		if (Channel2 ) 
+			{
+				Channel_x|=0x20;
+				count_pin++;
+			}
 
+		if (Channel3) 
+			{
+				Channel_x|=0x10;
+				count_pin++;
+			}
+		 ADC_CHER = Channel_x;
+		 SAMPLES_PER_BLOCK = DATA_DIM16/count_pin;
 }
 void print_set()
 {
@@ -3289,9 +3289,9 @@ void print_set()
 	myGLCD.print("Trig.", 265, 50);
 	myGLCD.print("    ", 265, 65);
 	if (tmode == 0)myGLCD.print("Off", 268, 65);
-//	if (tmode == 1)myGLCD.print(" 0% ", 268, 65);
-	if (tmode == 1)myGLCD.print("50%", 266, 65);
-	if (tmode == 2)myGLCD.print("100%", 266, 65);
+	if (tmode == 1)myGLCD.print(" 0% ", 268, 65);
+	if (tmode == 2)myGLCD.print("50%", 266, 65);
+	if (tmode == 3)myGLCD.print("100%", 266, 65);
 
 	myGLCD.print("V/del.", 260, 95);
 	myGLCD.print("      ", 260, 110);
@@ -3304,8 +3304,8 @@ void print_set()
 	myGLCD.print("mSec.", 260, 140);
 	myGLCD.print("      ", 260, 160);
 	myGLCD.printNumF(SampleTime, 1, 260, 160);*/
-	myGLCD.print(" ADC ", 260, 140);
-	myGLCD.printNumI(Set_ADC, 272, 160);
+//	myGLCD.print(" ADC ", 260, 140);
+//	myGLCD.printNumI(Set_ADC, 272, 160);
 
 
 }
@@ -3386,6 +3386,7 @@ void print_set1()
 	myGLCD.print(" ADC ", 262, 185);
 	myGLCD.printNumI(Set_ADC, 272, 202);
 }
+
 void oscilloscope()
 {
 	uint32_t bgnBlock, endBlock;
@@ -3473,20 +3474,27 @@ void oscilloscope()
 				 {
 					waitForIt(250, 45, 310, 85);
 					tmode ++;
-					if (tmode > 5)tmode = 0;
+					if (tmode > 3)tmode = 0;
 
-					//	if (tmode == 1) Trigger = MinAnalog;
-					if (tmode == 1) Trigger = 10;//;
-					if (tmode == 2) Trigger = 50;//20;
-					if (tmode == 3) Trigger = 150;//;
-					if (tmode == 4) Trigger = 256;//20;
-					if (tmode == 5) Trigger = 512;//;
-				//	if (tmode == 6) Trigger = 1000;//20;
+				//	//	if (tmode == 1) Trigger = MinAnalog;
+				//	if (tmode == 1) Trigger = 10;//;
+				//	if (tmode == 2) Trigger = 50;//20;
+				//	if (tmode == 3) Trigger = 150;//;
+				//	if (tmode == 4) Trigger = 256;//20;
+				//	if (tmode == 5) Trigger = 512;//;
+				////	if (tmode == 6) Trigger = 1000;//20;
 
 
-				////	if (tmode == 1) Trigger = MinAnalog;
-				//	if (tmode == 1) Trigger = MaxAnalog/2;//;
-				//	if (tmode == 2) Trigger = MaxAnalog-10;//20;
+					if (tmode == 1) Trigger = MinAnalog0+10;
+					/*if (tmode == 1) Trigger = MinAnalog1+10;
+					if (tmode == 1) Trigger = MinAnalog2+10;
+					if (tmode == 1) Trigger = MinAnalog3+10;*/
+					if (tmode == 2) Trigger = MaxAnalog0/2;//;
+					//if (tmode == 2) Trigger = MaxAnalog1/2;//;
+					//if (tmode == 2) Trigger = MaxAnalog2/2;//;
+					//if (tmode == 2) Trigger = MaxAnalog3/2;//;
+
+					if (tmode == 3) Trigger = MaxAnalog0-10;//20;
 
 					print_set();
 				 }
@@ -3497,10 +3505,10 @@ void oscilloscope()
 					myGLCD.clrScr();
 					buttons();
 					if (mode1 > 3) mode1 = 0;   
-					if (mode1 == 0) koeff_h = 7.759;
-					if (mode1 == 1) koeff_h = 3.879;
-					if (mode1 == 2) koeff_h = 1.939;
-					if (mode1 == 3) koeff_h = 0.969;
+					if (mode1 == 0) koeff_h = 7.759*4;
+					if (mode1 == 1) koeff_h = 3.879*4;
+					if (mode1 == 2) koeff_h = 1.939*4;
+					if (mode1 == 3) koeff_h = 0.969*4;
 					print_set();
 				 }
 			 if ((y_osc>=135) && (y_osc<=175))  // Четвертая разрешение
@@ -3534,7 +3542,6 @@ void oscilloscope()
 		for( xpos = 0;	xpos < 240; xpos ++) 
 			{
 
-			//	ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
 				ADC_CR = ADC_START ; 	// Запустить преобразование
 				 while (!(ADC_ISR_DRDY));
 				if (Channel0)
@@ -3611,8 +3618,8 @@ void oscilloscope()
 						ypos_osc2_2 = 255-(OldSample_osc[ xpos + 2][2]/koeff_h) - hpos;
 						if(ypos_osc1_2 < 0) ypos_osc1_2 = 0;
 						if(ypos_osc2_2 < 0) ypos_osc2_2 = 0;
-						if(ypos_osc1_2 > 200) ypos_osc1_2 = 200;
-						if(ypos_osc2_2 > 200) ypos_osc2_2 = 200;
+						if(ypos_osc1_2 > 220) ypos_osc1_2 = 220;
+						if(ypos_osc2_2 > 220) ypos_osc2_2 = 220;
 						myGLCD.setColor( 0, 0, 0);
 						myGLCD.drawLine (xpos + 1, ypos_osc1_2, xpos + 2, ypos_osc2_2);
 						if (xpos > 237 & Channel2 == false )
@@ -3675,8 +3682,8 @@ void oscilloscope()
 						ypos_osc2_2 = 255-(Sample_osc[ xpos + 1][2]/koeff_h)- hpos;
 						if(ypos_osc1_2 < 0) ypos_osc1_2 = 0;
 						if(ypos_osc2_2 < 0) ypos_osc2_2 = 0;
-						if(ypos_osc1_2 > 200) ypos_osc1_2  = 200;
-						if(ypos_osc2_2 > 200) ypos_osc2_2 = 200;
+						if(ypos_osc1_2 > 220) ypos_osc1_2  = 220;
+						if(ypos_osc2_2 > 220) ypos_osc2_2 = 220;
 						myGLCD.drawLine (xpos, ypos_osc1_2, xpos + 1, ypos_osc2_2);
 						//myGLCD.drawLine (xpos, ypos_osc1_2+1, xpos + 1, ypos_osc2_2+1);
 					}
@@ -4119,9 +4126,6 @@ void DrawGrid()
 	myGLCD.drawRoundRect (130, 210, 180, 239);
 	myGLCD.drawRoundRect (190, 210, 240, 239);
 	myGLCD.drawRoundRect (250, 210, 300, 239);
-
-	//myGLCD.setColor(255, 255, 255);           // 
-
 }
 void DrawGrid1()
 {
