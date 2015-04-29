@@ -3248,7 +3248,7 @@ void trigger()
 					Input = ADC->ADC_CDR[4];
 					break;
 				default: 
-		      	Input = ADC->ADC_CDR[7];
+				Input = ADC->ADC_CDR[7];
 			}
 		// Input = analogRead(port);   //
 		 if (Input<Trigger) break;
@@ -3258,7 +3258,7 @@ void trigger()
 	{
 		 ADC_CR = ADC_START ; 	// Запустить преобразование
 		 while (!(ADC_ISR_DRDY));
-  		 switch (t_in_mode) 
+		 switch (t_in_mode) 
 			{
 				case 1:
 					Input = ADC->ADC_CDR[6];
@@ -3270,7 +3270,7 @@ void trigger()
 					Input = ADC->ADC_CDR[4];
 					break;
 				default: 
-		      	Input = ADC->ADC_CDR[7];
+				Input = ADC->ADC_CDR[7];
 			}
 		// Input = analogRead(port);   //
 		if (Input>Trigger) break;
@@ -3533,14 +3533,14 @@ void oscilloscope()
 			{
 
 				ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
-	            ADC_CR = ADC_START ; 	// Запустить преобразование
+				ADC_CR = ADC_START ; 	// Запустить преобразование
 				 while (!(ADC_ISR_DRDY));
-	            if (Channel0)
+				if (Channel0)
 					{
-					    Sample_osc[xpos][0] = ADC->ADC_CDR[7];
+						Sample_osc[xpos][0] = ADC->ADC_CDR[7];
 						MaxAnalog0 = max(MaxAnalog0, Sample_osc[xpos][0]);
-				        MinAnalog0 = min(MinAnalog0, Sample_osc[xpos][0]);
-				    }
+						MinAnalog0 = min(MinAnalog0, Sample_osc[xpos][0]);
+					}
 				if (Channel1)
 				   {
 						Sample_osc[xpos][1] = ADC->ADC_CDR[6];
@@ -3554,11 +3554,11 @@ void oscilloscope()
 						MinAnalog2 = min(MinAnalog2, Sample_osc[xpos][2]);
 					}
 				if (Channel3)
-				    {
+					{
 						Sample_osc[xpos][3] = ADC->ADC_CDR[4];
 						MaxAnalog3 = max(MaxAnalog3, Sample_osc[xpos][3]);
 						MinAnalog3 = min(MinAnalog3, Sample_osc[xpos][3]);
-		            }
+					}
 	
 				//MaxAnalog = max(MaxAnalog, Sample[xpos]);
 				//MinAnalog = min(MinAnalog, Sample[xpos]);
@@ -3595,8 +3595,8 @@ void oscilloscope()
 			
 				if (Channel1|osc_line_off1)
 					{
-					    ypos_osc1_1 = 255-(OldSample_osc[ xpos + 1][1]/koeff_h) - hpos; 
-					    ypos_osc2_1 = 255-(OldSample_osc[ xpos + 2][1]/koeff_h) - hpos;
+						ypos_osc1_1 = 255-(OldSample_osc[ xpos + 1][1]/koeff_h) - hpos; 
+						ypos_osc2_1 = 255-(OldSample_osc[ xpos + 2][1]/koeff_h) - hpos;
 						if(ypos_osc1_1 < 0) ypos_osc1_1 = 0;
 						if(ypos_osc2_1 < 0) ypos_osc2_1 = 0;
 						if(ypos_osc1_1 > 220) ypos_osc1_1 = 220;
@@ -4011,9 +4011,9 @@ void buttons_channel()
 			myGLCD.fillRoundRect (10, 210, 60, 239);
 			myGLCD.setBackColor(VGA_LIME);
 			myGLCD.setColor( 0, 0, 0);
-	        myGLCD.print("0", 32, 212);
+			myGLCD.print("0", 32, 212);
 			myGLCD.print("BXOD", 20, 226);
-	    }
+		}
 	else
 		{
 			myGLCD.setColor( 0, 0, 0);
@@ -4030,9 +4030,9 @@ void buttons_channel()
 			myGLCD.fillRoundRect (70, 210, 120, 239);
 			myGLCD.setBackColor(VGA_LIME);
 			myGLCD.setColor( 0, 0, 0);
-	        myGLCD.print("1", 92, 212);
+			myGLCD.print("1", 92, 212);
 			myGLCD.print("BXOD", 80, 226);
-	    }
+		}
 	else
 		{
 			myGLCD.setColor( 0, 0, 0);
@@ -4049,9 +4049,9 @@ void buttons_channel()
 			myGLCD.fillRoundRect (130, 210, 180, 239);
 			myGLCD.setBackColor(VGA_LIME);
 			myGLCD.setColor( 0, 0, 0);
-	        myGLCD.print("2", 152, 212);
+			myGLCD.print("2", 152, 212);
 			myGLCD.print("BXOD", 140, 226);
-	    }
+		}
 	else
 		{
 			myGLCD.setColor( 0, 0, 0);
@@ -4062,15 +4062,15 @@ void buttons_channel()
 			myGLCD.print("BXOD", 140, 226);
 		}
 
-      if (Channel3)
+	  if (Channel3)
 		{
 			myGLCD.setColor(VGA_LIME);
 			myGLCD.fillRoundRect (190, 210, 240, 239);
 			myGLCD.setBackColor(VGA_LIME);
 			myGLCD.setColor( 0, 0, 0);
-	        myGLCD.print("3", 212, 212);
+			myGLCD.print("3", 212, 212);
 			myGLCD.print("BXOD", 200, 226);
-	    }
+		}
 	else
 		{
 			myGLCD.setColor( 0, 0, 0);
