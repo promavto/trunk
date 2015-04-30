@@ -138,6 +138,8 @@ void menu_SD();
 void Draw_menu_formatSD();
 void menu_formatSD();
 void touch_osc();
+void switch_trig(int trig_x);
+void trig_min_max(int trig_x);
 void Draw_menu_ADC1();
 void menu_ADC();
 void setup(void);
