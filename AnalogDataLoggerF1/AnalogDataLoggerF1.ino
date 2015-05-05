@@ -3582,8 +3582,8 @@ void oscilloscope()
 
 		if ((x_osc>=250) && (x_osc<=318))  
 
-    		{
-		    if ((y_osc>=200) && (y_osc<=239))  //   Нижние кнопки  
+			{
+			if ((y_osc>=200) && (y_osc<=239))  //   Нижние кнопки  
 				{
 					waitForIt(250, 200, 318, 238);
 					Channel_trig = 0;
@@ -3596,7 +3596,7 @@ void oscilloscope()
 						switch_trig(t_in_mode);
 						myGLCD.setBackColor( 0, 0, 255);
 						myGLCD.setColor (255, 255,255);
-                		myGLCD.print("Synchro", 255, 202);
+						myGLCD.print("Synchro", 255, 202);
 						myGLCD.printNumI(t_in_mode, 282, 214);
 						print_set();
 				}
@@ -3608,7 +3608,7 @@ void oscilloscope()
 						 touch_osc();
 					}
 		}
-	     trig_min_max(t_in_mode);
+		 trig_min_max(t_in_mode);
 		 if (tmode>0) trigger();
 	
 		// Записать аналоговый сигнал в блок памяти
@@ -3737,7 +3737,7 @@ void oscilloscope()
 						if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
 						if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
 						if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
-				        myGLCD.drawLine (xpos, ypos_osc1_0, xpos + 1, ypos_osc2_0);
+						myGLCD.drawLine (xpos, ypos_osc1_0, xpos + 1, ypos_osc2_0);
 						myGLCD.drawLine (xpos+1, ypos_osc1_0+1, xpos + 2, ypos_osc2_0+1);
 					}
 
@@ -4546,7 +4546,7 @@ void touch_osc()  //  Нижнее меню осциллографа
 				print_set();
 			}
 			
-     	}
+		}
 
 
 }
