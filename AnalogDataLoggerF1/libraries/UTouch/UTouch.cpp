@@ -103,11 +103,13 @@ void UTouch::read()
 		touch_WriteData(0x90);        
 		digitalWrite(T_CLK,HIGH);
 		digitalWrite(T_CLK,LOW); 
+		for( i = 0; i < 50; i++ ); //
 		temp_x=touch_ReadData();
 
 		touch_WriteData(0xD0);      
 		digitalWrite(T_CLK,HIGH);
 		digitalWrite(T_CLK,LOW);
+		for( i = 0; i < 50; i++ ); //
 		temp_y=touch_ReadData();
 
 		if (!((temp_x>max(touch_x_left, touch_x_right)) or (temp_x==0) or (temp_y>max(touch_y_top, touch_y_bottom)) or (temp_y==0)))

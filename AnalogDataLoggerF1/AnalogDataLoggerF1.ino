@@ -4790,39 +4790,5 @@ void loop(void)
   
 	draw_Glav_Menu();
 	swichMenu();
-	
-//	
-//	
-//	
-//	// discard any input
-//
-//  while (Serial.read() >= 0) {}
-//  Serial.println();
-//  Serial.println(F("type:"));
-//  Serial.println(F("c - convert file to CSV")); 
-//  Serial.println(F("d - dump data to Serial"));  
-//  Serial.println(F("e - overrun error details"));
-//  Serial.println(F("r - record ADC data"));
-////  Timer3.start(100);
-//  while(!Serial.available()) {}
-//  char c = tolower(Serial.read());
-//  if (ERROR_LED_PIN >= 0) {
-//	digitalWrite(ERROR_LED_PIN, LOW);
-//  }
-//  // Read any extra Serial data.
-//  do {
-//	delay(10);
-//  } while (Serial.read() >= 0);
-//  
-//  if (c == 'c') {
-//	binaryToCsv();
-//  } else if (c == 'd') {
-//	dumpData();
-//  } else if (c == 'e') {    
-//	checkOverrun();
-//  } else if (c == 'r') {
-//	logData();
-//  } else {
-//	Serial.println(F("Invalid entry"));
-//  }
+
 }
