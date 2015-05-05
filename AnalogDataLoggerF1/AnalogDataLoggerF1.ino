@@ -3559,6 +3559,7 @@ void oscilloscope()
 					if (mode1 == 2) koeff_h = 1.939*4;
 					if (mode1 == 3) koeff_h = 0.969*4;
 					print_set();
+					buttons_channel();
 				 }
 			 if ((y_osc>=135) && (y_osc<=175))  // Четвертая разрешение
 				 {
@@ -3577,7 +3578,6 @@ void oscilloscope()
 						analogReadResolution(Set_ADC); 
 						print_set();
 				 }
-			  buttons_channel();
 		   }
 
 		if ((x_osc>=250) && (x_osc<=318))  
@@ -3592,7 +3592,6 @@ void oscilloscope()
 							{
 								t_in_mode = 0;
 							}
-
 						switch_trig(t_in_mode);
 						myGLCD.setBackColor( 0, 0, 255);
 						myGLCD.setColor (255, 255,255);
@@ -3600,8 +3599,7 @@ void oscilloscope()
 						myGLCD.printNumI(t_in_mode, 282, 214);
 						print_set();
 				}
-
-		 }
+		  }
 
 			 if ((y_osc>=205) && (y_osc<=239))  // Нижние кнопки переключения входов
 					{
@@ -4378,6 +4376,7 @@ void touch_osc()  //  Нижнее меню осциллографа
 	x_osc=myTouch.getX();
 	y_osc=myTouch.getY();
 	myGLCD.setFont( SmallFont);
+	
 
 		//if ((y_osc>=200) && (y_osc<=239))  //   Нижние кнопки
 		//{
@@ -4545,10 +4544,7 @@ void touch_osc()  //  Нижнее меню осциллографа
 				MaxAnalog3 = 0;
 				print_set();
 			}
-			
 		}
-
-
 }
 
 void switch_trig(int trig_x)
@@ -4648,7 +4644,6 @@ void trig_min_max(int trig_x)
 					}
 
 }
-
 
 void Draw_menu_ADC1()
 {
