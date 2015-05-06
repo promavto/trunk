@@ -127,6 +127,7 @@ void chench_Channel();
 void print_set();
 void print_set1();
 void oscilloscope();
+void oscilloscope_time2();
 void oscilloscope_time();
 void buttons();
 void buttons1();

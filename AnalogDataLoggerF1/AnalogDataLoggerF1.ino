@@ -1096,7 +1096,7 @@ bool ledOn = false;
 void firstHandler()
 {
 	 int time_start = micros();
-	ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
+	//ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
 	ADC_CR = ADC_START ; 	// Запустить преобразование
 
   // while (!(ADC_ISR & ADC_ISR_DRDY));
@@ -1837,6 +1837,7 @@ void logData()
   myGLCD.setColor(255,150,50);
   myGLCD.print("                    ", CENTER, 100);
   myGLCD.print(txt_info28, CENTER, 100);
+
   // Start logging interrupts.
   adcStart();
 
@@ -3179,9 +3180,10 @@ void menu_Oscilloscope()
 						{
 							waitForIt(30, 120, 290, 160);
 							myGLCD.clrScr();
-							DrawGrid();
-							buttons();
-							checkOverrun();
+						//	DrawGrid();
+						//	buttons();
+							oscilloscope_time2();
+							//checkOverrun();
 						//	dumpData_Osc();
 							Draw_menu_Osc();
 						}
@@ -3244,6 +3246,7 @@ void trigger()
 		if (Input>Trigger) break;
 		
 	}
+
 }
 void chench_Channel()
 {
@@ -3611,9 +3614,10 @@ void oscilloscope()
 	
 		// Записать аналоговый сигнал в блок памяти
 		StartSample = micros();
+			ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
 		for( xpos = 0;	xpos < 240; xpos ++) 
 			{
-
+			//	ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
 				ADC_CR = ADC_START ; 	// Запустить преобразование
 				 while (!(ADC_ISR_DRDY));
 				if (Channel0)
@@ -3792,6 +3796,421 @@ Trigger = 0;
 myGLCD.setFont( BigFont);
 while (myTouch.dataAvailable()){}
 }
+void oscilloscope_time2()
+{
+		uint32_t bgnBlock, endBlock;
+	block_t block[BUFFER_BLOCK_COUNT];
+	myGLCD.clrScr();
+	myGLCD.setBackColor( 0, 0, 0);
+	delay(500);
+	myGLCD.clrScr();
+	buttons();
+	int xpos;
+	int ypos1;
+	int ypos2;
+
+
+	int ypos_osc1_0;
+	int ypos_osc1_1;
+	int ypos_osc1_2;
+	int ypos_osc1_3;
+
+	int ypos_osc2_0;
+	int ypos_osc2_1;
+	int ypos_osc2_2;
+	int ypos_osc2_3;
+
+	for( xpos = 0; xpos < 239;	xpos ++) // Стереть старые данные
+
+		{
+			OldSample_osc[xpos][0] = 0;
+			OldSample_osc[xpos][1] = 0;
+			OldSample_osc[xpos][2] = 0;
+			OldSample_osc[xpos][3] = 0;
+		}
+
+	print_set();
+	buttons_channel();
+
+	while(1) 
+	{
+		 DrawGrid();
+		 if (myTouch.dataAvailable())
+			{
+				delay(10);
+				myTouch.read();
+				x_osc=myTouch.getX();
+				y_osc=myTouch.getY();
+
+				if ((x_osc>=2) && (x_osc<=240))  //  Область экрана
+					{
+						if ((y_osc>=1) && (y_osc<=160))  // Delay row
+						{
+							break;
+						} 
+					}
+
+				myGLCD.setBackColor( 0, 0, 255);
+				myGLCD.setFont( SmallFont);
+				myGLCD.setColor (255, 255,255);
+				myGLCD.drawRoundRect (250, 1, 318, 40);
+				myGLCD.drawRoundRect (250, 45, 318, 85);
+				myGLCD.drawRoundRect (250, 90, 318, 130);
+				myGLCD.drawRoundRect (250, 135, 318, 175);
+
+
+
+			if ((x_osc>=250) && (x_osc<=284))  // Боковые кнопки
+			  {
+				  if ((y_osc>=1) && (y_osc<=40))  // Первая  период
+				  {
+					waitForIt(250, 1, 318, 40);
+					mode -- ;
+					if (mode < 0) mode = 0;   
+					// Select delay times you can change values to suite your needs
+					if (mode == 0) dTime = 1;
+					if (mode == 1) dTime = 10;
+					if (mode == 2) dTime = 20;
+					if (mode == 3) dTime = 50;
+					if (mode == 4) dTime = 100;
+					if (mode == 5) dTime = 200;
+					if (mode == 6) dTime = 300;
+					if (mode == 7) dTime = 500;
+					if (mode == 8) dTime = 1000;
+					if (mode == 9) dTime = 5000;
+				//	if (mode == 10) dTime = 10000;
+					print_set();
+
+				  }
+
+			 if ((y_osc>=45) && (y_osc<=85))  // Вторая - триггер
+				 {
+					waitForIt(250, 45, 318, 85);
+					tmode --;
+					if (tmode < 0)tmode = 0;
+
+					if (tmode == 1) Trigger = MinAnalog+10;
+					if (tmode == 2) Trigger = MaxAnalog/2;
+					if (tmode == 3) Trigger = MaxAnalog-10;
+
+					print_set();
+				 }
+			 if ((y_osc>=90) && (y_osc<=130))  // Третья - делитель
+				 {
+					waitForIt(250, 90, 318, 130);
+					mode1 -- ;
+					myGLCD.clrScr();
+					buttons();
+					if (mode1 < 0) mode1 = 0;   
+					if (mode1 == 0) koeff_h = 7.759*4;
+					if (mode1 == 1) koeff_h = 3.879*4;
+					if (mode1 == 2) koeff_h = 1.939*4;
+					if (mode1 == 3) koeff_h = 0.969*4;
+					print_set();
+				 }
+			 if ((y_osc>=135) && (y_osc<=175))  // Четвертая разрешение
+				 {
+					waitForIt(250, 135, 318, 175);
+
+					if(Set_ADC == 12) 
+						{
+							Set_ADC = 10;
+							//ADC_12_BITS = ADC_MR_LOWRES_BITS_12;
+						}
+					else
+						{
+							Set_ADC = 12;
+							//ADC_10_BITS = ADC_MR_LOWRES_BITS_10;
+						}
+						analogReadResolution(Set_ADC); 
+						print_set();
+				 }
+			  buttons_channel();
+		   }
+				
+			
+			if ((x_osc>=284) && (x_osc<=318))  // Боковые кнопки
+			  {
+				  if ((y_osc>=1) && (y_osc<=40))  // Первая  период
+				  {
+					waitForIt(250, 1, 318, 40);
+					mode ++ ;
+					if (mode > 9) mode = 0;   
+					// Select delay times you can change values to suite your needs
+					if (mode == 0) dTime = 1;
+					if (mode == 1) dTime = 10;
+					if (mode == 2) dTime = 20;
+					if (mode == 3) dTime = 50;
+					if (mode == 4) dTime = 100;
+					if (mode == 5) dTime = 200;
+					if (mode == 6) dTime = 300;
+					if (mode == 7) dTime = 500;
+					if (mode == 8) dTime = 1000;
+					if (mode == 9) dTime = 5000;
+				//	if (mode == 10) dTime = 10000;
+					print_set();
+
+				  }
+
+			 if ((y_osc>=45) && (y_osc<=85))  // Вторая - триггер
+				 {
+					waitForIt(250, 45, 318, 85);
+					tmode ++;
+					if (tmode > 3)tmode = 0;
+
+					if (tmode == 1) Trigger = MinAnalog+10;
+					if (tmode == 2) Trigger = MaxAnalog/2;
+					if (tmode == 3) Trigger = MaxAnalog-10;
+
+					print_set();
+				 }
+			 if ((y_osc>=90) && (y_osc<=130))  // Третья - делитель
+				 {
+					waitForIt(250, 90, 318, 130);
+					mode1 ++ ;
+					myGLCD.clrScr();
+					buttons();
+					if (mode1 > 3) mode1 = 0;   
+					if (mode1 == 0) koeff_h = 7.759*4;
+					if (mode1 == 1) koeff_h = 3.879*4;
+					if (mode1 == 2) koeff_h = 1.939*4;
+					if (mode1 == 3) koeff_h = 0.969*4;
+					print_set();
+					buttons_channel();
+				 }
+			 if ((y_osc>=135) && (y_osc<=175))  // Четвертая разрешение
+				 {
+					waitForIt(250, 135, 318, 175);
+
+					if(Set_ADC == 12) 
+						{
+							Set_ADC = 10;
+							//ADC_12_BITS = ADC_MR_LOWRES_BITS_12;
+						}
+					else
+						{
+							Set_ADC = 12;
+							//ADC_10_BITS = ADC_MR_LOWRES_BITS_10;
+						}
+						analogReadResolution(Set_ADC); 
+						print_set();
+				 }
+		   }
+
+		if ((x_osc>=250) && (x_osc<=318))  
+
+			{
+			if ((y_osc>=200) && (y_osc<=239))  //   Нижние кнопки  
+				{
+					waitForIt(250, 200, 318, 238);
+					Channel_trig = 0;
+					t_in_mode ++;
+						if (t_in_mode > 3)
+							{
+								t_in_mode = 0;
+							}
+						switch_trig(t_in_mode);
+						myGLCD.setBackColor( 0, 0, 255);
+						myGLCD.setColor (255, 255,255);
+						myGLCD.print("Synchro", 255, 202);
+						myGLCD.printNumI(t_in_mode, 282, 214);
+						print_set();
+				}
+		  }
+
+			 if ((y_osc>=205) && (y_osc<=239))  // Нижние кнопки переключения входов
+					{
+						 touch_osc();
+					}
+		}
+		 trig_min_max(t_in_mode);
+		 if (tmode>0) trigger();
+	
+		// Записать аналоговый сигнал в блок памяти
+		StartSample = micros();
+			ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
+		for( xpos = 0;	xpos < 240; xpos ++) 
+			{
+			//	ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
+				ADC_CR = ADC_START ; 	// Запустить преобразование
+				 while (!(ADC_ISR_DRDY));
+				if (Channel0)
+					{
+						Sample_osc[xpos][0] = ADC->ADC_CDR[7];
+						MaxAnalog0 = max(MaxAnalog0, Sample_osc[xpos][0]);
+						MinAnalog0 = min(MinAnalog0, Sample_osc[xpos][0]);
+					}
+				if (Channel1)
+				   {
+						Sample_osc[xpos][1] = ADC->ADC_CDR[6];
+						MaxAnalog1 = max(MaxAnalog1, Sample_osc[xpos][1]);
+						MinAnalog1 = min(MinAnalog1, Sample_osc[xpos][1]);
+				   }
+				if (Channel2)
+					{
+						Sample_osc[xpos][2] = ADC->ADC_CDR[5];
+						MaxAnalog2 = max(MaxAnalog2, Sample_osc[xpos][2]);
+						MinAnalog2 = min(MinAnalog2, Sample_osc[xpos][2]);
+					}
+				if (Channel3)
+					{
+						Sample_osc[xpos][3] = ADC->ADC_CDR[4];
+						MaxAnalog3 = max(MaxAnalog3, Sample_osc[xpos][3]);
+						MinAnalog3 = min(MinAnalog3, Sample_osc[xpos][3]);
+					}
+				delayMicroseconds(dTime); //dTime
+			}
+		EndSample = micros();
+		DrawGrid();
+  
+		// 
+		for( int xpos = 0; xpos < 239;	xpos ++)
+			{
+				//  Стереть предыдущий экран
+				myGLCD.setColor( 0, 0, 0);
+			
+				if (Channel0 | osc_line_off0)
+					{
+						ypos_osc1_0 = 255-(OldSample_osc[ xpos + 1][0]/koeff_h) - hpos; 
+						ypos_osc2_0 = 255-(OldSample_osc[ xpos + 2][0]/koeff_h) - hpos;
+						if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
+						if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
+						if(ypos_osc1_0 > 220) ypos_osc1_0 = 220;
+						if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
+						myGLCD.drawLine (xpos + 1, ypos_osc1_0, xpos + 2, ypos_osc2_0);
+						myGLCD.drawLine (xpos + 2, ypos_osc1_0+1, xpos + 3, ypos_osc2_0+1);
+
+						if (xpos > 237 & Channel0 == false )
+							{
+								osc_line_off0 = false;
+							}
+					}
+			
+				if (Channel1|osc_line_off1)
+					{
+						ypos_osc1_1 = 255-(OldSample_osc[ xpos + 1][1]/koeff_h) - hpos; 
+						ypos_osc2_1 = 255-(OldSample_osc[ xpos + 2][1]/koeff_h) - hpos;
+						if(ypos_osc1_1 < 0) ypos_osc1_1 = 0;
+						if(ypos_osc2_1 < 0) ypos_osc2_1 = 0;
+						if(ypos_osc1_1 > 220) ypos_osc1_1 = 220;
+						if(ypos_osc2_1 > 220) ypos_osc2_1 = 220;
+						myGLCD.drawLine (xpos + 1, ypos_osc1_1, xpos + 2, ypos_osc2_1);
+						myGLCD.drawLine (xpos + 2, ypos_osc1_1+1, xpos + 3, ypos_osc2_1+1);
+						if (xpos > 237 & Channel1 == false )
+							{
+								osc_line_off1 = false;
+							}
+					}
+			
+				if (Channel2|osc_line_off2)
+					{
+						ypos_osc1_2 = 255-(OldSample_osc[ xpos + 1][2]/koeff_h) - hpos; 
+						ypos_osc2_2 = 255-(OldSample_osc[ xpos + 2][2]/koeff_h) - hpos;
+						if(ypos_osc1_2 < 0) ypos_osc1_2 = 0;
+						if(ypos_osc2_2 < 0) ypos_osc2_2 = 0;
+						if(ypos_osc1_2 > 220) ypos_osc1_2 = 220;
+						if(ypos_osc2_2 > 220) ypos_osc2_2 = 220;
+						myGLCD.setColor( 0, 0, 0);
+						myGLCD.drawLine (xpos + 1, ypos_osc1_2, xpos + 2, ypos_osc2_2);
+						myGLCD.drawLine (xpos + 2, ypos_osc1_2+1, xpos + 3, ypos_osc2_2+1);
+						if (xpos > 237 & Channel2 == false )
+							{
+								osc_line_off2 = false;
+							}
+					}
+			
+				if (Channel3|osc_line_off3)
+					{
+						ypos_osc1_3 = 255-(OldSample_osc[ xpos + 1][3]/koeff_h) - hpos; 
+						ypos_osc2_3 = 255-(OldSample_osc[ xpos + 2][3]/koeff_h) - hpos;
+						if(ypos_osc1_3 < 0) ypos_osc1_3 = 0;
+						if(ypos_osc2_3 < 0) ypos_osc2_3 = 0;
+						if(ypos_osc1_3 > 220) ypos_osc1_3 = 220;
+						if(ypos_osc2_3 > 220) ypos_osc2_3 = 220;
+						myGLCD.drawLine (xpos + 1, ypos_osc1_3, xpos + 2, ypos_osc2_3);
+						myGLCD.drawLine (xpos + 2, ypos_osc1_3+1, xpos + 3, ypos_osc2_3+1);
+						if (xpos > 237 & Channel3 == false )
+							{
+								osc_line_off3 = false;
+							}
+					}
+
+
+
+						if (xpos == 0)
+						{
+							myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
+							myGLCD.drawLine (xpos + 2, 1, xpos + 2, 220);
+						}
+					
+				if (Channel0)
+					{
+
+						myGLCD.setColor( 255, 255, 255);
+						ypos_osc1_0 = 255-(Sample_osc[ xpos][0]/koeff_h) - hpos;
+						ypos_osc2_0 = 255-(Sample_osc[ xpos + 1][0]/koeff_h)- hpos;
+						if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
+						if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
+						if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
+						if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
+						myGLCD.drawLine (xpos, ypos_osc1_0, xpos + 1, ypos_osc2_0);
+						myGLCD.drawLine (xpos+1, ypos_osc1_0+1, xpos + 2, ypos_osc2_0+1);
+					}
+
+				if (Channel1)
+					{
+						//myGLCD.setColor( 0, 0, 255);
+						myGLCD.setColor( VGA_YELLOW);
+						ypos_osc1_1 = 255-(Sample_osc[ xpos][1]/koeff_h) - hpos;
+						ypos_osc2_1 = 255-(Sample_osc[ xpos + 1][1]/koeff_h)- hpos;
+						if(ypos_osc1_1 < 0) ypos_osc1_1 = 0;
+						if(ypos_osc2_1 < 0) ypos_osc2_1 = 0;
+						if(ypos_osc1_1 > 220) ypos_osc1_1  = 220;
+						if(ypos_osc2_1 > 220) ypos_osc2_1 = 220;
+						myGLCD.drawLine (xpos, ypos_osc1_1, xpos + 1, ypos_osc2_1);
+						myGLCD.drawLine (xpos+1, ypos_osc1_1+1, xpos + 2, ypos_osc2_1+1);
+					}
+				
+				if (Channel2)
+					{
+						//Draw the new data
+						myGLCD.setColor( VGA_RED);
+						ypos_osc1_2 = 255-(Sample_osc[ xpos][2]/koeff_h) - hpos;
+						ypos_osc2_2 = 255-(Sample_osc[ xpos + 1][2]/koeff_h)- hpos;
+						if(ypos_osc1_2 < 0) ypos_osc1_2 = 0;
+						if(ypos_osc2_2 < 0) ypos_osc2_2 = 0;
+						if(ypos_osc1_2 > 220) ypos_osc1_2  = 220;
+						if(ypos_osc2_2 > 220) ypos_osc2_2 = 220;
+						myGLCD.drawLine (xpos, ypos_osc1_2, xpos + 1, ypos_osc2_2);
+						myGLCD.drawLine (xpos+1, ypos_osc1_2+1, xpos + 2, ypos_osc2_2+1);
+					}
+				
+				if (Channel3)
+					{
+						myGLCD.setColor( VGA_BLUE);
+						ypos_osc1_3 = 255-(Sample_osc[ xpos][3]/koeff_h) - hpos;
+						ypos_osc2_3 = 255-(Sample_osc[ xpos + 1][3]/koeff_h)- hpos;
+						if(ypos_osc1_3 < 0) ypos_osc1_3 = 0;
+						if(ypos_osc2_3 < 0) ypos_osc2_3 = 0;
+						if(ypos_osc1_3 > 220) ypos_osc1_3  = 220;
+						if(ypos_osc2_3 > 220) ypos_osc2_3 = 220;
+						myGLCD.drawLine (xpos, ypos_osc1_3, xpos + 1, ypos_osc2_3);
+						myGLCD.drawLine (xpos+1, ypos_osc1_3+1, xpos + 2, ypos_osc2_3+1);
+					}
+
+					OldSample_osc[xpos][0] = Sample_osc[xpos][0];
+					OldSample_osc[xpos][1] = Sample_osc[xpos][1];
+					OldSample_osc[xpos][2] = Sample_osc[xpos][2];
+					OldSample_osc[xpos][3] = Sample_osc[xpos][3];
+			}
+	}
+koeff_h = 7.759*4;
+mode1 = 0;
+Trigger = 0;
+myGLCD.setFont( BigFont);
+while (myTouch.dataAvailable()){}
+
+}
 void oscilloscope_time()
 {
 	uint32_t bgnBlock, endBlock;
@@ -3874,7 +4293,7 @@ void oscilloscope_time()
 						}
 				 }
 					   myGLCD.setBackColor( 0, 0, 255);
-						myGLCD.setColor (255, 255,255);
+					   myGLCD.setColor (255, 255,255);
 
 
 				if ((x_osc>=2) && (x_osc<=240))  //  Start
@@ -4787,8 +5206,6 @@ void setup(void)
 //------------------------------------------------------------------------------
 void loop(void) 
 {
-  
 	draw_Glav_Menu();
 	swichMenu();
-
 }
