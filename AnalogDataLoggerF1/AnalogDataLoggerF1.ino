@@ -1465,8 +1465,15 @@ void checkOverrun()
   uint32_t bgnBlock, endBlock;
   uint32_t bn = 0;
   
-  if (!binFile.isOpen()) {
+  if (!binFile.isOpen()) 
+  {
 	Serial.println(F("No current binary file"));
+		myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 0);
+//	myGLCD.setFont( SmallFont);
+	myGLCD.setColor (255, 255, 255);
+	myGLCD.print("No binary file", CENTER, 120);
+	delay(2000);
 	return;
   }
   if (!binFile.contiguousRange(&bgnBlock, &endBlock)) {
@@ -1838,7 +1845,7 @@ void logData()
 					myGLCD.print("-      +", 254, 20);
 					myGLCD.printNumI(set_strob, 270, 20);
 				  }
-   	    	}
+			}
 
 				if ((y_osc>=205) && (y_osc<=239))  // Нижние кнопки переключения входов
 					{
@@ -1850,7 +1857,7 @@ void logData()
 	myGLCD.clrScr();
 	myGLCD.setBackColor(0, 0, 0);
 	myGLCD.setFont(BigFont);
-  	adcInit((metadata_t*) &block[0]);
+	adcInit((metadata_t*) &block[0]);
   // Find unused file name.
   if (BASE_NAME_SIZE > 6) 
 	  {
