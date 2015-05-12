@@ -125,6 +125,7 @@ void menu_Oscilloscope();
 void trigger();
 void oscilloscope();
 void oscilloscope_time();
+void oscilloscope_file();
 void buttons_right();
 void buttons_right_time();
 void scale_time();
