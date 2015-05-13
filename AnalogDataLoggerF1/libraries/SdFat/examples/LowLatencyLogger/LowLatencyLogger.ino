@@ -24,7 +24,7 @@
 void acquireData(data_t* data) {
   data->time = micros();
   for (int i = 0; i < ADC_DIM; i++) {
-    data->adc[i] = analogRead(i);
+	data->adc[i] = analogRead(i);
   }
 }
 
@@ -32,8 +32,8 @@ void acquireData(data_t* data) {
 void printData(Print* pr, data_t* data) {
   pr->print(data->time);
   for (int i = 0; i < ADC_DIM; i++) {
-    pr->write(',');
-    pr->print(data->adc[i]);
+	pr->write(',');
+	pr->print(data->adc[i]);
   }
   pr->println();
 }
@@ -42,8 +42,8 @@ void printData(Print* pr, data_t* data) {
 void printHeader(Print* pr) {
   pr->print(F("time"));
   for (int i = 0; i < ADC_DIM; i++) {
-    pr->print(F(",adc"));
-    pr->print(i);
+	pr->print(F(",adc"));
+	pr->print(i);
   }
   pr->println();
 }
@@ -152,12 +152,12 @@ void errorFlash(const __FlashStringHelper* msg) {
 //
 void fatalBlink() {
   while (true) {
-    if (ERROR_LED_PIN >= 0) {
-      digitalWrite(ERROR_LED_PIN, HIGH);
-      delay(200);
-      digitalWrite(ERROR_LED_PIN, LOW);
-      delay(200);
-    }
+	if (ERROR_LED_PIN >= 0) {
+	  digitalWrite(ERROR_LED_PIN, HIGH);
+	  delay(200);
+	  digitalWrite(ERROR_LED_PIN, LOW);
+	  delay(200);
+	}
   }
 }
 //==============================================================================
@@ -171,9 +171,9 @@ void binaryToCsv() {
   char csvName[13];
 
   if (!binFile.isOpen()) {
-    Serial.println();
-    Serial.println(F("No current binary file"));
-    return;
+	Serial.println();
+	Serial.println(F("No current binary file"));
+	return;
   }
   binFile.rewind();
   // Create a new csvFile.
@@ -181,7 +181,7 @@ void binaryToCsv() {
   strcpy(&csvName[BASE_NAME_SIZE + 3], "csv");
 
   if (!csvFile.open(csvName, O_WRITE | O_CREAT | O_TRUNC)) {
-    error("open csvFile failed");
+	error("open csvFile failed");
   }
   Serial.println();
   Serial.print(F("Writing: "));
@@ -190,33 +190,33 @@ void binaryToCsv() {
   printHeader(&csvFile);
   uint32_t tPct = millis();
   while (!Serial.available() && binFile.read(&block, 512) == 512) {
-    uint16_t i;
-    if (block.count == 0) {
-      break;
-    }
-    if (block.overrun) {
-      csvFile.print(F("OVERRUN,"));
-      csvFile.println(block.overrun);
-    }
-    for (i = 0; i < block.count; i++) {
-      printData(&csvFile, &block.data[i]);
-    }
-    if (csvFile.curCluster() != syncCluster) {
-      csvFile.sync();
-      syncCluster = csvFile.curCluster();
-    }
-    if ((millis() - tPct) > 1000) {
-      uint8_t pct = binFile.curPosition()/(binFile.fileSize()/100);
-      if (pct != lastPct) {
-        tPct = millis();
-        lastPct = pct;
-        Serial.print(pct, DEC);
-        Serial.println('%');
-      }
-    }
-    if (Serial.available()) {
-      break;
-    }
+	uint16_t i;
+	if (block.count == 0) {
+	  break;
+	}
+	if (block.overrun) {
+	  csvFile.print(F("OVERRUN,"));
+	  csvFile.println(block.overrun);
+	}
+	for (i = 0; i < block.count; i++) {
+	  printData(&csvFile, &block.data[i]);
+	}
+	if (csvFile.curCluster() != syncCluster) {
+	  csvFile.sync();
+	  syncCluster = csvFile.curCluster();
+	}
+	if ((millis() - tPct) > 1000) {
+	  uint8_t pct = binFile.curPosition()/(binFile.fileSize()/100);
+	  if (pct != lastPct) {
+		tPct = millis();
+		lastPct = pct;
+		Serial.print(pct, DEC);
+		Serial.println('%');
+	  }
+	}
+	if (Serial.available()) {
+	  break;
+	}
   }
   csvFile.close();
   Serial.print(F("Done: "));
@@ -232,39 +232,39 @@ void checkOverrun() {
   uint32_t bn = 0;
 
   if (!binFile.isOpen()) {
-    Serial.println();
-    Serial.println(F("No current binary file"));
-    return;
+	Serial.println();
+	Serial.println(F("No current binary file"));
+	return;
   }
   if (!binFile.contiguousRange(&bgnBlock, &endBlock)) {
-    error("contiguousRange failed");
+	error("contiguousRange failed");
   }
   binFile.rewind();
   Serial.println();
   Serial.println(F("Checking overrun errors - type any character to stop"));
   while (binFile.read(&block, 512) == 512) {
-    if (block.count == 0) {
-      break;
-    }
-    if (block.overrun) {
-      if (!headerPrinted) {
-        Serial.println();
-        Serial.println(F("Overruns:"));
-        Serial.println(F("fileBlockNumber,sdBlockNumber,overrunCount"));
-        headerPrinted = true;
-      }
-      Serial.print(bn);
-      Serial.print(',');
-      Serial.print(bgnBlock + bn);
-      Serial.print(',');
-      Serial.println(block.overrun);
-    }
-    bn++;
+	if (block.count == 0) {
+	  break;
+	}
+	if (block.overrun) {
+	  if (!headerPrinted) {
+		Serial.println();
+		Serial.println(F("Overruns:"));
+		Serial.println(F("fileBlockNumber,sdBlockNumber,overrunCount"));
+		headerPrinted = true;
+	  }
+	  Serial.print(bn);
+	  Serial.print(',');
+	  Serial.print(bgnBlock + bn);
+	  Serial.print(',');
+	  Serial.println(block.overrun);
+	}
+	bn++;
   }
   if (!headerPrinted) {
-    Serial.println(F("No errors found"));
+	Serial.println(F("No errors found"));
   } else {
-    Serial.println(F("Done"));
+	Serial.println(F("Done"));
   }
 }
 //------------------------------------------------------------------------------
@@ -272,9 +272,9 @@ void checkOverrun() {
 void dumpData() {
   block_t block;
   if (!binFile.isOpen()) {
-    Serial.println();
-    Serial.println(F("No current binary file"));
-    return;
+	Serial.println();
+	Serial.println(F("No current binary file"));
+	return;
   }
   binFile.rewind();
   Serial.println();
@@ -282,16 +282,16 @@ void dumpData() {
   delay(1000);
   printHeader(&Serial);
   while (!Serial.available() && binFile.read(&block , 512) == 512) {
-    if (block.count == 0) {
-      break;
-    }
-    if (block.overrun) {
-      Serial.print(F("OVERRUN,"));
-      Serial.println(block.overrun);
-    }
-    for (uint16_t i = 0; i < block.count; i++) {
-      printData(&Serial, &block.data[i]);
-    }
+	if (block.count == 0) {
+	  break;
+	}
+	if (block.overrun) {
+	  Serial.print(F("OVERRUN,"));
+	  Serial.println(block.overrun);
+	}
+	for (uint16_t i = 0; i < block.count; i++) {
+	  printData(&Serial, &block.data[i]);
+	}
   }
   Serial.println(F("Done"));
 }
@@ -299,7 +299,8 @@ void dumpData() {
 // log data
 // max number of blocks to erase per erase call
 uint32_t const ERASE_SIZE = 262144L;
-void logData() {
+void logData() 
+{
   uint32_t bgnBlock, endBlock;
 
   // Allocate extra buffer space.
@@ -308,61 +309,73 @@ void logData() {
   Serial.println();
 
   // Find unused file name.
-  if (BASE_NAME_SIZE > 6) {
-    error("FILE_BASE_NAME too long");
+  if (BASE_NAME_SIZE > 6)
+  {
+	error("FILE_BASE_NAME too long");
   }
-  while (sd.exists(binName)) {
-    if (binName[BASE_NAME_SIZE + 1] != '9') {
-      binName[BASE_NAME_SIZE + 1]++;
-    } else {
-      binName[BASE_NAME_SIZE + 1] = '0';
-      if (binName[BASE_NAME_SIZE] == '9') {
-        error("Can't create file name");
-      }
-      binName[BASE_NAME_SIZE]++;
-    }
+  while (sd.exists(binName)) 
+  {
+	if (binName[BASE_NAME_SIZE + 1] != '9') 
+	{
+	  binName[BASE_NAME_SIZE + 1]++;
+	}
+	else 
+	{
+	  binName[BASE_NAME_SIZE + 1] = '0';
+	  if (binName[BASE_NAME_SIZE] == '9') 
+	  {
+		error("Can't create file name");
+	  }
+	  binName[BASE_NAME_SIZE]++;
+	}
   }
   // Delete old tmp file.
-  if (sd.exists(TMP_FILE_NAME)) {
-    Serial.println(F("Deleting tmp file"));
-    if (!sd.remove(TMP_FILE_NAME)) {
-      error("Can't remove tmp file");
-    }
+  if (sd.exists(TMP_FILE_NAME)) 
+  {
+	Serial.println(F("Deleting tmp file"));
+	if (!sd.remove(TMP_FILE_NAME))
+	{
+	  error("Can't remove tmp file");
+	}
   }
   // Create new file.
   Serial.println(F("Creating new file"));
   binFile.close();
-  if (!binFile.createContiguous(sd.vwd(),
-                                TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) {
-    error("createContiguous failed");
+  if (!binFile.createContiguous(sd.vwd(), TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT)) 
+  {
+	error("createContiguous failed");
   }
   // Get the address of the file on the SD.
-  if (!binFile.contiguousRange(&bgnBlock, &endBlock)) {
-    error("contiguousRange failed");
+  if (!binFile.contiguousRange(&bgnBlock, &endBlock))
+  {
+	error("contiguousRange failed");
   }
   // Use SdFat's internal buffer.
   uint8_t* cache = (uint8_t*)sd.vol()->cacheClear();
-  if (cache == 0) {
-    error("cacheClear failed");
+  if (cache == 0)
+  {
+	error("cacheClear failed");
   }
 
   // Flash erase all data in the file.
   Serial.println(F("Erasing all data"));
   uint32_t bgnErase = bgnBlock;
   uint32_t endErase;
-  while (bgnErase < endBlock) {
-    endErase = bgnErase + ERASE_SIZE;
-    if (endErase > endBlock) {
-      endErase = endBlock;
-    }
-    if (!sd.card()->erase(bgnErase, endErase)) {
-      error("erase failed");
-    }
-    bgnErase = endErase + 1;
+  while (bgnErase < endBlock) 
+  {
+	endErase = bgnErase + ERASE_SIZE;
+	if (endErase > endBlock) {
+	  endErase = endBlock;
+	}
+	if (!sd.card()->erase(bgnErase, endErase)) {
+	  error("erase failed");
+	}
+	bgnErase = endErase + 1;
   }
   // Start a multiple block write.
-  if (!sd.card()->writeStart(bgnBlock, FILE_BLOCK_COUNT)) {
-    error("writeBegin failed");
+  if (!sd.card()->writeStart(bgnBlock, FILE_BLOCK_COUNT)) 
+  {
+	error("writeBegin failed");
   }
   // Initialize queues.
   emptyHead = emptyTail = 0;
@@ -373,9 +386,10 @@ void logData() {
   emptyHead = queueNext(emptyHead);
 
   // Put rest of buffers in the empty queue.
-  for (uint8_t i = 0; i < BUFFER_BLOCK_COUNT; i++) {
-    emptyQueue[emptyHead] = &block[i];
-    emptyHead = queueNext(emptyHead);
+  for (uint8_t i = 0; i < BUFFER_BLOCK_COUNT; i++) 
+  {
+	emptyQueue[emptyHead] = &block[i];
+	emptyHead = queueNext(emptyHead);
   }
   Serial.println(F("Logging - type any character to stop"));
   // Wait for Serial Idle.
@@ -394,95 +408,120 @@ void logData() {
   logTime *= LOG_INTERVAL_USEC;
   bool closeFile = false;
   while (1) {
-    // Time for next data record.
-    logTime += LOG_INTERVAL_USEC;
-    if (Serial.available()) {
-      closeFile = true;
-    }
+	// Time for next data record.
+	logTime += LOG_INTERVAL_USEC;
+	if (Serial.available()) 
+	{
+	  closeFile = true;
+	}
 
-    if (closeFile) {
-      if (curBlock != 0 && curBlock->count >= 0) {
-        // Put buffer in full queue.
-        fullQueue[fullHead] = curBlock;
-        fullHead = queueNext(fullHead);
-        curBlock = 0;
-      }
-    } else {
-      if (curBlock == 0 && emptyTail != emptyHead) {
-        curBlock = emptyQueue[emptyTail];
-        emptyTail = queueNext(emptyTail);
-        curBlock->count = 0;
-        curBlock->overrun = overrun;
-        overrun = 0;
-      }
-      do {
-        diff = logTime - micros();
-      } while(diff > 0);
-      if (diff < -10) {
-        error("LOG_INTERVAL_USEC too small");
-      }
-      if (curBlock == 0) {
-        overrun++;
-      } else {
-        acquireData(&curBlock->data[curBlock->count++]);
-        if (curBlock->count == DATA_DIM) {
-          fullQueue[fullHead] = curBlock;
-          fullHead = queueNext(fullHead);
-          curBlock = 0;
-        }
-      }
-    }
+	if (closeFile) 
+	{
+	  if (curBlock != 0 && curBlock->count >= 0) 
+	  {
+		// Put buffer in full queue.
+		fullQueue[fullHead] = curBlock;
+		fullHead = queueNext(fullHead);
+		curBlock = 0;
+	  }
+	}
+	else 
+	{
+	  if (curBlock == 0 && emptyTail != emptyHead)
+	  {
+		curBlock = emptyQueue[emptyTail];
+		emptyTail = queueNext(emptyTail);
+		curBlock->count = 0;
+		curBlock->overrun = overrun;
+		overrun = 0;
+	  }
+	  do 
+	  {
+		diff = logTime - micros();
+	  } while(diff > 0);
+	  if (diff < -10) 
+	  {
+		error("LOG_INTERVAL_USEC too small");
+	  }
+	  if (curBlock == 0)
+	  {
+		overrun++;
+	  }
+	  else 
+	  {
+		acquireData(&curBlock->data[curBlock->count++]);
+		if (curBlock->count == DATA_DIM) 
+		{
+		  fullQueue[fullHead] = curBlock;
+		  fullHead = queueNext(fullHead);
+		  curBlock = 0;
+		}
+	  }
+	}
 
-    if (fullHead == fullTail) {
-      // Exit loop if done.
-      if (closeFile) {
-        break;
-      }
-    } else if (!sd.card()->isBusy()) {
-      // Get address of block to write.
-      block_t* pBlock = fullQueue[fullTail];
-      fullTail = queueNext(fullTail);
-      // Write block to SD.
-      uint32_t usec = micros();
-      if (!sd.card()->writeData((uint8_t*)pBlock)) {
-        error("write data failed");
-      }
-      usec = micros() - usec;
-      t1 = millis();
-      if (usec > maxLatency) {
-        maxLatency = usec;
-      }
-      count += pBlock->count;
+	if (fullHead == fullTail) 
+	{
+	  // Exit loop if done.
+	  if (closeFile) 
+	  {
+		break;
+	  }
+	}
+	else if (!sd.card()->isBusy()) 
+	{
+	  // Get address of block to write.
+	  block_t* pBlock = fullQueue[fullTail];
+	  fullTail = queueNext(fullTail);
+	  // Write block to SD.
+	  uint32_t usec = micros();
+	  if (!sd.card()->writeData((uint8_t*)pBlock)) 
+	  {
+		error("write data failed");
+	  }
+	  usec = micros() - usec;
+	  t1 = millis();
+	  if (usec > maxLatency) 
+	  {
+		maxLatency = usec;
+	  }
+	  count += pBlock->count;
 
-      // Add overruns and possibly light LED.
-      if (pBlock->overrun) {
-        overrunTotal += pBlock->overrun;
-        if (ERROR_LED_PIN >= 0) {
-          digitalWrite(ERROR_LED_PIN, HIGH);
-        }
-      }
-      // Move block to empty queue.
-      emptyQueue[emptyHead] = pBlock;
-      emptyHead = queueNext(emptyHead);
-      bn++;
-      if (bn == FILE_BLOCK_COUNT) {
-        // File full so stop
-        break;
-      }
-    }
+	  // Add overruns and possibly light LED.
+	  if (pBlock->overrun) 
+	  {
+		overrunTotal += pBlock->overrun;
+		if (ERROR_LED_PIN >= 0) 
+		{
+		  digitalWrite(ERROR_LED_PIN, HIGH);
+		}
+	  }
+	  // Move block to empty queue.
+	  emptyQueue[emptyHead] = pBlock;
+	  emptyHead = queueNext(emptyHead);
+	  bn++;
+	  if (bn == FILE_BLOCK_COUNT) 
+	  {
+		// File full so stop
+		break;
+	  }
+	}
   }
-  if (!sd.card()->writeStop()) {
-    error("writeStop failed");
+  if (!sd.card()->writeStop()) 
+  {
+	error("writeStop failed");
   }
   // Truncate file if recording stopped early.
-  if (bn != FILE_BLOCK_COUNT) {
-    Serial.println(F("Truncating file"));
-    if (!binFile.truncate(512L * bn)) {
-      error("Can't truncate file");
-    }
+  if (bn != FILE_BLOCK_COUNT) 
+  {
+	Serial.println(F("Truncating file"));
+	if (!binFile.truncate(512L * bn)) 
+	{
+	  error("Can't truncate file");
+	}
   }
-  if (!binFile.rename(sd.vwd(), binName)) {
-    error("Can't rename file");
+  if (!binFile.rename(sd.vwd(), binName))
+  {
+	error("Can't rename file");
   }
   Serial.print(F("File renamed: "));
   Serial.println(binName);
@@ -501,7 +540,7 @@ void logData() {
 //------------------------------------------------------------------------------
 void setup(void) {
   if (ERROR_LED_PIN >= 0) {
-    pinMode(ERROR_LED_PIN, OUTPUT);
+	pinMode(ERROR_LED_PIN, OUTPUT);
   }
   Serial.begin(9600);
   while (!Serial) {}
@@ -511,12 +550,12 @@ void setup(void) {
   Serial.print(F("Records/block: "));
   Serial.println(DATA_DIM);
   if (sizeof(block_t) != 512) {
-    error("Invalid block size");
+	error("Invalid block size");
   }
   // initialize file system.
   if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED)) {
-    sd.initErrorPrint();
-    fatalBlink();
+	sd.initErrorPrint();
+	fatalBlink();
   }
 }
 //------------------------------------------------------------------------------
@@ -535,21 +574,21 @@ void loop(void) {
 
   // Discard extra Serial data.
   do {
-    delay(10);
+	delay(10);
   } while (Serial.read() >= 0);
 
   if (ERROR_LED_PIN >= 0) {
-    digitalWrite(ERROR_LED_PIN, LOW);
+	digitalWrite(ERROR_LED_PIN, LOW);
   }
   if (c == 'c') {
-    binaryToCsv();
+	binaryToCsv();
   } else if (c == 'd') {
-    dumpData();
+	dumpData();
   } else if (c == 'e') {
-    checkOverrun();
+	checkOverrun();
   } else if (c == 'r') {
-    logData();
+	logData();
   } else {
-    Serial.println(F("Invalid entry"));
+	Serial.println(F("Invalid entry"));
   }
 }

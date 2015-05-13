@@ -99,6 +99,7 @@ void fatalBlink();
 void adcInit(metadata_t* meta);
 void adcStart();
 void binaryToCsv();
+void binaryToCsvTime();
 void checkOverrun();
 void dumpData();
 void dumpData_Osc();
