@@ -334,7 +334,7 @@ const uint32_t FILE_BLOCK_COUNT = 256000;
 
 // log file base name.  Must be six characters or less.
 #define FILE_BASE_NAME "ANALOG"
-
+#define FILE_BASE_NAME_TIME "TIMES"
 // Set RECORD_EIGHT_BITS non-zero to record only the high 8-bits of the ADC.
 #define RECORD_EIGHT_BITS 0
 //------------------------------------------------------------------------------
@@ -1072,6 +1072,7 @@ void sdErrorMsg_P(const char* str)
 //------------------------------------------------------------------------------
 
 char binName[13] = FILE_BASE_NAME "00.BIN";
+char timeName[13] = FILE_BASE_NAME_TIME "00.TXT";
 
 size_t SAMPLES_PER_BLOCK ;//= DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
 typedef block16_t block_t;
@@ -4886,20 +4887,20 @@ void oscilloscope_file()
 	  {
 		error("FILE_BASE_NAME too long");
 	  }
-  while (sd.exists(binName)) 
+  while (sd.exists(timeName)) 
 	  {
-		if (binName[BASE_NAME_SIZE + 1] != '9') 
+		if (timeName[BASE_NAME_SIZE + 1] != '9') 
 			{
-			  binName[BASE_NAME_SIZE + 1]++;
+			  timeName[BASE_NAME_SIZE + 1]++;
 			}
 		else 
 			{
-			  binName[BASE_NAME_SIZE + 1] = '0';
-			  if (binName[BASE_NAME_SIZE] == '9') 
+			  timeName[BASE_NAME_SIZE + 1] = '0';
+			  if (timeName[BASE_NAME_SIZE] == '9') 
 			  {
 				error("Can't create file name");
 			  }
-			  binName[BASE_NAME_SIZE]++;
+			  timeName[BASE_NAME_SIZE]++;
 			}
 	  }
   // Delete old tmp file.
@@ -4921,10 +4922,10 @@ void oscilloscope_file()
 ////	myGLCD.setFont( BigFont);
 //	Serial.println(F("Creating new file"));
 //	myGLCD.print(txt_info27,10, 40);//
-	binFile.close();
+//	timeName.close();
 
 
-  strcpy(csvName, binName);
+  strcpy(csvName, timeName);
   strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("CSV"));
 
   if (!csvStream.fopen(csvName, "w")) 
