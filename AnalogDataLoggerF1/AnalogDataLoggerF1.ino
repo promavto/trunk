@@ -34,7 +34,6 @@
 #include "Wire.h"
 #include <rtc_clock.h>
 
-
 // Declare which fonts we will be using
 //UTFT myGLCD(ITDB32S,25,26,27,28);
 
@@ -55,6 +54,7 @@ UTFT_Buttons  myButtons(&myGLCD, &myTouch);
 boolean default_colors = true;
 uint8_t menu_redraw_required = 0;
 
+StdioStream csvStream;
 
 //----------------------Конец  Настройки дисплея --------------------------------
 
@@ -147,7 +147,8 @@ int ret                = 0;                // Признак прерывания операции
 	bool osc_line_off2 = false;
 	bool osc_line_off3 = false;
 	bool repeat = false;
-	int count_repeat = 0;
+	int16_t count_repeat = 0;
+	//int count_repeat = 0;
 	bool save_files = false;
 	bool sled = false;
 	int Set_ADC = 10;
@@ -1325,7 +1326,7 @@ void binaryToCsv()
   metadata_t* pm;
   uint32_t t0 = millis();
   char csvName[13];
-  StdioStream csvStream;
+  //StdioStream csvStream;
 
   myGLCD.clrScr();
   myGLCD.setBackColor(0, 0, 0);
@@ -1456,144 +1457,6 @@ void binaryToCsv()
 	delay(2000);
 	Draw_menu_ADC1();
 
-}
-void binaryToCsvTime()
-{
-  uint8_t lastPct = 0;
-  block_t buf;
-  metadata_t* pm;
-  uint32_t t0 = millis();
-  char csvName[13];
-  StdioStream csvStream;
-
-  //myGLCD.clrScr();
-  myGLCD.setBackColor(0, 0, 0);
-//  myGLCD.print(txt_info6,CENTER, 25);//
-  
-  if (!binFile.isOpen()) 
-  {
-	Serial.println(F("No current binary file"));
-	myGLCD.clrScr();
-	myGLCD.setBackColor(0, 0, 0);
-	myGLCD.print("Error: ", CENTER, 80);
-	myGLCD.print("No binary file", CENTER, 120);
-	delay(2000);
-	//Draw_menu_ADC1();
-	return;
-  }
-  binFile.rewind();
-  if (!binFile.read(&buf , 512) == 512) error("Read metadata failed");
-  // Create a new CSV file.
-  strcpy(csvName, binName);
-  strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("CSV"));
-
-  if (!csvStream.fopen(csvName, "w")) 
-  {
-	error("open csvStream failed");  
-  }
-  Serial.println();
-  Serial.print(F("Writing: "));
-  Serial.print(csvName);
-  Serial.println(F(" - type any character to stop"));
-  myGLCD.print(txt_info7,LEFT, 75);//
-  myGLCD.setColor(VGA_YELLOW);
-  myGLCD.print(csvName,RIGHT, 75);// 
-  myGLCD.setColor(VGA_LIME);
-  myGLCD.print(txt_info11, CENTER, 200);
-  myGLCD.setColor(255, 255, 255);
-  pm = (metadata_t*)&buf;
-  csvStream.print(F("Interval,"));
-   Serial.println(F("Interval "));
-//  float intervalMicros = 1.0e6*pm->sampleInterval/(float)pm->cpuFrequency;
-  float intervalMicros = set_strob;
-  csvStream.print(intervalMicros, 4);
-  csvStream.println(F(",usec"));
-  csvStream.print(F("Step = "));
-  csvStream.print(v_const, 8);
-  csvStream.println(F(" volt"));
- //  Serial.println(F("Head 0 "));
-  // csvStream.println(); 
-   csvStream.print(F("Data : "));
-   rtc_clock.get_time(&hh,&mm,&ss);
-   rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
-   dow1=dow;
-   sec = ss;       //Initialization time
-   min = mm;
-   hour = hh;
-   date = dd;
-   mon1 = mon;
-   year = yyyy;
-
-	csvStream.print(date);
-	csvStream.print(F("/"));
-	csvStream.print(mon1);
-	csvStream.print(F("/"));
-	csvStream.print(year);
-	csvStream.print(F("   "));
-
-	csvStream.print(hour);
-	csvStream.print(F(":"));
-	csvStream.print(min);
-	csvStream.print(F(":"));
-	csvStream.print(sec);
-	csvStream.println(); 
-
-  for (uint8_t i = 0; i < pm->pinCount; i++) 
-  {
-	if (i) csvStream.putc(',');
-	csvStream.print(F("pin "));
-	csvStream.print(pm->pinNumber[i]);
-  }
-//  Serial.println(F("Head 1 "));
-  csvStream.println(); 
-  csvStream.println(); 
-  uint32_t tPct = millis();
-  while (!Serial.available() && binFile.read(&buf, 512) == 512) 
-  {
-	uint16_t i;
-	if (buf.count == 0) break;
-	if (buf.overrun) {
-	  csvStream.print(F("OVERRUN,"));
-	  csvStream.println(buf.overrun);     
-	}
-	for (uint16_t j = 0; j < buf.count; j += count_pin) 
-	{
-	  for (uint16_t i = 0; i < count_pin; i++) 
-	  {
-		if (i) csvStream.putc(',');
-		csvStream.print(buf.data[i + j]);     
-	  }
-	  csvStream.println();
-	}
-	if ((millis() - tPct) > 1000) 
-	{
-	  uint8_t pct = binFile.curPosition()/(binFile.fileSize()/100);
-	  if (pct != lastPct) 
-	  {
-		tPct = millis();
-		lastPct = pct;
-		Serial.print(pct, DEC);
-		Serial.println('%');
-		myGLCD.setColor(VGA_YELLOW);
-		myGLCD.printNumI(pct, 5, 95);// 
-		myGLCD.print(txt_info8,40, 95);//
-		myGLCD.setColor(255, 255, 255);
-	  }
-	}
-	if (myTouch.dataAvailable()) break;
-  }
-	csvStream.fclose();  
-	Serial.print(F("Done: "));
-	Serial.print(0.001*(millis() - t0));
-	Serial.println(F(" Seconds"));
-	myGLCD.print(txt_info9,5, 130);//
-	myGLCD.printNumF((0.001*(millis() - t0)),2, 85, 130);// 
-	myGLCD.print(txt_info10, 210, 130);//
-	//myGLCD.setColor(VGA_LIME);
-	//myGLCD.print(txt_info11, CENTER, 200);
-	myGLCD.setColor(255, 255, 255);
-	delay(1000);
-//	Draw_menu_ADC1();
 }
 //------------------------------------------------------------------------------
 // read data file and check for overruns
@@ -3988,6 +3851,7 @@ void oscilloscope_time()
 						}
 				}
 
+
 		 if (myTouch.dataAvailable())
 			{
 				delay(10);
@@ -4184,7 +4048,9 @@ void oscilloscope_time()
 		}
 	}
 
-
+	myGLCD.setColor(0, 0, 0);
+	myGLCD.fillRoundRect (40, 40, 200, 120);
+	DrawGrid1();
 
 	// +++++++++++++++++   Начало измерений ++++++++++++++++++++++++
 
@@ -4617,8 +4483,8 @@ void oscilloscope_file()
 	int ypos_osc2_2;
 	int ypos_osc2_3;
 
-	int sec_osc = 0;
-	int min_osc = 0;
+	uint8_t sec_osc = 0;
+	uint16_t min_osc = 0;
 	bool ind_start = false;
 	char str_file[10];
 
@@ -4864,13 +4730,14 @@ void oscilloscope_file()
 		}
 	}
 
+
 // +++++++++++++++++++++++++ Работа с файлом +++++++++++++++++++++++++++
 	metadata_t* pm;
 	uint8_t lastPct = 0;
 	uint32_t t0 = millis();
 	char csvName[13];
+	char csvNameTmp[13];
 	char csvData[4];
-	StdioStream csvStream;
 
 	myGLCD.clrScr();
 	myGLCD.setBackColor(0, 0, 0);
@@ -4928,10 +4795,12 @@ void oscilloscope_file()
   myGLCD.print(txt_info7,10, 60);//
   myGLCD.setColor(VGA_YELLOW);
   myGLCD.print(csvName,RIGHT, 60);// 
+  strcpy(csvNameTmp, csvName);
   //myGLCD.setColor(VGA_LIME);
   //myGLCD.print(txt_info11, CENTER, 200);
   myGLCD.setColor(255, 255, 255);
   delay(2000);
+  myGLCD.clrScr();
   csvStream.print(F("Interval = "));
   if (mode == 0) csvStream.println(F("1 min."));
   if (mode == 1) csvStream.println(F("6 min."));
@@ -4995,25 +4864,35 @@ void oscilloscope_file()
 	uint32_t bn = 1;
 	uint32_t overruns = 0;
 	uint32_t count = 0;
+	buttons_right_time();
+	buttons_channel();
+	myGLCD.setBackColor( 0, 0, 0);
+	DrawGrid();
+
 		// Записать аналоговый сигнал в блок памяти
 			StartSample = micros();
 			ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3  Установить аналоговые входа.  
 	 do
 	  {
+
 		 if (sled == false)
 			{
-					myGLCD.clrScr();
+	/*				myGLCD.clrScr();
 					buttons_right_time();
 					buttons_channel();
 					myGLCD.setBackColor( 0, 0, 255);
-					DrawGrid();
+					DrawGrid();*/
 
 			}
 		if (sled == true & count_repeat > 0)  // Нарисовать след от предыдущего измерения
 			{
-					myGLCD.clrScr();
-					buttons_right_time();
-					buttons_channel();
+
+					myGLCD.setColor (0, 0, 0);
+					myGLCD.fillRoundRect (1, 1, 239, 159);
+					myGLCD.setFont( SmallFont);
+					//myGLCD.clrScr();
+					//buttons_right_time();
+					//buttons_channel();
 					myGLCD.setBackColor( 0, 0, 255);
 					DrawGrid();
 
@@ -5154,7 +5033,13 @@ void oscilloscope_file()
 					}
 			}
 
-
+		//buttons_right_time();
+		//buttons_channel();
+		//myGLCD.setBackColor( 0, 0, 0);
+		//DrawGrid();
+	    myGLCD.setFont(BigFont);
+		myGLCD.setColor(VGA_LIME);
+		myGLCD.print(txt_info29,LEFT, 180);    // "Stop->PUSH Disp"; 
 
 
 		for( xpos = 0;	xpos < 240; xpos ++)   //  Старт измерения
@@ -5281,9 +5166,8 @@ void oscilloscope_file()
 					MaxAnalog1 =  0;
 					MaxAnalog2 =  0;
 					MaxAnalog3 =  0;
-
-	
-		myGLCD.setColor( 0, 0, 0);
+						
+					myGLCD.setColor( 0, 0, 0);
 					if (xpos == 0)
 						{
 							myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
@@ -5302,7 +5186,6 @@ void oscilloscope_file()
 								if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
 								if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
 								myGLCD.drawLine (xpos , ypos_osc1_0, xpos, ypos_osc2_0+2);
-
 							}
 						else
 							{
@@ -5407,15 +5290,20 @@ void oscilloscope_file()
 
 	  count_repeat++;
 
-
-
+	  csvStream.println();
+	  csvStream.print("repeat = ");
+	  csvStream.printDec(count_repeat);
+	  csvStream.println();
 
 	} while (repeat);
 
 	myGLCD.setColor(VGA_YELLOW);
-	myGLCD.print("                    ", CENTER, 140);
+	myGLCD.print("            ", LEFT, 140);
 	myGLCD.print("Stop record", 40, 140);
-	myGLCD.setColor(255, 255, 255);
+	csvStream.print("Time measure = ");
+	csvStream.print(min_osc);
+	csvStream.print(":");
+	csvStream.print(sec_osc);
 	delay(1000);
 
 	csvStream.fclose();  
@@ -5425,7 +5313,10 @@ void oscilloscope_file()
 	myGLCD.print(txt_info6,CENTER, 5);//
 	myGLCD.print(txt_info7,LEFT, 75);//
 	myGLCD.setColor(VGA_YELLOW);
-	myGLCD.print(csvName,RIGHT, 75);// 
+    myGLCD.print(csvNameTmp,RIGHT, 75);// 
+	myGLCD.setFont(BigFont);
+	myGLCD.setColor(VGA_LIME);
+	myGLCD.print(txt_info29,CENTER, 180);
 	koeff_h = 7.759*4;
 	mode1 = 0;
 	Trigger = 0;
