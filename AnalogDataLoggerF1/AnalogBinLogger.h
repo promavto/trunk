@@ -9,7 +9,7 @@ struct metadata_t
   unsigned long  sampleInterval;   // Sample interval in CPU cycles.
   unsigned long  recordEightBits;  // Size of ADC values, nonzero for 8-bits.
   unsigned long  pinCount;         // Number of analog pins in a sample.
-  unsigned long  pinNumber[123];   // List of pin numbers in a sample.
+  unsigned long  pinNumber[4];   // List of pin numbers in a sample.
 };
 //------------------------------------------------------------------------------
 // Data block for 8-bit ADC mode.

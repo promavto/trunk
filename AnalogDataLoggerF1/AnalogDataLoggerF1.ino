@@ -334,7 +334,7 @@ const uint32_t FILE_BLOCK_COUNT = 256000;
 
 // log file base name.  Must be six characters or less.
 #define FILE_BASE_NAME "ANALOG"
-#define FILE_BASE_NAME_TIME "TIMES"
+#define FILE_BASE_NAME_TIME "TIMESa"
 // Set RECORD_EIGHT_BITS non-zero to record only the high 8-bits of the ADC.
 #define RECORD_EIGHT_BITS 0
 //------------------------------------------------------------------------------
@@ -1072,7 +1072,7 @@ void sdErrorMsg_P(const char* str)
 //------------------------------------------------------------------------------
 
 char binName[13] = FILE_BASE_NAME "00.BIN";
-char timeName[13] = FILE_BASE_NAME_TIME "00.TXT";
+char timeName[13] = FILE_BASE_NAME_TIME "00.CSV";
 
 size_t SAMPLES_PER_BLOCK ;//= DATA_DIM16/PIN_COUNT; // 254 разделить на количество входов
 typedef block16_t block_t;
@@ -1885,7 +1885,6 @@ void logData()
 	int mode_strob = 0;
 	myGLCD.clrScr();
 	myGLCD.setBackColor(0, 0, 0);
-//	adcInit((metadata_t*) &block[0]);
 	buttons_channel();        // Отобразить кнопки переключения входов
 	myGLCD.setColor(0, 0, 255);
 	myGLCD.fillRoundRect (250, 1, 318, 40);
@@ -1997,6 +1996,7 @@ void logData()
 	myGLCD.setBackColor(0, 0, 0);
 	myGLCD.setFont(BigFont);
 	adcInit((metadata_t*) &block[0]);   
+
   // Find unused file name.
   if (BASE_NAME_SIZE > 6) 
 	  {
@@ -4620,14 +4620,13 @@ void oscilloscope_file()
 	int sec_osc = 0;
 	int min_osc = 0;
 	bool ind_start = false;
+	char str_file[10];
 
 	StartSample = 0; 
 	uint32_t logTime = 0;
 	uint32_t SAMPLE_INTERVAL_MS = 250;
 	int32_t diff;
-	//repeat = false;
 	count_repeat = 0;
-	//sled = true;
 
 	for( xpos = 0; xpos < 239;	xpos ++) // Стереть старые данные
 
@@ -4866,23 +4865,21 @@ void oscilloscope_file()
 	}
 
 // +++++++++++++++++++++++++ Работа с файлом +++++++++++++++++++++++++++
+	metadata_t* pm;
+	uint8_t lastPct = 0;
+	uint32_t t0 = millis();
+	char csvName[13];
+	char csvData[4];
+	StdioStream csvStream;
 
-
-  adcInit((metadata_t*) &block[0]);   
-//-----------------------------------------------------------------------
-   uint8_t lastPct = 0;
-  block_t buf;
-  metadata_t* pm;
-  uint32_t t0 = millis();
-  char csvName[13];
-  StdioStream csvStream;
-
-  myGLCD.clrScr();
-  myGLCD.setBackColor(0, 0, 0);
-
-   // Create a new CSV file.
-
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.setColor( 0, 0, 0);
+	myGLCD.fillRoundRect (2, 2,239, 159);
+	myGLCD.setColor( 255,255,255);
+	myGLCD.setBackColor( 0, 0, 0);
   
+   // Create a new CSV file.
  if (BASE_NAME_SIZE > 6) 
 	  {
 		error("FILE_BASE_NAME too long");
@@ -4913,18 +4910,9 @@ void oscilloscope_file()
 			  error("Can't remove tmp file");
 			}
 	  }
-  // Create new file.
-//
-//	myGLCD.setColor( 0, 0, 0);
-//	myGLCD.fillRoundRect (2, 2,239, 159);
-//	myGLCD.setColor( 255,255,255);
-//	myGLCD.setBackColor( 0, 0, 0);
-////	myGLCD.setFont( BigFont);
+ 
 //	Serial.println(F("Creating new file"));
-//	myGLCD.print(txt_info27,10, 40);//
-//	timeName.close();
-
-
+  myGLCD.print(txt_info27,10, 40);//
   strcpy(csvName, timeName);
   strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("CSV"));
 
@@ -4936,32 +4924,33 @@ void oscilloscope_file()
   Serial.print(F("Writing: "));
   Serial.print(csvName);
   Serial.println(F(" - type any character to stop"));
-  myGLCD.print(txt_info7,LEFT, 35);//
+  myGLCD.setFont(BigFont);
+  myGLCD.print(txt_info7,10, 60);//
   myGLCD.setColor(VGA_YELLOW);
-  myGLCD.print(csvName,RIGHT, 35);// 
-  myGLCD.setColor(VGA_LIME);
-  myGLCD.print(txt_info11, CENTER, 200);
+  myGLCD.print(csvName,RIGHT, 60);// 
+  //myGLCD.setColor(VGA_LIME);
+  //myGLCD.print(txt_info11, CENTER, 200);
   myGLCD.setColor(255, 255, 255);
-  pm = (metadata_t*)&buf;
-  csvStream.print(F("Interval,"));
-   Serial.println(F("Interval "));
-//  float intervalMicros = 1.0e6*pm->sampleInterval/(float)pm->cpuFrequency;
-  float intervalMicros = set_strob;
-  csvStream.print(intervalMicros, 4);
-  csvStream.println(F(",usec"));
-  csvStream.print(F("Step = "));
-  csvStream.print(v_const, 8);
-  csvStream.println(F(" volt"));
-   csvStream.print(F("Data : "));
-   rtc_clock.get_time(&hh,&mm,&ss);
-   rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
-   dow1=dow;
-   sec = ss;       //Initialization time
-   min = mm;
-   hour = hh;
-   date = dd;
-   mon1 = mon;
-   year = yyyy;
+  delay(2000);
+  csvStream.print(F("Interval = "));
+  if (mode == 0) csvStream.println(F("1 min."));
+  if (mode == 1) csvStream.println(F("6 min."));
+  if (mode == 2) csvStream.println(F("12 min."));
+  if (mode == 3) csvStream.println(F("18 min."));
+
+	csvStream.print(F("Step = "));
+	csvStream.print(v_const, 8);
+	csvStream.println(F(" volt"));
+	csvStream.print(F("Data : "));
+	rtc_clock.get_time(&hh,&mm,&ss);
+	rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
+	dow1=dow;
+	sec = ss;       //Initialization time
+	min = mm;
+	hour = hh;
+	date = dd;
+	mon1 = mon;
+	year = yyyy;
 
 	csvStream.print(date);
 	csvStream.print(F("/"));
@@ -4969,98 +4958,32 @@ void oscilloscope_file()
 	csvStream.print(F("/"));
 	csvStream.print(year);
 	csvStream.print(F("   "));
-
 	csvStream.print(hour);
 	csvStream.print(F(":"));
 	csvStream.print(min);
 	csvStream.print(F(":"));
 	csvStream.print(sec);
 	csvStream.println(); 
+	csvStream.println(); 
 
- // for (uint8_t i = 0; i < pm->pinCount; i++) 
- // {
-	//if (i) csvStream.putc(',');
-	//csvStream.print(F("pin "));
-	//csvStream.print(pm->pinNumber[i]);
- // }
-//  Serial.println(F("Head 1 "));
+	adcInit((metadata_t*) &block[0]);            // Получение данных об используемых входах
+	pm = (metadata_t*)&block;                    // Получение данных об используемых входах
+
+  for (uint8_t i = 0; i < pm->pinCount; i++)     // Запись входов в файл
+  {
+	if (i) csvStream.putc(',');
+	csvStream.print(F("pin "));
+	csvStream.print(pm->pinNumber[i]);
+  }
+
   csvStream.println(); 
-  csvStream.println(); 
-
-
   uint32_t tPct = millis();
- // while (!Serial.available() && binFile.read(&buf, 512) == 512) 
- // {
-	//uint16_t i;
-	//if (buf.count == 0) break;
-	//if (buf.overrun) {
-	//  csvStream.print(F("OVERRUN,"));
-	//  csvStream.println(buf.overrun);     
-	//}
-	//for (uint16_t j = 0; j < buf.count; j += count_pin) 
-	//{
-	//  for (uint16_t i = 0; i < count_pin; i++) 
-	//  {
-	//	if (i) csvStream.putc(',');
-	//	csvStream.print(buf.data[i + j]);     
-	//  }
-	//  csvStream.println();
-	//}
- // }
-//-------------------------------------------------------------------------------------
-
-
-// if (BASE_NAME_SIZE > 6) 
-//	  {
-//		error("FILE_BASE_NAME too long");
-//	  }
-//  while (sd.exists(binName)) 
-//	  {
-//		if (binName[BASE_NAME_SIZE + 1] != '9') 
-//			{
-//			  binName[BASE_NAME_SIZE + 1]++;
-//			}
-//		else 
-//			{
-//			  binName[BASE_NAME_SIZE + 1] = '0';
-//			  if (binName[BASE_NAME_SIZE] == '9') 
-//			  {
-//				error("Can't create file name");
-//			  }
-//			  binName[BASE_NAME_SIZE]++;
-//			}
-//	  }
-//  // Delete old tmp file.
-//  if (sd.exists(TMP_FILE_NAME)) 
-//	  {
-//		Serial.println(F("Deleting tmp file"));
-//		myGLCD.print(txt_info13,LEFT, 135);              //
-//		if (!sd.remove(TMP_FILE_NAME)) 
-//			{
-//			  error("Can't remove tmp file");
-//			}
-//	  }
-//  // Create new file.
-//
-//	myGLCD.setColor( 0, 0, 0);
-//	myGLCD.fillRoundRect (2, 2,239, 159);
-//	myGLCD.setColor( 255,255,255);
-//	myGLCD.setBackColor( 0, 0, 0);
-////	myGLCD.setFont( BigFont);
-//	Serial.println(F("Creating new file"));
-//	myGLCD.print(txt_info27,10, 40);//
-//	binFile.close();
-//	if (!binFile.createContiguous(sd.vwd(),
-//	TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT))  // возвращает указатель на рабочем каталог томов
-//	  {
-//		error("createContiguous failed");
-//	  }
 
 
 	// +++++++++++++++++   Начало измерений ++++++++++++++++++++++++
 
 	myGLCD.setBackColor( 0, 0, 0);
-	myGLCD.setFont( BigFont);
+	myGLCD.setFont(BigFont);
 	myGLCD.print("     ", 80, 72);
 	myGLCD.setColor(VGA_LIME);
 	myGLCD.print(txt_info29,LEFT, 180);
@@ -5324,10 +5247,35 @@ void oscilloscope_file()
 						SrednCount = 0;
 					 }
 
-						if (Channel0) {Sample_osc[ xpos][0] = MaxAnalog0;}
-						if (Channel1) {Sample_osc[ xpos][1] = MaxAnalog1;}
-						if (Channel2) {Sample_osc[ xpos][2] = MaxAnalog2;}
-						if (Channel3) {Sample_osc[ xpos][3] = MaxAnalog3;}
+						if (Channel0)
+						{
+							Sample_osc[ xpos][0] = MaxAnalog0;
+							itoa (MaxAnalog0,csvData, 10); // Преобразование  строку ( 10 - десятичный формат) 
+ 						    csvStream.fputs(csvData) ;
+							if(Channel1 | Channel2 | Channel3) csvStream.putc(',');
+						}
+						if (Channel1)
+						{
+							Sample_osc[ xpos][1] = MaxAnalog1;
+							itoa (MaxAnalog1,csvData, 10); // Преобразование  строку ( 10 - десятичный формат) 
+ 						    csvStream.fputs(csvData) ;
+							if(Channel2 | Channel3) csvStream.putc(',');
+						}
+						if (Channel2)	
+						{
+							Sample_osc[ xpos][2] = MaxAnalog2;
+							itoa (MaxAnalog2,csvData, 10); // Преобразование  строку ( 10 - десятичный формат) 
+ 						    csvStream.fputs(csvData) ;
+							if(Channel3) csvStream.putc(',');
+						}
+						if (Channel3)	
+						{
+							Sample_osc[ xpos][3] = MaxAnalog3;
+							itoa (MaxAnalog3,csvData, 10); // Преобразование  строку ( 10 - десятичный формат) 
+ 						    csvStream.fputs(csvData) ;
+						}
+
+	                csvStream.println();
 
 					MaxAnalog0 =  0;
 					MaxAnalog1 =  0;
@@ -5458,16 +5406,21 @@ void oscilloscope_file()
 	   }
 
 	  count_repeat++;
+
+
+
+
 	} while (repeat);
 
 	myGLCD.setColor(VGA_YELLOW);
 	myGLCD.print("                    ", CENTER, 140);
-	myGLCD.print("Stop record", CENTER, 140);
+	myGLCD.print("Stop record", 40, 140);
 	myGLCD.setColor(255, 255, 255);
 	delay(1000);
 
 	csvStream.fclose();  
 	myGLCD.clrScr();
+	myGLCD.setColor(255, 255, 255);
 	myGLCD.setBackColor(0, 0, 0);
 	myGLCD.print(txt_info6,CENTER, 5);//
 	myGLCD.print(txt_info7,LEFT, 75);//
