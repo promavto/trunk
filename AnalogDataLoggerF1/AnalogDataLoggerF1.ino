@@ -60,7 +60,7 @@ StdioStream csvStream;
 
 //*********************Работа с именем файла ******************************
 char file_name[13] ;
-char file_name_txt[5] = ".txt";
+//char file_name_txt[5] = ".txt";
 byte file_name_count = 0;
 char str_day_file[3];
 char str_day_file0[3];
@@ -75,8 +75,8 @@ char str_file_name_count0[4] = "0";
 char str0[10];
 char str1[10];
 char str2[10];
-char str3[13];
-char str_kamIn[10];
+//char str3[13];
+//char str_kamIn[10];
 
 
 
@@ -353,7 +353,6 @@ const uint32_t FILE_BLOCK_COUNT = 256000;
 // log file base name.  Must be six characters or less.
 #define FILE_BASE_NAME "ANALOG"
 
-//char FILE_BASE_NAME_TIME[6];
 #define FILE_BASE_NAME_TIME "TIMESa"
 // Set RECORD_EIGHT_BITS non-zero to record only the high 8-bits of the ADC.
 #define RECORD_EIGHT_BITS 0
@@ -1413,6 +1412,9 @@ void binaryToCsv()
 
   csvStream.println(); 
   csvStream.println(); 
+  		myGLCD.setColor(255, 255, 255);
+  		myGLCD.print("Converting:",2, 165);     //
+ 
   uint32_t tPct = millis();
   while (!Serial.available() && binFile.read(&buf, 512) == 512) 
   {
@@ -1439,8 +1441,8 @@ void binaryToCsv()
 		tPct = millis();
 		lastPct = pct;
 		myGLCD.setColor(VGA_YELLOW);
-		myGLCD.printNumI(pct, 5, 165);   // 
-		myGLCD.print(txt_info8,40, 165); //
+		myGLCD.printNumI(pct, 180, 165);       // 
+		myGLCD.print(txt_info8,215, 165);     //
 		myGLCD.setColor(255, 255, 255);
 	  }
 	}
@@ -1448,8 +1450,10 @@ void binaryToCsv()
   }
 	csvStream.fclose();  
 	myGLCD.setColor(255, 255, 255);
-	myGLCD.print(txt_info9,5, 185);               //
-	myGLCD.printNumF((0.001*(millis() - t0)),2, 85, 185);// 
+	myGLCD.print(txt_info9,2, 185);   
+	myGLCD.setColor(VGA_YELLOW);   //
+	myGLCD.printNumF((0.001*(millis() - t0)),2, 90, 185);// 
+	myGLCD.setColor(255, 255, 255);
 	myGLCD.print(txt_info10, 210, 185);//
 }
 //------------------------------------------------------------------------------
@@ -1814,7 +1818,7 @@ void logData()
 						if ((y_osc>=1) && (y_osc<=35))  // Delay row
 						{
 							waitForIt(1, 1, 60, 35);
-							 Draw_menu_ADC1();
+							Draw_menu_ADC1();
 							return;
 						} 
 					}
@@ -1876,7 +1880,7 @@ void logData()
 	myGLCD.setBackColor(0, 0, 0);
 	myGLCD.setFont(BigFont);
 	adcInit((metadata_t*) &block[0]);   
-
+	preob_num_str();
   // Find unused file name.
   if (BASE_NAME_SIZE > 6) 
 	  {
@@ -4708,7 +4712,7 @@ void oscilloscope_file()
 	myGLCD.fillRoundRect (2, 2,239, 159);
 	myGLCD.setColor( 255,255,255);
 	myGLCD.setBackColor( 0, 0, 0);
-  
+    preob_num_str();
    // Create a new CSV file.
  if (BASE_NAME_SIZE > 6) 
 	  {
@@ -6124,10 +6128,8 @@ void preob_num_str() // Программа формирования имени файла, состоящего из текуще
 		}
 	sprintf(str1, "%s%s",str_year_file, str_mon_file);       // Сложение 2 строк
 	sprintf(str2, "%s%s",str1, str_day_file);                // Сложение 2 строк
-
-	//sprintf(str3, "%s%s", str2, str_file_name_count);        // Сложение 2 строк
-	//sprintf(file_name, "%s%s", str3, file_name_txt);         // Получение имени файла в file_name
 	sprintf(timeName, "%s%s", str2, "00.TXT");                // Получение имени файла в file_name
+	sprintf(binName, "%s%s", str2, "00.BIN");                // Получение имени файла в file_name
 }
 
 //------------------------------------------------------------------------------
@@ -6199,8 +6201,6 @@ void setup(void)
 	cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;
 	myGLCD.setBackColor(0, 0, 255);
 	preob_num_str();
-	Serial.println(timeName);
-
 	Serial.println(F("Setup Ok!"));
 }
 //------------------------------------------------------------------------------
