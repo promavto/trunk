@@ -142,6 +142,7 @@ void switch_trig(int trig_x);
 void trig_min_max(int trig_x);
 void Draw_menu_ADC1();
 void menu_ADC();
+void preob_num_str();
 void setup(void);
 void loop(void);
 void drawUpButton(int x, int y);
