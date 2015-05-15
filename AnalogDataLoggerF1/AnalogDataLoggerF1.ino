@@ -148,7 +148,6 @@ int ret                = 0;                // Признак прерывания операции
 	bool osc_line_off3 = false;
 	bool repeat = false;
 	int16_t count_repeat = 0;
-	//int count_repeat = 0;
 	bool save_files = false;
 	bool sled = false;
 	int Set_ADC = 10;
@@ -4446,7 +4445,13 @@ void oscilloscope_time()
 					OldSample_osc[xpos][3] = Sample_osc[xpos][3];
 	   }
 
-	  count_repeat++;
+		count_repeat++;
+		myGLCD.setFont( SmallFont);
+		myGLCD.setBackColor(0, 0, 255);
+		myGLCD.setColor(255, 255, 255);
+		if (repeat == true) myGLCD.print("       ", 257, 220);
+		if (repeat == true) myGLCD.printNumI(count_repeat, 270, 220);
+
 	} while (repeat);
 
 	koeff_h = 7.759*4;
@@ -4741,6 +4746,7 @@ void oscilloscope_file()
 
 	myGLCD.clrScr();
 	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.setFont(BigFont);
 	myGLCD.setColor( 0, 0, 0);
 	myGLCD.fillRoundRect (2, 2,239, 159);
 	myGLCD.setColor( 255,255,255);
@@ -4770,7 +4776,7 @@ void oscilloscope_file()
   // Delete old tmp file.
   if (sd.exists(TMP_FILE_NAME)) 
 	  {
-		Serial.println(F("Deleting tmp file"));
+		//Serial.println(F("Deleting tmp file"));
 		myGLCD.print(txt_info13,LEFT, 135);              //
 		if (!sd.remove(TMP_FILE_NAME)) 
 			{
@@ -4796,8 +4802,6 @@ void oscilloscope_file()
   myGLCD.setColor(VGA_YELLOW);
   myGLCD.print(csvName,RIGHT, 60);// 
   strcpy(csvNameTmp, csvName);
-  //myGLCD.setColor(VGA_LIME);
-  //myGLCD.print(txt_info11, CENTER, 200);
   myGLCD.setColor(255, 255, 255);
   delay(2000);
   myGLCD.clrScr();
@@ -5033,11 +5037,8 @@ void oscilloscope_file()
 					}
 			}
 
-		//buttons_right_time();
-		//buttons_channel();
-		//myGLCD.setBackColor( 0, 0, 0);
-		//DrawGrid();
-	    myGLCD.setFont(BigFont);
+
+		myGLCD.setFont(BigFont);
 		myGLCD.setColor(VGA_LIME);
 		myGLCD.print(txt_info29,LEFT, 180);    // "Stop->PUSH Disp"; 
 
@@ -5136,31 +5137,31 @@ void oscilloscope_file()
 						{
 							Sample_osc[ xpos][0] = MaxAnalog0;
 							itoa (MaxAnalog0,csvData, 10); // Преобразование  строку ( 10 - десятичный формат) 
- 						    csvStream.fputs(csvData) ;
+							csvStream.fputs(csvData) ;
 							if(Channel1 | Channel2 | Channel3) csvStream.putc(',');
 						}
 						if (Channel1)
 						{
 							Sample_osc[ xpos][1] = MaxAnalog1;
 							itoa (MaxAnalog1,csvData, 10); // Преобразование  строку ( 10 - десятичный формат) 
- 						    csvStream.fputs(csvData) ;
+							csvStream.fputs(csvData) ;
 							if(Channel2 | Channel3) csvStream.putc(',');
 						}
 						if (Channel2)	
 						{
 							Sample_osc[ xpos][2] = MaxAnalog2;
 							itoa (MaxAnalog2,csvData, 10); // Преобразование  строку ( 10 - десятичный формат) 
- 						    csvStream.fputs(csvData) ;
+							csvStream.fputs(csvData) ;
 							if(Channel3) csvStream.putc(',');
 						}
 						if (Channel3)	
 						{
 							Sample_osc[ xpos][3] = MaxAnalog3;
 							itoa (MaxAnalog3,csvData, 10); // Преобразование  строку ( 10 - десятичный формат) 
- 						    csvStream.fputs(csvData) ;
+							csvStream.fputs(csvData) ;
 						}
 
-	                csvStream.println();
+					csvStream.println();
 
 					MaxAnalog0 =  0;
 					MaxAnalog1 =  0;
@@ -5288,15 +5289,20 @@ void oscilloscope_file()
 
 	   }
 
-	  count_repeat++;
-
-	  csvStream.println();
-	  csvStream.print("repeat = ");
-	  csvStream.printDec(count_repeat);
-	  csvStream.println();
+	count_repeat++;
+	myGLCD.setFont( SmallFont);
+	myGLCD.setBackColor(0, 0, 255);
+	myGLCD.setColor(255, 255, 255);
+	if (repeat == true) myGLCD.print("       ", 257, 220);
+	if (repeat == true) myGLCD.printNumI(count_repeat, 270, 220);
+	csvStream.println();
+	csvStream.print("repeat = ");
+	csvStream.printDec(count_repeat);
+	csvStream.println();
 
 	} while (repeat);
 
+	myGLCD.setFont( BigFont);
 	myGLCD.setColor(VGA_YELLOW);
 	myGLCD.print("            ", LEFT, 140);
 	myGLCD.print("Stop record", 40, 140);
@@ -5313,7 +5319,7 @@ void oscilloscope_file()
 	myGLCD.print(txt_info6,CENTER, 5);//
 	myGLCD.print(txt_info7,LEFT, 75);//
 	myGLCD.setColor(VGA_YELLOW);
-    myGLCD.print(csvNameTmp,RIGHT, 75);// 
+	myGLCD.print(csvNameTmp,RIGHT, 75);// 
 	myGLCD.setFont(BigFont);
 	myGLCD.setColor(VGA_LIME);
 	myGLCD.print(txt_info29,CENTER, 180);
@@ -5387,8 +5393,6 @@ void buttons_right()  //  Правые кнопки  oscilloscope
 	myGLCD.print("Synchro", 255, 202);
 	switch_trig(t_in_mode);
 	myGLCD.printNumI(t_in_mode, 282, 212);
-
-	//myGLCD.print("Synchro", 255, 203);
 }
 void buttons_right_time()
 {
@@ -5448,7 +5452,7 @@ void scale_time()
 	if (mode == 2)myGLCD.print("12min", 266, 20);
 	if (mode == 3)myGLCD.print("18min", 266, 20);
 	myGLCD.setBackColor(0, 0, 0);
-	myGLCD.print("0",1, 163);         // В начале шкалы
+	myGLCD.print("0",3, 163);         // В начале шкалы
 	if (mode == 0)                    // Остальная сетка
 		{
 			myGLCD.print("10", 35, 163);
