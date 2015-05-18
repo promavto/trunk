@@ -33,6 +33,9 @@
 #include <AH_AD9850.h>
 #include "Wire.h"
 #include <rtc_clock.h>
+//#include <SD.h>
+
+File root;
 
 // Declare which fonts we will be using
 //UTFT myGLCD(ITDB32S,25,26,27,28);
@@ -55,6 +58,7 @@ boolean default_colors = true;
 uint8_t menu_redraw_required = 0;
 
 StdioStream csvStream;
+
 
 //----------------------Конец  Настройки дисплея --------------------------------
 
@@ -220,21 +224,21 @@ char  txt_info5[]            = "\x86\xA2\xA5op\xA1""a""\xA6\x9D\xAF ZigBee";    
 char  txt_return[]           = "\x85""a\x97""ep\xA8\xA2\xA4\xAC \xA3poc\xA1o\xA4p";                         // Завершить просмотр
 
 char  txt_ADC_menu1[]        = "Record data";                                                               //
-char  txt_ADC_menu2[]        = "Convert to CSV";                                                            //
+char  txt_ADC_menu2[]        = "Menu 2";                                                                    //
 char  txt_ADC_menu3[]        = "Dump to Serial";                                                            //
 char  txt_ADC_menu4[]        = "EXIT";                                                                      //
 
 char  txt_osc_menu1[]        = "Oscilloscope";                                                              //
-char  txt_osc_menu2[]        = "Oscill_Time";                                                                    //
+char  txt_osc_menu2[]        = "Oscill_Time";                                                               //
 char  txt_osc_menu3[]        = "Menu 3";                                                                    //
 char  txt_osc_menu4[]        = "EXIT";           
 
-char  txt_SD_menu1[]         = "View File";                                                                //
-char  txt_SD_menu2[]         = "Info SD";                                                                  //
-char  txt_SD_menu3[]         = "Format SD";                                                                //
+char  txt_SD_menu1[]         = "View File";                                                                 //
+char  txt_SD_menu2[]         = "Info SD";                                                                   //
+char  txt_SD_menu3[]         = "Format SD";                                                                 //
 char  txt_SD_menu4[]         = "EXIT";           
 
-char  txt_info6[]             = "Info: ";                                //Info: 
+char  txt_info6[]             = "Info: ";                                                                   //Info: 
 char  txt_info7[]             = "Writing:"; 
 char  txt_info8[]             = "%"; 
 char  txt_info9[]             = "Done: "; 
@@ -1293,8 +1297,8 @@ void adcInit(metadata_t* meta)
 	  meta->cpuFrequency = F_CPU;
   
 	  float sampleRate = (float)meta->cpuFrequency/meta->sampleInterval;
-	  Serial.print(F("Sample pins:"));
-	  for (int i = 0; i < meta->pinCount; i++) 
+	//  Serial.print(F("Sample pins:"));
+	/*  for (int i = 0; i < meta->pinCount; i++) 
 	  {
 		Serial.print(' ');
 		Serial.print(meta->pinNumber[i], DEC);
@@ -1303,7 +1307,7 @@ void adcInit(metadata_t* meta)
 	  Serial.println(); 
 	  Serial.println(F("ADC bits: 12 "));
 	  Serial.print(F("ADC interval usec: "));
-	  Serial.println(set_strob);
+	  Serial.println(set_strob);*/
 	  //Serial.print(F("Sample Rate: "));
 	  //Serial.println(sampleRate);  
 	  //Serial.print(F("Sample interval usec: "));
@@ -1346,7 +1350,7 @@ void binaryToCsv()
  
   if (!binFile.isOpen()) 
   {
-	Serial.println(F("No current binary file"));
+	//Serial.println(F("No current binary file"));
 	myGLCD.clrScr();
 	myGLCD.setBackColor(0, 0, 0);
 	myGLCD.print("Error: ", CENTER, 80);
@@ -1412,8 +1416,8 @@ void binaryToCsv()
 
   csvStream.println(); 
   csvStream.println(); 
-  		myGLCD.setColor(255, 255, 255);
-  		myGLCD.print("Converting:",2, 165);     //
+		myGLCD.setColor(255, 255, 255);
+		myGLCD.print("Converting:",2, 165);     //
  
   uint32_t tPct = millis();
   while (!Serial.available() && binFile.read(&buf, 512) == 512) 
@@ -1448,7 +1452,35 @@ void binaryToCsv()
 	}
 	if (myTouch.dataAvailable()) break;
   }
+
+  	csvStream.println(); 
+  	csvStream.print("Time measure = ");
+   rtc_clock.get_time(&hh,&mm,&ss);
+   rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
+   dow1=dow;
+   sec = ss;       //Initialization time
+   min = mm;
+   hour = hh;
+   date = dd;
+   mon1 = mon;
+   year = yyyy;
+
+	csvStream.print(date);
+	csvStream.print(F("/"));
+	csvStream.print(mon1);
+	csvStream.print(F("/"));
+	csvStream.print(year);
+	csvStream.print(F("   "));
+
+	csvStream.print(hour);
+	csvStream.print(F(":"));
+	csvStream.print(min);
+	csvStream.print(F(":"));
+	csvStream.print(sec);
+	csvStream.println(); 
+
 	csvStream.fclose();  
+
 	myGLCD.setColor(255, 255, 255);
 	myGLCD.print(txt_info9,2, 185);   
 	myGLCD.setColor(VGA_YELLOW);   //
@@ -1467,7 +1499,7 @@ void checkOverrun()
   
   if (!binFile.isOpen()) 
   {
-	Serial.println(F("No current binary file"));
+	//Serial.println(F("No current binary file"));
 		myGLCD.clrScr();
 	myGLCD.setBackColor(0, 0, 0);
 //	myGLCD.setFont( SmallFont);
@@ -1480,8 +1512,8 @@ void checkOverrun()
 	error("contiguousRange failed");
   }
   binFile.rewind();
-  Serial.println();
-  Serial.println(F("Checking overrun errors - type any character to stop"));
+ // Serial.println();
+//  Serial.println(F("Checking overrun errors - type any character to stop"));
   if (!binFile.read(&buf , 512) == 512) {
 	error("Read metadata failed");
   }
@@ -1492,23 +1524,23 @@ void checkOverrun()
 	{
 	  if (!headerPrinted) 
 	  {
-		Serial.println();
-		Serial.println(F("Overruns:"));
-		Serial.println(F("fileBlockNumber,sdBlockNumber,overrunCount"));
+		//Serial.println();
+		//Serial.println(F("Overruns:"));
+		//Serial.println(F("fileBlockNumber,sdBlockNumber,overrunCount"));
 		headerPrinted = true;
 	  }
-	  Serial.print(bn);
+	/*  Serial.print(bn);
 	  Serial.print(',');
 	  Serial.print(bgnBlock + bn);
 	  Serial.print(',');
-	  Serial.println(buf.overrun);
+	  Serial.println(buf.overrun);*/
 	}
 	bn++;
   }
   if (!headerPrinted) {
-	Serial.println(F("No errors found"));
+	//Serial.println(F("No errors found"));
   } else {
-	Serial.println(F("Done"));
+	//Serial.println(F("Done"));
   }
 }
 //------------------------------------------------------------------------------
@@ -4712,7 +4744,7 @@ void oscilloscope_file()
 	myGLCD.fillRoundRect (2, 2,239, 159);
 	myGLCD.setColor( 255,255,255);
 	myGLCD.setBackColor( 0, 0, 0);
-    preob_num_str();
+	preob_num_str();
    // Create a new CSV file.
  if (BASE_NAME_SIZE > 6) 
 	  {
@@ -6132,6 +6164,41 @@ void preob_num_str() // Программа формирования имени файла, состоящего из текуще
 	sprintf(binName, "%s%s", str2, "00.BIN");                // Получение имени файла в file_name
 }
 
+void printDirectory(File dir, int numTabs) 
+{
+	char par;
+   while(true) 
+   {
+     
+     File entry =  dir.openNextFile();
+     if (! entry) 
+		 {
+		   // no more files
+		   break;
+		 }
+     for (uint8_t i=0; i<numTabs; i++) 
+		 {
+		   Serial.print('\t');
+		 }
+
+	// entry.printName();
+    //   Serial.print(entry.name());
+     if (entry.isDirectory()) 
+		 {
+		   Serial.println("/");
+		   printDirectory(entry, numTabs+1);
+		 }
+	 else
+	 {
+       // files have sizes, directories do not
+       Serial.print("\t\t");
+       Serial.println(entry.size(), DEC);
+     }
+     entry.close();
+   }
+}
+
+
 //------------------------------------------------------------------------------
 void setup(void) 
 {
@@ -6201,6 +6268,12 @@ void setup(void)
 	cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;
 	myGLCD.setBackColor(0, 0, 255);
 	preob_num_str();
+
+
+    root = sd.open("/");
+	//sd.ls(LS_R);
+	printDirectory(root, 0);
+
 	Serial.println(F("Setup Ok!"));
 }
 //------------------------------------------------------------------------------
