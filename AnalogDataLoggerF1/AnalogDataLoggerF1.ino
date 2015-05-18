@@ -35,6 +35,9 @@
 #include <rtc_clock.h>
 //#include <SD.h>
 
+SdFile file;
+
+
 File root;
 
 // Declare which fonts we will be using
@@ -79,7 +82,7 @@ char str_file_name_count0[4] = "0";
 char str0[10];
 char str1[10];
 char str2[10];
-//char str3[13];
+char list_files_tab[100][13];
 //char str_kamIn[10];
 
 
@@ -224,7 +227,7 @@ char  txt_info5[]            = "\x86\xA2\xA5op\xA1""a""\xA6\x9D\xAF ZigBee";    
 char  txt_return[]           = "\x85""a\x97""ep\xA8\xA2\xA4\xAC \xA3poc\xA1o\xA4p";                         // Завершить просмотр
 
 char  txt_ADC_menu1[]        = "Record data";                                                               //
-char  txt_ADC_menu2[]        = "Menu 2";                                                                    //
+char  txt_ADC_menu2[]        = "List fales";                                                                    //
 char  txt_ADC_menu3[]        = "Dump to Serial";                                                            //
 char  txt_ADC_menu4[]        = "EXIT";                                                                      //
 
@@ -6088,12 +6091,13 @@ void menu_ADC()
 					if ((y>=70) && (y<=110))   // Button: 2
 						{
 							waitForIt(30, 70, 290, 110);
-							//binaryToCsv();
+							root = sd.open("/");
+                         	printDirectory(root, 0);
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
 						{
 							waitForIt(30, 120, 290, 160);
-							 dumpData();
+							dumpData();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
 						{
@@ -6166,11 +6170,18 @@ void preob_num_str() // Программа формирования имени файла, состоящего из текуще
 
 void printDirectory(File dir, int numTabs) 
 {
-	char par;
+	char* par;
+	int count_files = 0;
+	myGLCD.clrScr();
+	myGLCD.setBackColor( 0, 0, 0);
+	myGLCD.setFont( SmallFont);
+	myGLCD.setColor (255, 255,255);
+
    while(true) 
    {
      
      File entry =  dir.openNextFile();
+	 count_files++;
      if (! entry) 
 		 {
 		   // no more files
@@ -6181,8 +6192,9 @@ void printDirectory(File dir, int numTabs)
 		   Serial.print('\t');
 		 }
 
-	// entry.printName();
-    //   Serial.print(entry.name());
+	 entry.printName();
+     entry.getName(list_files_tab[count_files], 13);
+
      if (entry.isDirectory()) 
 		 {
 		   Serial.println("/");
@@ -6195,7 +6207,22 @@ void printDirectory(File dir, int numTabs)
        Serial.println(entry.size(), DEC);
      }
      entry.close();
+	//count_files++;
    }
+
+
+   for(int icount = 1;icount < count_files; icount++)
+	   {
+		   myGLCD.printNumI(icount,5, icount*15);
+		   myGLCD.print(list_files_tab[icount],35, icount*15);
+	   }
+
+	myGLCD.setColor(VGA_LIME);
+	myGLCD.print(txt_info11,CENTER, 210);
+	myGLCD.setColor(255, 255, 255);
+	while (!myTouch.dataAvailable()){}
+	while (myTouch.dataAvailable()){}
+	Draw_menu_ADC1();
 }
 
 
@@ -6270,9 +6297,9 @@ void setup(void)
 	preob_num_str();
 
 
-    root = sd.open("/");
+  //  root = sd.open("/");
 	//sd.ls(LS_R);
-	printDirectory(root, 0);
+//	printDirectory(root, 0);
 
 	Serial.println(F("Setup Ok!"));
 }
