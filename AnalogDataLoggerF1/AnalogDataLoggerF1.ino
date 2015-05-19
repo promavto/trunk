@@ -6212,18 +6212,106 @@ void printDirectory(File dir, int numTabs)
 	 count_files++;
    }
 
+   			myGLCD.setColor(0, 0, 255);
+			myGLCD.fillRoundRect (5, 210, 315, 239);
+			myGLCD.fillRoundRect (90, 185, 130, 205);
+			myGLCD.fillRoundRect (140, 185, 180, 205);
+			myGLCD.fillRoundRect (190, 185, 230, 205);
+			myGLCD.setColor(255, 255, 255);
+			myGLCD.drawRoundRect (5, 210, 315, 239);
+			myGLCD.drawRoundRect (90, 185, 130, 205);
+			myGLCD.drawRoundRect (140, 185, 180, 205);
+			myGLCD.drawRoundRect (190, 185, 230, 205);
+			myGLCD.setBackColor(0, 0, 0);
+			myGLCD.print("Page N ",30, 189);
+			myGLCD.setBackColor(0, 0, 255);
+	        myGLCD.print(txt_info11,CENTER, 219);
+			myGLCD.setColor(VGA_YELLOW);
+			myGLCD.print("<<",101, 189);
+			myGLCD.print(">>",203, 189);
+			if (count_page < 10) 
+				{
+					myGLCD.print("    ",140, 189);
+					myGLCD.printNumI(count_page,157, 189);
+				}
+			if (count_page >= 10 & count_page <100 )
+				{
+					myGLCD.print("    ",140, 189);
+					myGLCD.printNumI(count_page,153, 189);
+			    }
+			if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 189);
 
 
+   	while (true)
+		{
+    	if (myTouch.dataAvailable())
+			{
+				 myTouch.read();
+				int	x=myTouch.getX();
+				int	y=myTouch.getY();
 
+				if ((y>=210) && (y<=239))       // Upper row
+					{
+					if ((x>=95) && (x<=315))    // Button: 1
+						{
+							waitForIt(5, 210, 315, 239);
+							myGLCD.setColor(255, 255, 255);
+					        break;
+						}
+				    }
 
+				if ((y>=185) && (y<=205))       // Upper row
+					{
+					if ((x>= 90) && (x<=130))    // Button: 1
+						{
+							waitForIt(90, 185, 130, 205);
+					        count_page--;
+							myGLCD.setColor(VGA_YELLOW);
+							if (count_page < 1) count_page = 1;
+							if (count_page < 10) 
+								{
+									myGLCD.setColor(VGA_YELLOW);
+									myGLCD.print("    ",145, 189);
+									myGLCD.printNumI(count_page,157, 189);
+								}
+							if (count_page >= 10 & count_page <100 )
+								{
+									myGLCD.setColor(VGA_YELLOW);
+									myGLCD.print("    ",145, 189);
+									myGLCD.printNumI(count_page,153, 189);
+								}
+							if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 189);
+						}
+					if ((x>=190) && (x<=230))    // Button: 1
+						{
+							waitForIt(190, 185, 230, 205);
+					        count_page++;
+							myGLCD.setColor(VGA_YELLOW);
+							if (count_page > 400) count_page = 400;
+							if (count_page < 10) 
+								{
+									myGLCD.setColor(VGA_YELLOW);
+									myGLCD.print("    ",145, 189);
+									myGLCD.printNumI(count_page,157, 189);
+								}
+							if (count_page >= 10 & count_page <100 )
+								{
+									myGLCD.setColor(VGA_YELLOW);
+									myGLCD.print("    ",145, 189);
+									myGLCD.printNumI(count_page,153, 189);
+								}
+							if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 189);
+						}
+				   }
+		        }
+             }
 
-
-   for(int icount = 0;icount < count_files; icount++)
+   for(int icount = 1;icount < count_files; icount++)
 	   {
 		   myGLCD.printNumI(icount,5, count_string+5);
 		   myGLCD.print(list_files_tab[icount],35, count_string+5);
 		   count_string +=15;
-		   if (count_string == 180)
+		   if (count_string > 180)
 		   {
 			   myGLCD.clrScr();
 			   count_string = 0;
@@ -6237,11 +6325,11 @@ void printDirectory(File dir, int numTabs)
 
 
 
-   myGLCD.print("Page N ",LEFT, 190);
-   myGLCD.printNumI(count_page,70, 190);
+   //myGLCD.print("Page N ",LEFT, 190);
+   //myGLCD.printNumI(count_page,70, 190);
 
-	myGLCD.setColor(VGA_LIME);
-	myGLCD.print(txt_info11,CENTER, 210);
+	//myGLCD.setColor(VGA_LIME);
+	//myGLCD.print(txt_info11,CENTER, 210);
 	myGLCD.setColor(255, 255, 255);
 	while (!myTouch.dataAvailable()){}
 	while (myTouch.dataAvailable()){}
