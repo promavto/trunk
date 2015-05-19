@@ -6171,7 +6171,9 @@ void preob_num_str() // Программа формирования имени файла, состоящего из текуще
 void printDirectory(File dir, int numTabs) 
 {
 	char* par;
-	int count_files = 0;
+	int count_files = 1;
+	int count_page = 1;
+	int count_string = 0;
 	myGLCD.clrScr();
 	myGLCD.setBackColor( 0, 0, 0);
 	myGLCD.setFont( SmallFont);
@@ -6181,7 +6183,7 @@ void printDirectory(File dir, int numTabs)
    {
 	 
 	 File entry =  dir.openNextFile();
-	 count_files++;
+	// count_files++;
 	 if (! entry) 
 		 {
 		   // no more files
@@ -6207,15 +6209,36 @@ void printDirectory(File dir, int numTabs)
 	   Serial.println(entry.size(), DEC);
 	 }
 	 entry.close();
-	//count_files++;
+	 count_files++;
    }
 
 
-   for(int icount = 1;icount < count_files; icount++)
+
+
+
+
+
+   for(int icount = 0;icount < count_files; icount++)
 	   {
-		   myGLCD.printNumI(icount,5, icount*15);
-		   myGLCD.print(list_files_tab[icount],35, icount*15);
+		   myGLCD.printNumI(icount,5, count_string+5);
+		   myGLCD.print(list_files_tab[icount],35, count_string+5);
+		   count_string +=15;
+		   if (count_string == 180)
+		   {
+			   myGLCD.clrScr();
+			   count_string = 0;
+               count_page++;
+		   }
 	   }
+
+
+
+
+
+
+
+   myGLCD.print("Page N ",LEFT, 190);
+   myGLCD.printNumI(count_page,70, 190);
 
 	myGLCD.setColor(VGA_LIME);
 	myGLCD.print(txt_info11,CENTER, 210);
