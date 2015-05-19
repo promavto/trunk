@@ -1456,8 +1456,8 @@ void binaryToCsv()
 	if (myTouch.dataAvailable()) break;
   }
 
-  	csvStream.println(); 
-  	csvStream.print("Time measure = ");
+	csvStream.println(); 
+	csvStream.print("Time measure = ");
    rtc_clock.get_time(&hh,&mm,&ss);
    rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
    dow1=dow;
@@ -6092,7 +6092,7 @@ void menu_ADC()
 						{
 							waitForIt(30, 70, 290, 110);
 							root = sd.open("/");
-                         	printDirectory(root, 0);
+							printDirectory(root, 0);
 						}
 					if ((y>=120) && (y<=160))  // Button: 3
 						{
@@ -6179,34 +6179,34 @@ void printDirectory(File dir, int numTabs)
 
    while(true) 
    {
-     
-     File entry =  dir.openNextFile();
+	 
+	 File entry =  dir.openNextFile();
 	 count_files++;
-     if (! entry) 
+	 if (! entry) 
 		 {
 		   // no more files
 		   break;
 		 }
-     for (uint8_t i=0; i<numTabs; i++) 
+	 for (uint8_t i=0; i<numTabs; i++) 
 		 {
 		   Serial.print('\t');
 		 }
 
 	 entry.printName();
-     entry.getName(list_files_tab[count_files], 13);
+	 entry.getName(list_files_tab[count_files], 13);
 
-     if (entry.isDirectory()) 
+	 if (entry.isDirectory()) 
 		 {
 		   Serial.println("/");
 		   printDirectory(entry, numTabs+1);
 		 }
 	 else
 	 {
-       // files have sizes, directories do not
-       Serial.print("\t\t");
-       Serial.println(entry.size(), DEC);
-     }
-     entry.close();
+	   // files have sizes, directories do not
+	   Serial.print("\t\t");
+	   Serial.println(entry.size(), DEC);
+	 }
+	 entry.close();
 	//count_files++;
    }
 
