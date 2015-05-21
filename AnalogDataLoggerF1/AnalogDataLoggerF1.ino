@@ -6212,7 +6212,7 @@ void printDirectory(File dir, int numTabs)
 	 count_files++;
    }
 
-   			myGLCD.setColor(0, 0, 255);
+			myGLCD.setColor(0, 0, 255);
 			myGLCD.fillRoundRect (5, 210, 315, 239);
 			myGLCD.fillRoundRect (90, 185, 130, 205);
 			myGLCD.fillRoundRect (140, 185, 180, 205);
@@ -6225,7 +6225,7 @@ void printDirectory(File dir, int numTabs)
 			myGLCD.setBackColor(0, 0, 0);
 			myGLCD.print("Page N ",30, 189);
 			myGLCD.setBackColor(0, 0, 255);
-	        myGLCD.print(txt_info11,CENTER, 219);
+			myGLCD.print(txt_info11,CENTER, 219);
 			myGLCD.setColor(VGA_YELLOW);
 			myGLCD.print("<<",101, 189);
 			myGLCD.print(">>",203, 189);
@@ -6238,13 +6238,13 @@ void printDirectory(File dir, int numTabs)
 				{
 					myGLCD.print("    ",140, 189);
 					myGLCD.printNumI(count_page,153, 189);
-			    }
+				}
 			if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 189);
 
 
-   	while (true)
+	while (true)
 		{
-    	if (myTouch.dataAvailable())
+		if (myTouch.dataAvailable())
 			{
 				 myTouch.read();
 				int	x=myTouch.getX();
@@ -6256,16 +6256,16 @@ void printDirectory(File dir, int numTabs)
 						{
 							waitForIt(5, 210, 315, 239);
 							myGLCD.setColor(255, 255, 255);
-					        break;
+							break;
 						}
-				    }
+					}
 
 				if ((y>=185) && (y<=205))       // Upper row
 					{
 					if ((x>= 90) && (x<=130))    // Button: 1
 						{
 							waitForIt(90, 185, 130, 205);
-					        count_page--;
+							count_page--;
 							myGLCD.setColor(VGA_YELLOW);
 							if (count_page < 1) count_page = 1;
 							if (count_page < 10) 
@@ -6285,7 +6285,7 @@ void printDirectory(File dir, int numTabs)
 					if ((x>=190) && (x<=230))    // Button: 1
 						{
 							waitForIt(190, 185, 230, 205);
-					        count_page++;
+							count_page++;
 							myGLCD.setColor(VGA_YELLOW);
 							if (count_page > 400) count_page = 400;
 							if (count_page < 10) 
@@ -6303,8 +6303,8 @@ void printDirectory(File dir, int numTabs)
 							if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 189);
 						}
 				   }
-		        }
-             }
+				}
+			 }
 
    for(int icount = 1;icount < count_files; icount++)
 	   {
@@ -6315,7 +6315,7 @@ void printDirectory(File dir, int numTabs)
 		   {
 			   myGLCD.clrScr();
 			   count_string = 0;
-               count_page++;
+			   count_page++;
 		   }
 	   }
 
