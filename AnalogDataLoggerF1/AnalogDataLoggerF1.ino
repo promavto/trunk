@@ -83,6 +83,7 @@ char str0[10];
 char str1[10];
 char str2[10];
 char list_files_tab[100][13];
+int set_files = 0;
 //char str_kamIn[10];
 
 
@@ -6172,18 +6173,38 @@ void printDirectory(File dir, int numTabs)
 {
 	char* par;
 	int count_files = 1;
+	int max_count_files = 1;
+	int max_count_files1 = 1;
+	int min_count_files = 1;
 	int count_page = 1;
+	int max_count_page = 1;
+	int max_count_page1 = 1;
 	int count_string = 0;
+	int icount = 1;
+	int icount_end = 1;
+	int y_fcount_start = 1;
+	int y_fcount_stop = 12;
+	int y_fcount_step = 1;
+	int old_fcount_start = 5;
 	myGLCD.clrScr();
 	myGLCD.setBackColor( 0, 0, 0);
 	myGLCD.setFont( SmallFont);
 	myGLCD.setColor (255, 255,255);
 
+	 for( icount = 0 ;icount < 100; icount++)
+	 {
+		  for(int i = 0 ;i < 13; i ++)
+		  {
+		     list_files_tab[icount][i] = ' ';
+		  }
+	 }
+
+
+
    while(true) 
    {
 	 
 	 File entry =  dir.openNextFile();
-	// count_files++;
 	 if (! entry) 
 		 {
 		   // no more files
@@ -6194,145 +6215,220 @@ void printDirectory(File dir, int numTabs)
 		   Serial.print('\t');
 		 }
 
-	 entry.printName();
+//	 entry.printName();
 	 entry.getName(list_files_tab[count_files], 13);
 
-	 if (entry.isDirectory()) 
-		 {
-		   Serial.println("/");
-		   printDirectory(entry, numTabs+1);
-		 }
-	 else
-	 {
-	   // files have sizes, directories do not
-	   Serial.print("\t\t");
-	   Serial.println(entry.size(), DEC);
-	 }
+	 //if (entry.isDirectory()) 
+		// {
+		//   Serial.println("/");
+		//   printDirectory(entry, numTabs+1);
+		// }
+	 //else
+	 //{
+	 //  // files have sizes, directories do not
+	 //  Serial.print("\t\t");
+	 //  Serial.println(entry.size(), DEC);
+	 //}
 	 entry.close();
 	 count_files++;
    }
 
 			myGLCD.setColor(0, 0, 255);
-			myGLCD.fillRoundRect (5, 210, 315, 239);
-			myGLCD.fillRoundRect (90, 185, 130, 205);
-			myGLCD.fillRoundRect (140, 185, 180, 205);
-			myGLCD.fillRoundRect (190, 185, 230, 205);
+			myGLCD.fillRoundRect (5, 214, 315, 239);       // Кнопка "ESC -> PUSH"
+			myGLCD.fillRoundRect (90, 189, 130, 209);      // Кнопка "<<"
+			myGLCD.fillRoundRect (140, 189, 180, 209);     // Вывод номера страницы
+			myGLCD.fillRoundRect (190, 189, 230, 209);     // Кнопка ">>"
 			myGLCD.setColor(255, 255, 255);
-			myGLCD.drawRoundRect (5, 210, 315, 239);
-			myGLCD.drawRoundRect (90, 185, 130, 205);
-			myGLCD.drawRoundRect (140, 185, 180, 205);
-			myGLCD.drawRoundRect (190, 185, 230, 205);
+			myGLCD.drawRoundRect (5, 214, 315, 239);
+			myGLCD.drawRoundRect (90, 189, 130, 209);
+			myGLCD.drawRoundRect (140, 189, 180, 209);
+			myGLCD.drawRoundRect (190, 189, 230, 209);
+			myGLCD.drawRoundRect (2, 2, 318, 186);
 			myGLCD.setBackColor(0, 0, 0);
-			myGLCD.print("Page N ",30, 189);
+			myGLCD.print("Page N ",30, 193);
 			myGLCD.setBackColor(0, 0, 255);
-			myGLCD.print(txt_info11,CENTER, 219);
+			myGLCD.print(txt_info11,CENTER, 221);          // Кнопка "ESC -> PUSH"
 			myGLCD.setColor(VGA_YELLOW);
-			myGLCD.print("<<",101, 189);
-			myGLCD.print(">>",203, 189);
+			myGLCD.print("<<",101, 193);
+			myGLCD.print(">>",203, 193);
+
+			 for( icount = 1;icount < count_files; icount++)
+			   {
+				   myGLCD.setBackColor(0, 0, 0);
+				   myGLCD.setColor(255, 255, 255);
+				   myGLCD.printNumI(icount,7, count_string+5);
+				   myGLCD.print(list_files_tab[icount],35, count_string+5);
+				   count_string +=15;
+				   if (count_string > 175)
+				   {
+					   myGLCD.setColor(0, 0, 0);
+					   myGLCD.fillRoundRect (3, 3, 317, 185);
+					   count_string = 0;
+					   count_page++;
+				   }
+			   }
+            max_count_files = count_files;
+			max_count_page =  count_page;
+			max_count_files1 = count_files;
+			max_count_page1 =  count_page;
+			myGLCD.setColor(VGA_YELLOW);
+			myGLCD.setBackColor(0, 0, 255);
 			if (count_page < 10) 
 				{
-					myGLCD.print("    ",140, 189);
-					myGLCD.printNumI(count_page,157, 189);
+					myGLCD.print("    ",146, 193);
+					myGLCD.printNumI(count_page,157, 193);
 				}
 			if (count_page >= 10 & count_page <100 )
 				{
-					myGLCD.print("    ",140, 189);
-					myGLCD.printNumI(count_page,153, 189);
+					myGLCD.print("    ",146, 193);
+					myGLCD.printNumI(count_page,153, 193);
 				}
-			if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 189);
-
+			if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 193);
 
 	while (true)
 		{
 		if (myTouch.dataAvailable())
 			{
-				 myTouch.read();
+			    myTouch.read();
 				int	x=myTouch.getX();
 				int	y=myTouch.getY();
 
-				if ((y>=210) && (y<=239))       // Upper row
+				if ((y>=214) && (y<=239))            // 
 					{
-					if ((x>=95) && (x<=315))    // Button: 1
+					if ((x>=95) && (x<=315))         // Выход
 						{
 							waitForIt(5, 210, 315, 239);
-							myGLCD.setColor(255, 255, 255);
 							break;
 						}
 					}
 
-				if ((y>=185) && (y<=205))       // Upper row
+				if ((y>=189) && (y<=209))            // 
 					{
-					if ((x>= 90) && (x<=130))    // Button: 1
+					if ((x>= 90) && (x<=130))        // 
 						{
-							waitForIt(90, 185, 130, 205);
-							count_page--;
+							waitForIt(90, 189, 130, 209);
 							myGLCD.setColor(VGA_YELLOW);
+							myGLCD.setBackColor(0, 0, 255);
+							count_page--;
 							if (count_page < 1) count_page = 1;
 							if (count_page < 10) 
 								{
 									myGLCD.setColor(VGA_YELLOW);
-									myGLCD.print("    ",145, 189);
-									myGLCD.printNumI(count_page,157, 189);
+									myGLCD.print("    ",146, 193);
+									myGLCD.printNumI(count_page,157, 193);
 								}
 							if (count_page >= 10 & count_page <100 )
 								{
 									myGLCD.setColor(VGA_YELLOW);
-									myGLCD.print("    ",145, 189);
-									myGLCD.printNumI(count_page,153, 189);
+									myGLCD.print("    ",146, 193);
+									myGLCD.printNumI(count_page,153, 193);
 								}
-							if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 189);
+							if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 193);
+
+							max_count_files = count_page * 12;
+							min_count_files = max_count_files - 12;
+							if (min_count_files <0 ) min_count_files = 0;
+							if (max_count_files > count_files ) max_count_files = count_files-1;
+							count_string = 0;
+							myGLCD.setColor(0, 0, 0);
+					        myGLCD.fillRoundRect (3, 3, 317, 185);
+							for( icount = min_count_files+1; icount < max_count_files+1; icount++)
+							   {
+								   myGLCD.setBackColor(0, 0, 0);
+								   myGLCD.setColor(255, 255, 255);
+								   myGLCD.print("   ",7, count_string+5);
+								   myGLCD.printNumI(icount,7, count_string+5);
+								   myGLCD.print(list_files_tab[icount],35, count_string+5);
+								   count_string +=15;
+							   }
+							//y_fcount_stop = max_count_files - min_count_files;
+
 						}
 					if ((x>=190) && (x<=230))    // Button: 1
 						{
-							waitForIt(190, 185, 230, 205);
-							count_page++;
+							waitForIt(190, 189, 230, 209);
 							myGLCD.setColor(VGA_YELLOW);
-							if (count_page > 400) count_page = 400;
+							myGLCD.setBackColor(0, 0, 255);
+							count_page++;
+							if (count_page > max_count_page) count_page = max_count_page;
 							if (count_page < 10) 
 								{
 									myGLCD.setColor(VGA_YELLOW);
-									myGLCD.print("    ",145, 189);
-									myGLCD.printNumI(count_page,157, 189);
+									myGLCD.print("    ",146, 193);
+									myGLCD.printNumI(count_page,157, 193);
 								}
 							if (count_page >= 10 & count_page <100 )
 								{
 									myGLCD.setColor(VGA_YELLOW);
-									myGLCD.print("    ",145, 189);
-									myGLCD.printNumI(count_page,153, 189);
+									myGLCD.print("    ",146, 193);
+									myGLCD.printNumI(count_page,153, 193);
 								}
-							if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 189);
+							if (count_page >= 100 ) myGLCD.printNumI(count_page,148 , 193);
+
+							max_count_files = count_page * 12;
+							min_count_files = max_count_files - 12;
+							if (min_count_files < 0 ) min_count_files = 0;
+							if (max_count_files > count_files ) max_count_files = count_files-1;
+							count_string = 0;
+							myGLCD.setColor(0, 0, 0);
+					        myGLCD.fillRoundRect (3, 3, 317, 181);
+							for( icount = min_count_files+1; icount < max_count_files+1; icount++)
+							   {
+								   myGLCD.setBackColor(0, 0, 0);
+								   myGLCD.setColor(255, 255, 255);
+								   myGLCD.print("   ",7, count_string+5);
+								   myGLCD.printNumI(icount,7, count_string+5);
+								   myGLCD.print(list_files_tab[icount],35, count_string+5);
+								   count_string +=15;
+							   }
+
+							//y_fcount_stop = max_count_files - min_count_files;
+
 						}
-				   }
+				    }
+
+
+	                 y_fcount_start = 5;
+
+					if ((x>= 30) && (x<=136))            // 
+						{
+//max_count_files = count_files;
+//max_count_page =  count_page;
+
+							if (count_page == max_count_page1)
+								{
+									y_fcount_stop = 11- ( (max_count_page1 * 12) - max_count_files1);
+							    }
+							else
+							{
+								y_fcount_stop = 12;
+							}
+
+							for(y_fcount_step = 0; y_fcount_step < y_fcount_stop; y_fcount_step++)
+								{
+									if ((y>=y_fcount_start) && (y<=y_fcount_start+12))         // Выход
+										{
+											myGLCD.setColor(0, 0, 0);
+									        myGLCD.drawRoundRect (30, old_fcount_start, 136, old_fcount_start+12);
+											waitForIt(30, y_fcount_start, 136, y_fcount_start+12);
+											old_fcount_start = y_fcount_start;
+											set_files = ((count_page-1) * 12)+y_fcount_step+1;
+											myGLCD.print(list_files_tab[set_files],170, 60);
+											//myGLCD.print("   ",170, 40);
+											//myGLCD.printNumI(set_files,170, 40);
+										}
+									 y_fcount_start += 15;
+								 }
+
+						}
+
+
+
+
 				}
 			 }
 
-   for(int icount = 1;icount < count_files; icount++)
-	   {
-		   myGLCD.printNumI(icount,5, count_string+5);
-		   myGLCD.print(list_files_tab[icount],35, count_string+5);
-		   count_string +=15;
-		   if (count_string > 180)
-		   {
-			   myGLCD.clrScr();
-			   count_string = 0;
-			   count_page++;
-		   }
-	   }
 
-
-
-
-
-
-
-   //myGLCD.print("Page N ",LEFT, 190);
-   //myGLCD.printNumI(count_page,70, 190);
-
-	//myGLCD.setColor(VGA_LIME);
-	//myGLCD.print(txt_info11,CENTER, 210);
-	myGLCD.setColor(255, 255, 255);
-	while (!myTouch.dataAvailable()){}
-	while (myTouch.dataAvailable()){}
 	Draw_menu_ADC1();
 }
 
