@@ -14,4 +14,14 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="AnalogDataLoggerF1.ino" />
+    <None Include="setTimeDateDUE.ino" />
+    <None Include="utils.ino" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AnalogBinLogger.h">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

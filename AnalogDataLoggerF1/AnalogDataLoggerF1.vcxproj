@@ -33,9 +33,26 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
-  <ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\cores\arduino;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\variants\arduino_due_x;E:\1 SVN Logger\trunk\AnalogDataLoggerF1;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\AH_AD9850;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\AH_AD9850\utility;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\ArduinoDueRTCLibrary;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\ArduinoDueRTCLibrary\utility;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\DueTimer;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\DueTimer\utility;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\SdFat;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\SdFat\utility;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\libraries\SPI;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\libraries\SPI\utility;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\UTFT;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\UTFT\utility;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\UTFT_Buttons;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\UTFT_Buttons\utility;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\UTouch;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries\UTouch\utility;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\libraries\Wire;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\libraries\Wire\utility;C:\arduino-1.6.4\libraries;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\libraries;C:\Program Files\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers;E:\1 SVN Logger\trunk\AnalogDataLoggerF1\libraries;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1/arm-none-eabi/include/c++/4.8.3/arm-none-eabi/;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1/arm-none-eabi/include/;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\lib\gcc\arm-none-eabi\4.8.3\include;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\system\CMSIS\Device\ATMEL\;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\system\libsam;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\system\libsam\include;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\system\CMSIS\CMSIS\Include\;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\system\CMSIS\CMSIS\Include\;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\system\CMSIS\Device\ATMEL\;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\system\libsam;C:\Documents and Settings\moseichuk\Application Data\arduino15\packages\arduino\hardware\sam\1.6.4\system\libsam\include;C:\arduino-1.6.4/hardware/tools/g++_arm_none_eabi\arm-none-eabi\include;C:\arduino-1.6.4/hardware/tools/g++_arm_none_eabi\arm_none_eabi\include\;C:\arduino-1.6.4/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include;C:\arduino-1.6.4/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="AnalogDataLoggerF1.ino">
+      <FileType>CppCode</FileType>
+    </None>
+    <None Include="setTimeDateDUE.ino">
+      <FileType>CppCode</FileType>
+    </None>
+    <None Include="utils.ino">
+      <FileType>CppCode</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AnalogBinLogger.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
