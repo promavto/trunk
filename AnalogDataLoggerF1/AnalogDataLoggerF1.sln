@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnalogDataLoggerF1", "AnalogDataLoggerF1.vcxproj", "{532E436E-04C6-43FD-BF2F-33512929903A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnalogDataLoggerF1", "AnalogDataLoggerF1.vcxproj", "{C0156670-D154-4F42-9563-E61E2F70924C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{532E436E-04C6-43FD-BF2F-33512929903A}.Debug|Win32.ActiveCfg = Debug|Win32
-		{532E436E-04C6-43FD-BF2F-33512929903A}.Debug|Win32.Build.0 = Debug|Win32
-		{532E436E-04C6-43FD-BF2F-33512929903A}.Release|Win32.ActiveCfg = Release|Win32
-		{532E436E-04C6-43FD-BF2F-33512929903A}.Release|Win32.Build.0 = Release|Win32
+		{C0156670-D154-4F42-9563-E61E2F70924C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C0156670-D154-4F42-9563-E61E2F70924C}.Debug|Win32.Build.0 = Debug|Win32
+		{C0156670-D154-4F42-9563-E61E2F70924C}.Release|Win32.ActiveCfg = Release|Win32
+		{C0156670-D154-4F42-9563-E61E2F70924C}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
