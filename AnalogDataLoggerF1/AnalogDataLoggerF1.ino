@@ -6191,7 +6191,7 @@ void printDirectory(File dir, int numTabs)
 	myGLCD.setFont( SmallFont);
 	myGLCD.setColor (255, 255,255);
 
-	 for( icount = 0 ;icount < 100; icount++)
+	 for( icount = 0 ;icount < 100; icount++) // Очистить память списка
 	 {
 		  for(int i = 0 ;i < 13; i ++)
 		  {
@@ -6251,6 +6251,8 @@ void printDirectory(File dir, int numTabs)
 			myGLCD.setColor(VGA_YELLOW);
 			myGLCD.print("<<",101, 193);
 			myGLCD.print(">>",203, 193);
+			int count_str = 1;
+			count_string = 0;
 
 			 for( icount = 1;icount < count_files; icount++)
 			   {
@@ -6259,13 +6261,18 @@ void printDirectory(File dir, int numTabs)
 				   myGLCD.printNumI(icount,7, count_string+5);
 				   myGLCD.print(list_files_tab[icount],35, count_string+5);
 				   count_string +=15;
-				   if (count_string > 175)
+				   count_str ++;
+				 
+				   if ( count_str >12)
 				   {
-					   myGLCD.setColor(0, 0, 0);
-					   myGLCD.fillRoundRect (3, 3, 317, 185);
-					   count_string = 0;
-					   count_page++;
-				   }
+					    if (icount != count_files-1)
+						{
+						   myGLCD.setColor(0, 0, 0);
+						   myGLCD.fillRoundRect (3, 3, 317, 185);
+						   count_string = 0;
+						   count_str = 1;
+						   count_page++;
+						}
 			   }
             max_count_files = count_files;
 			max_count_page =  count_page;
@@ -6273,6 +6280,7 @@ void printDirectory(File dir, int numTabs)
 			max_count_page1 =  count_page;
 			myGLCD.setColor(VGA_YELLOW);
 			myGLCD.setBackColor(0, 0, 255);
+			// Вывод количества страниц списка файлов
 			if (count_page < 10) 
 				{
 					myGLCD.print("    ",146, 193);
