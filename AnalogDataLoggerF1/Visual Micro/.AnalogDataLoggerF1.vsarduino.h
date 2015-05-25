@@ -182,7 +182,6 @@ void Draw_menu_ADC1();
 void menu_ADC();
 void preob_num_str();
 void printDirectory(File dir, int numTabs);
-void printDirectory(File dir, int numTabs);
 void setup(void);
 void loop(void);
 void drawUpButton(int x, int y);
