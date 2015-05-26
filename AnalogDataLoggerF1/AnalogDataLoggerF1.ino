@@ -35,10 +35,20 @@
 #include <rtc_clock.h>
 //#include <SD.h>
 
+
+
+
+
+//+++++++++++++++++++++++ SD info ++++++++++++++++++++++++++
 SdFile file;
 
-
 File root;
+
+SdFat sd;
+
+SdBaseFile binFile;
+
+Sd2Card card;
 
 // Declare which fonts we will be using
 //UTFT myGLCD(ITDB32S,25,26,27,28);
@@ -407,12 +417,6 @@ const uint16_t ISR_SETUP_ADC = 100;
 // Максимальные циклы таймер 0 системы прерывания, Millis, Micros.
 const uint16_t ISR_TIMER0 = 160;
 //==============================================================================
-
-SdFat sd;
-
-SdBaseFile binFile;
-//+++++++++++++++++++++++ SD info ++++++++++++++++++++++++++
-Sd2Card card;
 
 // serial output steam
 ArduinoOutStream cout(Serial);
@@ -3316,7 +3320,8 @@ void Draw_menu_Osc()
 		}
 	myGLCD.print( txt_osc_menu1, CENTER, 30);     // 
 	myGLCD.print( txt_osc_menu2, CENTER, 80);   
-	myGLCD.print( "checkOverrun", CENTER, 130);   
+	myGLCD.print( "View File Test", CENTER, 130);  
+//	myGLCD.print( "checkOverrun", CENTER, 130);   
 	myGLCD.print( txt_osc_menu4, CENTER, 180);      
 }
 void menu_Oscilloscope()
@@ -3357,8 +3362,10 @@ void menu_Oscilloscope()
 							myGLCD.clrScr();
 						//	DrawGrid();
 						//	buttons();
-							checkOverrun();
-						//	dumpData_Osc();
+					   	//	checkOverrun();
+					    //	view_file();
+							readFile();
+
 							Draw_menu_Osc();
 						}
 					if ((y>=170) && (y<=220))  // Button: 4
@@ -3423,7 +3430,7 @@ void trigger()
 
 }
 
-void oscilloscope()
+void oscilloscope()  // просмотр в реальном времени на большой скорости
 {
 	uint32_t bgnBlock, endBlock;
 	block_t block[BUFFER_BLOCK_COUNT];
@@ -3799,7 +3806,7 @@ Trigger = 0;
 myGLCD.setFont( BigFont);
 while (myTouch.dataAvailable()){}
 }
-void oscilloscope_time()
+void oscilloscope_time()   // В файл не пишет 
 {
 	uint32_t bgnBlock, endBlock;
 	block_t block[BUFFER_BLOCK_COUNT];
@@ -4474,8 +4481,7 @@ void oscilloscope_time()
 	while (myTouch.dataAvailable()){}
 	delay(50);
 }
-
-void oscilloscope_file()
+void oscilloscope_file()  // Пишет в файл
 {
 	
 	uint32_t bgnBlock, endBlock;
@@ -6417,48 +6423,9 @@ void printDirectory(File dir, int numTabs)
 											set_files = ((count_page-1) * 12)+y_fcount_step+1;
 											myGLCD.print(list_files_tab[set_files],170, 30);     // номер файла в позиции "set_files"
 
-										//	sd.exists(list_files_tab[set_files]);
-											root = sd.open(list_files_tab[set_files]);
-									//		Serial.println(root);
-
-											Serial.println();
-											Serial.println();
-
-											if (root)
-											{
-												Serial.println("test.txt:");
-
-												// read from the file until there's nothing else in it:
-												while (root.available()) 
-												{
-												  Serial.write(root.read());
-												}
-												// close the file:
-												root.close();
-											  }
-											else
-											{
-												// if the file didn't open, print an error:
-												Serial.println("error opening test.txt");
-											}
+											//Здесь должен быть  вызов программы просмотра файлов
 
 
-
-
-
-
-
-
-
-
-									//		if (!binFile.isOpen()) 
-									//		{
-									//			Serial.println(F("No current binary file"));
-									////			return;
-									//		}
-
-
-											//dumpData_Osc();
 
 
 										}
@@ -6472,6 +6439,224 @@ void printDirectory(File dir, int numTabs)
 	   }
 
 	Draw_menu_ADC1();
+}
+
+
+void view_file()
+{
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 0);
+	myGLCD.print(txt_info12,CENTER, 40);
+	block_t buf;
+	uint32_t count = 0;
+	uint32_t count1 = 0;
+	koeff_h = 7.759*4;
+	int xpos = 0;
+	int ypos1;
+	int ypos2;
+	int kl[buf.count];         //Текущий блок
+
+	root = sd.open(list_files_tab[set_files]);
+		if (!root.isOpen()) 
+		{
+			Serial.println(F("No current root file"));
+			return;
+		}
+	//if (!binFile.isOpen()) 
+	//	{
+	//		Serial.println(F("No current root file"));
+	//		return;
+	//	}
+	root.rewind();
+	//binFile.rewind();
+	/*if (binFile.read(&buf , 512) != 512) 
+	{
+		error("Read metadata failed");
+	}*/
+
+	if (root.read(&buf , 512) != 512) 
+	{
+		error("Read metadata failed");
+	}
+
+
+	myGLCD.setColor(VGA_LIME);
+	myGLCD.print(txt_info15,CENTER, 200);
+	myGLCD.setColor(255, 255, 255);
+	delay(1000);
+	myGLCD.clrScr();
+	LongFile = 0;
+	DrawGrid1();
+	myGLCD.setColor(0, 0, 255);
+	myGLCD.setBackColor( 0, 0, 255);
+	myGLCD.fillRoundRect (250, 90, 310, 130);
+	myGLCD.setColor( 255, 255, 255);
+	myGLCD.drawRoundRect (250, 90, 310, 130);
+	myGLCD.setBackColor( 0, 0, 255);
+	myGLCD.setColor( 255, 255, 255);
+	myGLCD.setFont( SmallFont);
+	myGLCD.print("V/del.", 260, 95);
+	myGLCD.print("      ", 260, 110);
+	if (mode1 == 0)myGLCD.print("1", 275, 110);
+	if (mode1 == 1)myGLCD.print("0.5", 268, 110);
+	if (mode1 == 2)myGLCD.print("0.2", 268, 110);
+	if (mode1 == 3)myGLCD.print("0.1", 268, 110);
+
+   while (root.read(&buf , 512) == 512) 
+  	{
+		if (buf.count == 0) break;
+		if (buf.overrun) 
+			{
+				Serial.print(F("OVERRUN,"));
+				Serial.println(buf.overrun);
+			}
+
+		DrawGrid1();
+
+		 if (myTouch.dataAvailable())
+			{
+				delay(10);
+				myTouch.read();
+				x_osc=myTouch.getX();
+				y_osc=myTouch.getY();
+
+				if ((x_osc>=2) && (x_osc<=240))  //  Delay Button
+					{
+						if ((y_osc>=1) && (y_osc<=160))  // Delay row
+						{
+							break;
+						} 
+					}
+			if ((x_osc>=250) && (x_osc<=310))  //  Delay Button
+			  {
+
+				 if ((y_osc>=90) && (y_osc<=130))  // Port select   row
+					 {
+						waitForIt(250, 90, 310, 130);
+						mode1 ++ ;
+						myGLCD.clrScr();
+						myGLCD.setColor(0, 0, 255);
+						myGLCD.fillRoundRect (250, 90, 310, 130);
+						myGLCD.setColor( 255, 255, 255);
+						myGLCD.drawRoundRect (250, 90, 310, 130);
+				//		buttons();
+						if (mode1 > 3) mode1 = 0;   
+						if (mode1 == 0) koeff_h = 7.759*4;
+						if (mode1 == 1) koeff_h = 3.879*4;
+						if (mode1 == 2) koeff_h = 1.939*4;
+						if (mode1 == 3) koeff_h = 0.969*4;
+					//	print_set();
+						myGLCD.setBackColor( 0, 0, 255);
+						myGLCD.setColor( 255, 255, 255);
+						myGLCD.setFont( SmallFont);
+						myGLCD.print("V/del.", 260, 95);
+						myGLCD.print("      ", 260, 110);
+						if (mode1 == 0)myGLCD.print("1", 275, 110);
+						if (mode1 == 1)myGLCD.print("0.5", 268, 110);
+						if (mode1 == 2)myGLCD.print("0.2", 268, 110);
+						if (mode1 == 3)myGLCD.print("0.1", 268, 110);
+					 }
+			  }
+		   }
+
+		for (uint16_t i = 0; i < buf.count; i++) 
+		{
+
+				Sample[xpos] = buf.data[i];//.adc[0]; 
+				xpos++;
+			if(xpos == 240)
+				{
+				DrawGrid1();
+				for( int xpos = 0; xpos < 239;	xpos ++)
+					{
+										// Erase previous display Стереть предыдущий экран
+						myGLCD.setColor( 0, 0, 0);
+						ypos1 = 255-(OldSample[ xpos + 1]/koeff_h) - hpos; 
+						ypos2 = 255-(OldSample[ xpos + 2]/koeff_h) - hpos;
+
+						if(ypos1<0) ypos1 = 0;
+						if(ypos2<0) ypos2 = 0;
+						if(ypos1>200) ypos1 = 200;
+						if(ypos2>200) ypos2 = 200;
+						myGLCD.drawLine (xpos + 1, ypos1, xpos + 2, ypos2);
+						if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
+						//Draw the new data
+						myGLCD.setColor( 255, 255, 255);
+						ypos1 = 255-(Sample[ xpos]/koeff_h) - hpos;
+						ypos2 = 255-(Sample[ xpos + 1]/koeff_h)- hpos;
+
+						if(ypos1<0) ypos1 = 0;
+						if(ypos2<0) ypos2 = 0;
+						if(ypos1>220) ypos1 = 200;
+						if(ypos2>220) ypos2 = 200;
+						myGLCD.drawLine (xpos, ypos1, xpos + 1, ypos2);
+						OldSample[xpos] = Sample[ xpos];
+					}
+					xpos = 0;
+					myGLCD.setFont( BigFont);
+					myGLCD.setBackColor( 0, 0, 0);
+					count1++;
+					myGLCD.printNumI(count, RIGHT, 220);// 
+					myGLCD.setColor(VGA_LIME);
+					myGLCD.printNumI(count1*240, LEFT, 220);// 
+				}
+		}
+	}
+	koeff_h = 7.759*4;
+	mode1 = 0;
+	Trigger = 0;
+	myGLCD.setFont( BigFont);
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.print(txt_info9,CENTER, 80);
+	myGLCD.setColor(255, 255, 255);
+	delay(500);
+	while (myTouch.dataAvailable()){}
+
+
+}
+void readCSV()
+{
+
+}
+
+//------------------------------------------------------------------------------
+// read and print CSV test file
+void readFile()
+{
+		root = sd.open(list_files_tab[set_files]);
+		if (!root.isOpen()) 
+		{
+			Serial.println(F("No current root file"));
+			return;
+		}
+
+	root.rewind();
+
+  // read from the file until there's nothing else in it:
+  int data;
+  while ((data = root.read()) >= 0) Serial.write(data);
+  // close the file:
+  root.close();
+}
+//------------------------------------------------------------------------------
+// write test file
+void writeFile() 
+{
+
+  //// create or open and truncate output file
+  //ofstream sdout(fileName);
+  //
+  //// write file from string stored in flash
+  //sdout << pstr(
+  //  "Line 1,1,2.3,4.5\n"
+  //  "Line 2,6,7.8,9.0\n"
+  //  "Line 3,9,8.7,6.5\n"
+  //  "Line 4,-4,-3.2,-1\n") << flush;
+
+  //// check for any errors
+  //if (!sdout) error("writeFile");
+  //
+  //sdout.close();
 }
 
 //------------------------------------------------------------------------------
@@ -6545,9 +6730,6 @@ void setup(void)
 	preob_num_str();
 
 
-  //  root = sd.open("/");
-	//sd.ls(LS_R);
-//	printDirectory(root, 0);
 
 	Serial.println(F("Setup Ok!"));
 }
