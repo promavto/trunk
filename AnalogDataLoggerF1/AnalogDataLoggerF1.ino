@@ -6273,7 +6273,7 @@ void printDirectory(File dir, int numTabs)
 						   count_str = 1;
 						   count_page++;
 						}
-			       }
+				   }
 			   }
 			max_count_files = count_files;
 			max_count_page =  count_page;
@@ -6469,7 +6469,7 @@ void printDirectory(File dir, int numTabs)
 
 				}
 			
-       }
+	   }
 
 	Draw_menu_ADC1();
 }
