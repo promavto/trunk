@@ -1414,16 +1414,15 @@ void binaryToCsv()
 	csvStream.print(F(":"));
 	csvStream.print(sec);
 	csvStream.println(); 
-
+	csvStream.print(F("@"));
   for (uint8_t i = 0; i < pm->pinCount; i++) 
   {
 	if (i) csvStream.putc(',');
 	csvStream.print(F("pin "));
 	csvStream.print(pm->pinNumber[i]);
   }
-
-  csvStream.println(); 
-  csvStream.println(); 
+    csvStream.println(); 
+    csvStream.println('#');  // Признак начала данных
 		myGLCD.setColor(255, 255, 255);
 		myGLCD.print("Converting:",2, 165);     //
  
@@ -1432,10 +1431,11 @@ void binaryToCsv()
   {
 	uint16_t i;
 	if (buf.count == 0) break;
-	if (buf.overrun) {
-	  csvStream.print(F("OVERRUN,"));
-	  csvStream.println(buf.overrun);     
-	}
+	//if (buf.overrun) 
+	//{
+	//  csvStream.print(F("OVERRUN,"));
+	//  csvStream.println(buf.overrun);     
+	//}
 	for (uint16_t j = 0; j < buf.count; j += count_pin) 
 	{
 	  for (uint16_t i = 0; i < count_pin; i++) 
@@ -1460,8 +1460,10 @@ void binaryToCsv()
 	}
 	if (myTouch.dataAvailable()) break;
   }
-
-	csvStream.println(); 
+  	//csvStream.println(); 
+  	//csvStream.println(); 
+	csvStream.println('<'); 
+	//csvStream.println(); 
 	csvStream.print("Time measure = ");
    rtc_clock.get_time(&hh,&mm,&ss);
    rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
@@ -6623,8 +6625,10 @@ void readCSV()
 // read and print CSV test file
 void readFile()
 {
-		root = sd.open(list_files_tab[set_files]);
-		if (!root.isOpen()) 
+
+
+	root = sd.open(list_files_tab[set_files]);
+	if (!root.isOpen()) 
 		{
 			Serial.println(F("No current root file"));
 			return;
@@ -6634,8 +6638,58 @@ void readFile()
 
   // read from the file until there's nothing else in it:
   int data;
-  while ((data = root.read()) >= 0) Serial.write(data);
-  // close the file:
+  int data1;
+  long step_file = 0;
+  int pin_fcount = 0;
+  int max_pin_fcount = 0;
+  bool start_pin = false;
+  bool start_mod = false;
+  bool stop_mod = false;
+  while ((data = root.read()) >= 0)
+  {
+	  if (data =='@' ) start_pin = true;
+	  if (data =='<')
+		  {
+			  stop_mod = true;
+			  Serial.println("Stop ");
+	      }
+
+
+			if (start_pin == true && start_mod == false )
+			  {
+				 if (data =='0') max_pin_fcount ++;
+				 else if (data =='1') max_pin_fcount ++;
+				 else if (data =='2') max_pin_fcount ++;
+				 else if (data =='3') max_pin_fcount ++;
+			  }
+
+	  if (data =='#' ) 
+	  {
+		  start_mod = true;
+		  start_pin = false;
+     	  Serial.print("pin - ");
+		  Serial.println(max_pin_fcount);
+	  }
+
+	  if (start_mod == true && stop_mod == false )
+	   {
+		  data1 = root.parseInt();
+		  Serial.print(data1);
+		  pin_fcount++;
+		  step_file++;
+		   if (pin_fcount>max_pin_fcount-1)
+		  {
+			 pin_fcount=0;
+             Serial.println();
+	      }
+	   else
+			{
+              		Serial.print(',');
+            }
+
+	   }
+   }
+ 
   root.close();
 }
 //------------------------------------------------------------------------------
