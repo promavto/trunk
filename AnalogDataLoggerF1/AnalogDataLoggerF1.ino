@@ -3362,8 +3362,8 @@ void menu_Oscilloscope()
 							myGLCD.clrScr();
 						//	DrawGrid();
 						//	buttons();
-					   	//	checkOverrun();
-					    //	view_file();
+						//	checkOverrun();
+						//	view_file();
 							readFile();
 
 							Draw_menu_Osc();
@@ -6503,7 +6503,7 @@ void view_file()
 	if (mode1 == 3)myGLCD.print("0.1", 268, 110);
 
    while (root.read(&buf , 512) == 512) 
-  	{
+	{
 		if (buf.count == 0) break;
 		if (buf.overrun) 
 			{
