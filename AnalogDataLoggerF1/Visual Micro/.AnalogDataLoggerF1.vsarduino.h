@@ -185,7 +185,6 @@ void printDirectory(File dir, int numTabs);
 void view_file();
 void readCSV();
 void readFile();
-void writeFile();
 void setup(void);
 void loop(void);
 void drawUpButton(int x, int y);

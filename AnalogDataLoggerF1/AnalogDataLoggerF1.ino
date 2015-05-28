@@ -160,6 +160,9 @@ int ret                = 0;                // Признак прерывания операции
 	int OldSample[254];
 	int Sample_osc[254][4];
 	int OldSample_osc[254][4];
+	int PageSample_osc[240][10][4];
+	int Page_count = 0;
+	int x_pos_count = 0;
 	int YSample_osc[254][4];
 	float VSample_osc[254][4];
 	unsigned long LongFile = 0;
@@ -1414,17 +1417,17 @@ void binaryToCsv()
 	csvStream.print(F(":"));
 	csvStream.print(sec);
 	csvStream.println(); 
-	csvStream.print(F("@"));
+	csvStream.print(F("@"));                  // Признак начала определения количества входов  
   for (uint8_t i = 0; i < pm->pinCount; i++) 
   {
 	if (i) csvStream.putc(',');
 	csvStream.print(F("pin "));
 	csvStream.print(pm->pinNumber[i]);
   }
-    csvStream.println(); 
-    csvStream.println('#');  // Признак начала данных
-		myGLCD.setColor(255, 255, 255);
-		myGLCD.print("Converting:",2, 165);     //
+	csvStream.println(); 
+	csvStream.println('#');                  // Признак начала данных
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.print("Converting:",2, 165);      //
  
   uint32_t tPct = millis();
   while (!Serial.available() && binFile.read(&buf, 512) == 512) 
@@ -1460,10 +1463,13 @@ void binaryToCsv()
 	}
 	if (myTouch.dataAvailable()) break;
   }
-  	//csvStream.println(); 
-  	//csvStream.println(); 
-	csvStream.println('<'); 
 	//csvStream.println(); 
+	csvStream.println();                       // Признак  5555 окончания данных в файле
+	csvStream.print('5');                      // Признак  5555 окончания данных в файле
+	csvStream.print('5');                      // Признак  5555 окончания данных в файле
+	csvStream.print('5');                      // Признак  5555 окончания данных в файле
+	csvStream.print('5');                      // Признак  5555 окончания данных в файле
+	csvStream.println(); 
 	csvStream.print("Time measure = ");
    rtc_clock.get_time(&hh,&mm,&ss);
    rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
@@ -1490,7 +1496,7 @@ void binaryToCsv()
 	csvStream.println(); 
 
 	csvStream.fclose();  
-
+//	binFile.remove();
 	myGLCD.setColor(255, 255, 255);
 	myGLCD.print(txt_info9,2, 185);   
 	myGLCD.setColor(VGA_YELLOW);   //
@@ -4087,7 +4093,7 @@ void oscilloscope_time()   // В файл не пишет
 			ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
 	 do
 	  {
-		 if (sled == false)
+		 if (sled == false)                       // Отображение следа предыдущего измерения.
 			{
 					myGLCD.clrScr();
 					buttons_right_time();
@@ -4272,9 +4278,9 @@ void oscilloscope_time()   // В файл не пишет
 			 do  // Измерение одной точки
 				 {
 
-			//	ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
-				ADC_CR = ADC_START ; 	// Запустить преобразование
-				 while (!(ADC_ISR_DRDY));
+			//	ADC_CHER = Channel_x;         // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3    
+				ADC_CR = ADC_START ; 	      // Запустить преобразование
+				 while (!(ADC_ISR_DRDY));     // Ожидать завершение преобразования 
 				if (Channel0)
 					{
 						MaxAnalog0 = max(MaxAnalog0, ADC->ADC_CDR[7]);
@@ -6625,18 +6631,7 @@ void readCSV()
 // read and print CSV test file
 void readFile()
 {
-
-
-	root = sd.open(list_files_tab[set_files]);
-	if (!root.isOpen()) 
-		{
-			Serial.println(F("No current root file"));
-			return;
-		}
-
-	root.rewind();
-
-  // read from the file until there's nothing else in it:
+	
   int data;
   int data1;
   long step_file = 0;
@@ -6645,73 +6640,108 @@ void readFile()
   bool start_pin = false;
   bool start_mod = false;
   bool stop_mod = false;
+  uint32_t  File_size;
+  Page_count = 0;
+  x_pos_count = 0;
+  
+	root = sd.open(list_files_tab[set_files]);
+	if (!root.isOpen()) 
+		{
+			Serial.println(F("No current root file"));
+			return;
+		}
+
+  root.rewind();
+    
+  File_size = root.fileSize();
+
   while ((data = root.read()) >= 0)
   {
 	  if (data =='@' ) start_pin = true;
-	  if (data =='<')
-		  {
-			  stop_mod = true;
-			  Serial.println("Stop ");
-	      }
-
-
 			if (start_pin == true && start_mod == false )
 			  {
-				 if (data =='0') max_pin_fcount ++;
-				 else if (data =='1') max_pin_fcount ++;
-				 else if (data =='2') max_pin_fcount ++;
-				 else if (data =='3') max_pin_fcount ++;
+					Channel0 = false;
+					Channel1 = false;
+					Channel2 = false;
+					Channel3 = false;
+
+				 if (data =='0') 
+					 {
+						 Channel0 = true;
+						 max_pin_fcount ++;
+				     }
+				 else if (data =='1') 
+					 {
+						 Channel1 = true;
+						 max_pin_fcount ++;
+				     }
+				 else if (data =='2') 
+					 {
+						 Channel2 = true;
+						 max_pin_fcount ++;
+				     }
+				 else if (data =='3')
+					 {
+						 Channel3 = true;
+						 max_pin_fcount ++;
+					 }
 			  }
 
 	  if (data =='#' ) 
 	  {
 		  start_mod = true;
 		  start_pin = false;
-     	  Serial.print("pin - ");
-		  Serial.println(max_pin_fcount);
+		//  Serial.print("pin - ");
+		//  Serial.println(max_pin_fcount);
 	  }
 
 	  if (start_mod == true && stop_mod == false )
 	   {
 		  data1 = root.parseInt();
-		  Serial.print(data1);
-		  pin_fcount++;
-		  step_file++;
-		   if (pin_fcount>max_pin_fcount-1)
-		  {
-			 pin_fcount=0;
-             Serial.println();
-	      }
-	   else
-			{
-              		Serial.print(',');
-            }
+		 if (data1 != 5555)
+			 {
+				 if (pin_fcount == 0)
+				 {
+					 Serial.print("x_pos - ");
+					 Serial.print(x_pos_count);
+					 Serial.print("   ");
+				 }
+				Serial.print(data1);
+                PageSample_osc[x_pos_count][Page_count][pin_fcount] = data1;
 
+				pin_fcount++;
+				step_file++;
+				if (pin_fcount>max_pin_fcount-1)
+					{
+						pin_fcount=0;
+						Serial.println();
+						x_pos_count++;
+						if(x_pos_count > 239)
+							{
+								x_pos_count = 0;
+                    			Page_count++;
+				    			if(Page_count>9) Page_count = 0;
+								Serial.println();
+								Serial.print("Page_count - ");
+								Serial.println(Page_count);
+								// Вызвать программу отображения информации
+							}
+					}
+				else
+					{
+						Serial.print(',');
+					}
+	    	 }
+		 else
+			{
+				start_mod = false;
+			}
 	   }
    }
  
   root.close();
 }
-//------------------------------------------------------------------------------
-// write test file
-void writeFile() 
-{
 
-  //// create or open and truncate output file
-  //ofstream sdout(fileName);
-  //
-  //// write file from string stored in flash
-  //sdout << pstr(
-  //  "Line 1,1,2.3,4.5\n"
-  //  "Line 2,6,7.8,9.0\n"
-  //  "Line 3,9,8.7,6.5\n"
-  //  "Line 4,-4,-3.2,-1\n") << flush;
-
-  //// check for any errors
-  //if (!sdout) error("writeFile");
-  //
-  //sdout.close();
-}
 
 //------------------------------------------------------------------------------
 void setup(void) 
@@ -6767,7 +6797,7 @@ void setup(void)
 	//adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX, ADC_STARTUP_FAST);
 	Timer3.attachInterrupt(firstHandler); // Every 50us
 	Timer4.attachInterrupt(secondHandler).setFrequency(1);
-	//  	Timer3.attachInterrupt(firstHandler).start(500000); // Every 500ms
+	//Timer3.attachInterrupt(firstHandler).start(500000); // Every 500ms
 	//Timer4.attachInterrupt(secondHandler).setFrequency(1).start();
 	rtc_clock.init();
 	rtc_clock.set_time(__TIME__);
@@ -6779,11 +6809,9 @@ void setup(void)
 	cout << uppercase << showbase << endl;
 	// pstr stores strings in flash to save RAM
 
-	cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;
+//	cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;
 	myGLCD.setBackColor(0, 0, 255);
 	preob_num_str();
-
-
 
 	Serial.println(F("Setup Ok!"));
 }
