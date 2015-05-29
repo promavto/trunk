@@ -3358,13 +3358,8 @@ void Draw_menu_Osc()
 	myGLCD.print( "checkOverrun", CENTER, 130);   
 	myGLCD.print( txt_osc_menu4, CENTER, 180);      
 }
-void menu_Oscilloscope()
+void menu_Oscilloscope()   // Меню "Осциллоскопа", вызывается из меню "Самописец"
 {
-		// discard any input
-	while (Serial.read() >= 0) {} // Удалить все символы из буфера
-
-	char c;
-
 	while (true)
 		{
 		delay(10);
@@ -3374,32 +3369,30 @@ void menu_Oscilloscope()
 				int	x=myTouch.getX();
 				int	y=myTouch.getY();
 
-				if ((x>=30) && (x<=290))       // Upper row
+				if ((x>=30) && (x<=290))       // 
 					{
-					if ((y>=20) && (y<=60))    // Button: 1
+					if ((y>=20) && (y<=60))    // Button: 1  "Oscilloscope"
 						{
 							waitForIt(30, 20, 290, 60);
 							myGLCD.clrScr();
 							oscilloscope();
 							Draw_menu_Osc();
 						}
-					if ((y>=70) && (y<=110))   // Button: 2
+					if ((y>=70) && (y<=110))   // Button: 2 "Oscill_Time"
 						{
 							waitForIt(30, 70, 290, 110);
 							myGLCD.clrScr();
 							oscilloscope_time();
 							Draw_menu_Osc();
 						}
-					if ((y>=120) && (y<=160))  // Button: 3
+					if ((y>=120) && (y<=160))  // Button: 3 "checkOverrun"  Проверка ошибок
 						{
 							waitForIt(30, 120, 290, 160);
 							myGLCD.clrScr();
-						//	DrawGrid();
-						//	buttons();
 							checkOverrun();
 							Draw_menu_Osc();
 						}
-					if ((y>=170) && (y<=220))  // Button: 4
+					if ((y>=170) && (y<=220))  // Button: 4 "EXIT" Выход
 						{
 							waitForIt(30, 170, 290, 210);
 							break;
