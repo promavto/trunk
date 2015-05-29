@@ -1786,7 +1786,7 @@ void dumpData_Osc()
 void logData() 
 {
 	uint32_t bgnBlock, endBlock;
-  	// Allocate extra buffer space.
+	// Allocate extra buffer space.
 	block_t block[BUFFER_BLOCK_COUNT];
 	bool ind_start = false;
 	uint32_t logTime = 0;
@@ -4155,7 +4155,7 @@ void oscilloscope_time()   // В файл не пишет
 					DrawGrid();
 					myGLCD.setBackColor( 0, 0, 0);
 					myGLCD.setFont( BigFont);
-	     			myGLCD.setColor(VGA_LIME);
+					myGLCD.setColor(VGA_LIME);
 					myGLCD.print(txt_info29,LEFT, 180);
 
 			  for( int xpos = 0; xpos < 239;	xpos ++)
@@ -4397,7 +4397,7 @@ void oscilloscope_time()   // В файл не пишет
 
 
 
-	          	myGLCD.setColor( 0, 0, 0);
+				myGLCD.setColor( 0, 0, 0);
 					if (xpos == 0)
 						{
 							myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
@@ -6718,7 +6718,7 @@ void readFile()
 		}
 
   root.rewind();
-    
+	
   File_size = root.fileSize();
 
   while ((data = root.read()) >= 0)
@@ -6730,17 +6730,17 @@ void readFile()
 					 {
 						 Channel0 = true;
 						 max_pin_fcount ++;
-				     }
+					 }
 				 else if (data =='1') 
 					 {
 						 Channel1 = true;
 						 max_pin_fcount ++;
-				     }
+					 }
 				 else if (data =='2') 
 					 {
 						 Channel2 = true;
 						 max_pin_fcount ++;
-				     }
+					 }
 				 else if (data =='3')
 					 {
 						 Channel3 = true;
@@ -6767,7 +6767,7 @@ void readFile()
 					 Serial.print("   ");
 				 }
 				Serial.print(data1);
-                PageSample_osc[x_pos_count][Page_count][pin_fcount] = data1;
+				PageSample_osc[x_pos_count][Page_count][pin_fcount] = data1;
 
 				pin_fcount++;
 				step_file++;
@@ -6779,8 +6779,8 @@ void readFile()
 						if(x_pos_count > 239)
 							{
 								x_pos_count = 0;
-                    			Page_count++;
-				    			if(Page_count>9) Page_count = 0;
+								Page_count++;
+								if(Page_count>9) Page_count = 0;
 								Serial.println();
 								Serial.print("Page_count - ");
 								Serial.println(Page_count);
@@ -6791,7 +6791,7 @@ void readFile()
 					{
 						Serial.print(',');
 					}
-	    	 }
+			 }
 		 else
 			{
 				start_mod = false;
