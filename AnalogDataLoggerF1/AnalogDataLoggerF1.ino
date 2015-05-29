@@ -4713,10 +4713,9 @@ void oscilloscope_file()  // Пишет в файл
 					if (mode1 == 1){ koeff_h = 3.879*4; myGLCD.print("0.5 ", 275, 110);}
 					if (mode1 == 2){ koeff_h = 1.939*4; myGLCD.print("0.25", 275, 110);}
 					if (mode1 == 3){ koeff_h = 0.969*4; myGLCD.print("0.1 ", 275, 110);}
-				DrawGrid();
+				    DrawGrid();
 
 				 }
-		
 		   }
 				
 			
@@ -4849,7 +4848,7 @@ void oscilloscope_file()  // Пишет в файл
 				timeName[BASE_NAME_SIZE]++;
 			}
 		}
-  // Delete old tmp file.
+    // Delete old tmp file.
 	if (sd.exists(TMP_FILE_NAME)) 
 		{
 		myGLCD.print(txt_info13,LEFT, 135);              //
@@ -5374,7 +5373,7 @@ void oscilloscope_file()  // Пишет в файл
 	myGLCD.setFont( BigFont);
 	myGLCD.setColor(VGA_YELLOW);
 	myGLCD.setBackColor(0, 0, 0);
-	myGLCD.print("            ", LEFT, 140);
+	myGLCD.print("            ", 10, 140);
 	myGLCD.print("Stop record", 40, 140);
 	csvStream.print("Time measure = ");
 	csvStream.print(min_osc);
@@ -6717,6 +6716,19 @@ void readFile()
 	Channel2 = false;
 	Channel3 = false;
 	DrawGrid();
+	char chanel_base[4];
+
+	for (int p = 0; p < 9; p++)
+	{
+		for (int x =0; x < 9; x++)
+		{
+			PageSample_osc[x_pos_count][Page_count][0] = 0;
+			PageSample_osc[x_pos_count][Page_count][1] = 0;
+			PageSample_osc[x_pos_count][Page_count][2] = 0;
+			PageSample_osc[x_pos_count][Page_count][3] = 0;
+		}
+	}
+
 
 	root = sd.open(list_files_tab[set_files]);
 	if (!root.isOpen()) 
@@ -6725,57 +6737,86 @@ void readFile()
 			return;
 		}
 
-  root.rewind();
+	root.rewind();
 	
-  File_size = root.fileSize();
+	File_size = root.fileSize();
 
-  while ((data = root.read()) >= 0)
-  {
-	  if (data =='@' ) start_pin = true;
+	while ((data = root.read()) >= 0)
+	{
+		if (data =='@' ) start_pin = true;                   // Определение включенных входов
 			if (start_pin == true && start_mod == false )
-			  {
-				 if (data =='0') 
-					 {
-						 Channel0 = true;
-						 max_pin_fcount ++;
-					 }
-				 else if (data =='1') 
-					 {
-						 Channel1 = true;
-						 max_pin_fcount ++;
-					 }
-				 else if (data =='2') 
-					 {
-						 Channel2 = true;
-						 max_pin_fcount ++;
-					 }
-				 else if (data =='3')
-					 {
-						 Channel3 = true;
-						 max_pin_fcount ++;
-					 }
-			  }
+				{
+					if (data =='0') 
+						{
+							Channel0 = true;
+							chanel_base[max_pin_fcount] = 0;
+							max_pin_fcount ++;
+						}
+					else if (data =='1') 
+						{
+							Channel1 = true;
+							chanel_base[max_pin_fcount] = 1;
+							max_pin_fcount ++;
+						}
+					else if (data =='2') 
+						{
+							Channel2 = true;
+							chanel_base[max_pin_fcount] = 2;
+							max_pin_fcount ++;
+						}
+					else if (data =='3')
+						{
+							Channel3 = true;
+							chanel_base[max_pin_fcount] = 3;
+							max_pin_fcount ++;
+						}
+				}
 
-	  if (data =='#' ) 
+		if	(pin_fcount == 0)
+
+
+		if (data =='#' ) 
 		{
 			start_mod = true;
 			start_pin = false;
-			buttons_channel();        // Отобразить кнопки переключения входов
+			buttons_channel();                             // Отобразить кнопки переключения входов
 		}
 
-	  if (start_mod == true && stop_mod == false )
-	   {
-		  data1 = root.parseInt();
-		 if (data1 != 5555)             //  Поиск окончания данных
-			 {
-				 if (pin_fcount == 0)
-				 {
-					 Serial.print("x_pos - ");
-					 Serial.print(x_pos_count);
-					 Serial.print("   ");
-				 }
-				Serial.print(data1);
-				PageSample_osc[x_pos_count][Page_count][pin_fcount] = data1;
+		if (start_mod == true && stop_mod == false )
+		{
+			data1 = root.parseInt();
+			if (data1 != 5555)                             //  Поиск окончания данных
+				{
+					if (pin_fcount == 0)                   // Начало строчки  
+					{
+						Serial.print("x_pos - ");
+						Serial.print(x_pos_count);
+						Serial.print("   ");
+					}
+
+
+     //          if(Channel0)
+					//{
+					//	PageSample_osc[x_pos_count][Page_count][0] = data1;
+					//}
+     //          if(Channel1)
+					//{
+					//	PageSample_osc[x_pos_count][Page_count][pin_fcount] = data1;
+					//}
+     //          if(Channel2)
+					//{
+
+					//}
+     //          if(Channel3)
+					//{
+
+					//}
+
+
+
+
+				PageSample_osc[x_pos_count][Page_count][chanel_base[pin_fcount]] = data1;
+				Serial.print(PageSample_osc[x_pos_count][Page_count][pin_fcount]);
 
 				pin_fcount++;
 				step_file++;
@@ -6786,30 +6827,173 @@ void readFile()
 						x_pos_count++;
 						if(x_pos_count > 239)
 							{
+								view_read_file(Page_count);
 								x_pos_count = 0;
 								Page_count++;
 								if(Page_count>9) Page_count = 0;
 								Serial.println();
 								Serial.print("Page_count - ");
 								Serial.println(Page_count);
-								// Вызвать программу отображения информации
+								// Вызвать программу отображения информации ??
 							}
+						//Вызвать программу отображения текущей информации
 					}
 				else
 					{
 						Serial.print(',');
 					}
-			 }
-		 else
+				}
+			else
 			{
 				start_mod = false;
 			}
-	   }
-   }
+		}
+	}
  
-  root.close();
+	root.close();
 }
 
+void view_read_file(int view_page)
+{
+	int xpos;
+	int ypos1;
+	int ypos2;
+	int ypos_osc1_0;
+	int ypos_osc1_1;
+	int ypos_osc1_2;
+	int ypos_osc1_3;
+	int ypos_osc2_0;
+	int ypos_osc2_1;
+	int ypos_osc2_2;
+	int ypos_osc2_3;
+
+     for (xpos = 0; xpos < 239; xpos++)
+		 {
+			if (xpos == 0)
+				{
+					myGLCD.setColor( 0, 0, 0);
+					myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
+					myGLCD.drawLine (xpos + 2, 1, xpos + 2, 220);
+				}
+
+			if (Channel0)
+					{
+						if (xpos == 0)					// определить начальную позицию по Х 
+							{
+								myGLCD.setColor( 255, 255, 255);
+
+								ypos_osc1_0 = 255-(PageSample_osc[xpos][view_page][0]/koeff_h) - hpos;
+								ypos_osc2_0 = 255-(PageSample_osc[xpos][view_page][0]/koeff_h)- hpos;
+								if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
+								if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
+								if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
+								if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
+								myGLCD.drawLine (xpos , ypos_osc1_0, xpos, ypos_osc2_0+2);
+							}
+						else
+							{
+								myGLCD.setColor( 255, 255, 255);
+								ypos_osc1_0 = 255-(PageSample_osc[xpos-1][view_page][0]/koeff_h) - hpos;
+								ypos_osc2_0 = 255-(PageSample_osc[xpos][view_page][0]/koeff_h)- hpos;
+								if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
+								if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
+								if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
+								if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
+								myGLCD.drawLine (xpos - 1, ypos_osc1_0, xpos, ypos_osc2_0+2);
+							}
+					}
+
+				if (Channel1)
+					{
+
+						if (xpos == 0)
+							{
+								myGLCD.setColor( VGA_YELLOW);
+								ypos_osc1_0 = 255-(PageSample_osc[xpos][view_page][1]/koeff_h) - hpos;
+								ypos_osc2_0 = 255-(PageSample_osc[xpos][view_page][1]/koeff_h)- hpos;
+								if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
+								if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
+								if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
+								if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
+								myGLCD.drawLine (xpos , ypos_osc1_0, xpos, ypos_osc2_0+2);
+							}
+						else
+							{
+								myGLCD.setColor( VGA_YELLOW);
+								ypos_osc1_0 = 255-(PageSample_osc[xpos-1][view_page][1]/koeff_h) - hpos;
+								ypos_osc2_0 = 255-(PageSample_osc[xpos][view_page][1]/koeff_h)- hpos;
+								if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
+								if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
+								if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
+								if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
+								myGLCD.drawLine (xpos - 1, ypos_osc1_0, xpos, ypos_osc2_0+2);
+							}
+					}
+				
+				if (Channel2)
+					{
+
+							if (xpos == 0)
+							{
+								myGLCD.setColor( VGA_RED);
+								ypos_osc1_0 = 255-(PageSample_osc[xpos][view_page][2]/koeff_h) - hpos;
+								ypos_osc2_0 = 255-(PageSample_osc[xpos][view_page][2]/koeff_h)- hpos;
+								if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
+								if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
+								if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
+								if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
+								myGLCD.drawLine (xpos , ypos_osc1_0, xpos, ypos_osc2_0+2);
+							}
+						else
+							{
+								myGLCD.setColor( VGA_RED);
+								ypos_osc1_0 = 255-(PageSample_osc[xpos-1][view_page][2]/koeff_h) - hpos;
+								ypos_osc2_0 = 255-(PageSample_osc[xpos][view_page][2]/koeff_h)- hpos;
+								if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
+								if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
+								if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
+								if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
+								myGLCD.drawLine (xpos - 1, ypos_osc1_0, xpos, ypos_osc2_0+2);
+							}
+					}
+				
+				if (Channel3)
+					{
+
+						if (xpos == 0)
+							{
+								myGLCD.setColor( VGA_BLUE);
+								ypos_osc1_0 = 255-(PageSample_osc[xpos][view_page][3]/koeff_h) - hpos;
+								ypos_osc2_0 = 255-(PageSample_osc[xpos][view_page][3]/koeff_h)- hpos;
+								if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
+								if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
+								if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
+								if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
+								myGLCD.drawLine (xpos , ypos_osc1_0, xpos, ypos_osc2_0+2);
+							}
+						else
+							{
+								myGLCD.setColor( VGA_BLUE);
+								ypos_osc1_0 = 255-(PageSample_osc[xpos-1][view_page][3]/koeff_h) - hpos;
+								ypos_osc2_0 = 255-(PageSample_osc[xpos][view_page][3]/koeff_h)- hpos;
+								if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
+								if(ypos_osc2_0 < 0) ypos_osc2_0 = 0;
+								if(ypos_osc1_0 > 220) ypos_osc1_0  = 220;
+								if(ypos_osc2_0 > 220) ypos_osc2_0 = 220;
+								myGLCD.drawLine (xpos - 1, ypos_osc1_0, xpos, ypos_osc2_0+2);
+							}
+					}
+
+
+
+
+
+		 }
+
+	while (!myTouch.dataAvailable()){}
+	delay(50);
+	while (myTouch.dataAvailable()){}
+}
 
 //------------------------------------------------------------------------------
 void setup(void) 
