@@ -183,7 +183,6 @@ void menu_ADC();
 void preob_num_str();
 void printDirectory(File dir, int numTabs);
 void view_file();
-void readCSV();
 void readFile();
 void view_read_file(int view_page);
 void setup(void);
