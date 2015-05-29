@@ -1353,56 +1353,58 @@ void adcStart() {
 
 void binaryToCsv() 
 {
-  uint8_t lastPct = 0;
-  block_t buf;
-  metadata_t* pm;
-  uint32_t t0 = millis();
-  char csvName[13];
+	uint8_t lastPct = 0;
+	block_t buf;
+	metadata_t* pm;
+	uint32_t t0 = millis();
+	char csvName[13];
  
-  if (!binFile.isOpen()) 
-  {
-	//Serial.println(F("No current binary file"));
-	myGLCD.clrScr();
-	myGLCD.setBackColor(0, 0, 0);
-	myGLCD.print("Error: ", CENTER, 80);
-	myGLCD.print("No binary file", CENTER, 120);
-	delay(2000);
-	Draw_menu_ADC1();
-	return;
-  }
-  binFile.rewind();
-  if (!binFile.read(&buf , 512) == 512) error("Read metadata failed");
-  // Create a new CSV file.
-  strcpy(csvName, binName);
-  strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("CSV"));
+	if (!binFile.isOpen()) 
+		{
+			//Serial.println(F("No current binary file"));
+			myGLCD.clrScr();
+			myGLCD.setBackColor(0, 0, 0);
+			myGLCD.print("Error: ", CENTER, 80);
+			myGLCD.print("No binary file", CENTER, 120);
+			delay(2000);
+			Draw_menu_ADC1();
+			return;
+		}
+	binFile.rewind();
+	if (!binFile.read(&buf , 512) == 512) error("Read metadata failed");
+	// Create a new CSV file.
+	strcpy(csvName, binName);
+	strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("CSV"));
 
-  if (!csvStream.fopen(csvName, "w")) 
-  {
-	error("open csvStream failed");  
-  }
-  myGLCD.setColor(255, 255, 255);
-  myGLCD.print(txt_info7,LEFT, 145);  //
-  myGLCD.setColor(VGA_YELLOW);
-  myGLCD.print(csvName,RIGHT, 145);   // 
-  myGLCD.setColor(255, 255, 255);
-  pm = (metadata_t*)&buf;
-  csvStream.print(F("Interval,"));
-  float intervalMicros = set_strob;
-  csvStream.print(intervalMicros, 4);
-  csvStream.println(F(",usec"));
-  csvStream.print(F("Step = "));
-  csvStream.print(v_const, 8);
-  csvStream.println(F(" volt"));
-   csvStream.print(F("Data : "));
-   rtc_clock.get_time(&hh,&mm,&ss);
-   rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
-   dow1=dow;
-   sec = ss;       //Initialization time
-   min = mm;
-   hour = hh;
-   date = dd;
-   mon1 = mon;
-   year = yyyy;
+	if (!csvStream.fopen(csvName, "w")) 
+		{
+			error("open csvStream failed");  
+		}
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.print(txt_info7,LEFT, 145);  //
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.print(csvName,RIGHT, 145);   // 
+	myGLCD.setColor(255, 255, 255);
+	pm = (metadata_t*)&buf;
+	csvStream.print(F("File - "));
+	csvStream.println(F(csvName));
+	csvStream.print(F("Interval - "));
+	float intervalMicros = set_strob;
+	csvStream.print(intervalMicros, 4);
+	csvStream.println(F(",usec"));
+	csvStream.print(F("Step = "));
+	csvStream.print(v_const, 8);
+	csvStream.println(F(" volt"));
+	csvStream.print(F("Data : "));
+	rtc_clock.get_time(&hh,&mm,&ss);
+	rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
+	dow1=dow;
+	sec = ss;       //Initialization time
+	min = mm;
+	hour = hh;
+	date = dd;
+	mon1 = mon;
+	year = yyyy;
 
 	csvStream.print(date);
 	csvStream.print(F("/"));
@@ -1418,18 +1420,19 @@ void binaryToCsv()
 	csvStream.print(sec);
 	csvStream.println(); 
 	csvStream.print(F("@"));                  // Признак начала определения количества входов  
-  for (uint8_t i = 0; i < pm->pinCount; i++) 
-  {
-	if (i) csvStream.putc(',');
-	csvStream.print(F("pin "));
-	csvStream.print(pm->pinNumber[i]);
-  }
+	for (uint8_t i = 0; i < pm->pinCount; i++) 
+		{
+			if (i) csvStream.putc(',');
+			csvStream.print(F("pin "));
+			csvStream.print(pm->pinNumber[i]);
+		}
 	csvStream.println(); 
 	csvStream.println('#');                  // Признак начала данных
 	myGLCD.setColor(255, 255, 255);
 	myGLCD.print("Converting:",2, 165);      //
  
-  uint32_t tPct = millis();
+	uint32_t tPct = millis();
+
   while (!Serial.available() && binFile.read(&buf, 512) == 512) 
   {
 	uint16_t i;
@@ -1463,7 +1466,7 @@ void binaryToCsv()
 	}
 	if (myTouch.dataAvailable()) break;
   }
-	//csvStream.println(); 
+
 	csvStream.println();                       // Признак  5555 окончания данных в файле
 	csvStream.print('5');                      // Признак  5555 окончания данных в файле
 	csvStream.print('5');                      // Признак  5555 окончания данных в файле
@@ -1471,15 +1474,15 @@ void binaryToCsv()
 	csvStream.print('5');                      // Признак  5555 окончания данных в файле
 	csvStream.println(); 
 	csvStream.print("Time measure = ");
-   rtc_clock.get_time(&hh,&mm,&ss);
-   rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
-   dow1=dow;
-   sec = ss;       //Initialization time
-   min = mm;
-   hour = hh;
-   date = dd;
-   mon1 = mon;
-   year = yyyy;
+	rtc_clock.get_time(&hh,&mm,&ss);
+	rtc_clock.get_date(&dow,&dd,&mon,&yyyy);
+	dow1=dow;
+	sec = ss;       //Initialization time
+	min = mm;
+	hour = hh;
+	date = dd;
+	mon1 = mon;
+	year = yyyy;
 
 	csvStream.print(date);
 	csvStream.print(F("/"));
@@ -1496,7 +1499,7 @@ void binaryToCsv()
 	csvStream.println(); 
 
 	csvStream.fclose();  
-//	binFile.remove();
+	//	binFile.remove();
 	myGLCD.setColor(255, 255, 255);
 	myGLCD.print(txt_info9,2, 185);   
 	myGLCD.setColor(VGA_YELLOW);   //
@@ -1894,7 +1897,7 @@ void logData()
 						} 
 					}
 
-				else if ((x_osc>=40) && (x_osc<=200))        //  Выход из ожидания, Старт
+				if ((x_osc>=40) && (x_osc<=200))        //  Выход из ожидания, Старт
 					{
 						if ((y_osc>=40) && (y_osc<=120))  //
 						{
@@ -1904,7 +1907,7 @@ void logData()
 					}
 
 
-				else if ((x_osc>=250) && (x_osc<=284))  // Боковые кнопки
+			if ((x_osc>=250) && (x_osc<=284))  // Боковые кнопки
 				  {
 				 
 					  if ((y_osc>=1) && (y_osc<=40))  // Первая  период -
@@ -1923,7 +1926,7 @@ void logData()
 					  }
 
 					}
-			else if ((x_osc>=284) && (x_osc<=318))  // Боковые кнопки
+			if ((x_osc>=284) && (x_osc<=318))  // Боковые кнопки
 				  {
 					  if ((y_osc>=1) && (y_osc<=40))  // Первая  период  +
 					  {
@@ -1940,7 +1943,7 @@ void logData()
 					  }
 				 }
 
-			else if ((y_osc>=205) && (y_osc<=239))  // Нижние кнопки переключения входов
+			if ((y_osc>=205) && (y_osc<=239))  // Нижние кнопки переключения входов
 					{
 						 touch_osc();
 					}
@@ -4826,61 +4829,61 @@ void oscilloscope_file()  // Пишет в файл
 	myGLCD.setBackColor( 0, 0, 0);
 	preob_num_str();
    // Create a new CSV file.
- if (BASE_NAME_SIZE > 6) 
-	  {
-		error("FILE_BASE_NAME too long");
-	  }
-  while (sd.exists(timeName)) 
-	  {
+	if (BASE_NAME_SIZE > 6) 
+		{
+			error("FILE_BASE_NAME too long");
+		}
+	while (sd.exists(timeName)) 
+		{
 		if (timeName[BASE_NAME_SIZE + 1] != '9') 
 			{
-			  timeName[BASE_NAME_SIZE + 1]++;
+				timeName[BASE_NAME_SIZE + 1]++;
 			}
 		else 
 			{
-			  timeName[BASE_NAME_SIZE + 1] = '0';
-			  if (timeName[BASE_NAME_SIZE] == '9') 
-			  {
-				error("Can't create file name");
-			  }
-			  timeName[BASE_NAME_SIZE]++;
+				timeName[BASE_NAME_SIZE + 1] = '0';
+				if (timeName[BASE_NAME_SIZE] == '9') 
+					{
+						error("Can't create file name");
+					}
+				timeName[BASE_NAME_SIZE]++;
 			}
-	  }
+		}
   // Delete old tmp file.
-  if (sd.exists(TMP_FILE_NAME)) 
-	  {
+	if (sd.exists(TMP_FILE_NAME)) 
+		{
 		myGLCD.print(txt_info13,LEFT, 135);              //
 		if (!sd.remove(TMP_FILE_NAME)) 
 			{
-			  error("Can't remove tmp file");
+				error("Can't remove tmp file");
 			}
-	  }
-  myGLCD.print(txt_info27,10, 40);//
-  strcpy(csvName, timeName);
-  strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("TXT"));
- // strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("CSV"));
+		}
+	myGLCD.print(txt_info27,10, 40);//
+	strcpy(csvName, timeName);
+	strcpy_P(&csvName[BASE_NAME_SIZE + 3], PSTR("TXT"));
 
-  if (!csvStream.fopen(csvName, "w")) 
-  {
-	error("open csvStream failed");  
-  }
-  Serial.println();
-  Serial.print(F("Writing: "));
-  Serial.print(csvName);
-  Serial.println(F(" - type any character to stop"));
-  myGLCD.setFont(BigFont);
-  myGLCD.print(txt_info7,10, 60);//
-  myGLCD.setColor(VGA_YELLOW);
-  myGLCD.print(csvName,RIGHT, 60);// 
-  strcpy(csvNameTmp, csvName);
-  myGLCD.setColor(255, 255, 255);
-  delay(2000);
-  myGLCD.clrScr();
-  csvStream.print(F("Interval = "));
-  if (mode == 0) csvStream.println(F("1 min."));
-  if (mode == 1) csvStream.println(F("6 min."));
-  if (mode == 2) csvStream.println(F("12 min."));
-  if (mode == 3) csvStream.println(F("18 min."));
+	if (!csvStream.fopen(csvName, "w")) 
+		{
+			error("open csvStream failed");  
+		}
+ 
+	myGLCD.setFont(BigFont);
+	myGLCD.print(txt_info7,10, 60);//
+	myGLCD.setColor(VGA_YELLOW);
+	myGLCD.print(csvName,RIGHT, 60);// 
+	strcpy(csvNameTmp, csvName);
+	myGLCD.setColor(255, 255, 255);
+	delay(2000);
+	myGLCD.clrScr();
+	csvStream.print(F("File - "));
+	csvStream.println(F(csvName));
+	csvStream.print(F("Interval - "));
+	if (mode == 0) csvStream.print("1");
+	if (mode == 1) csvStream.print("6");
+	if (mode == 2) csvStream.print("12");
+	if (mode == 3) csvStream.print("18");
+
+	csvStream.println(F(" min"));
 
 	csvStream.print(F("Step = "));
 	csvStream.print(v_const, 8);
@@ -4912,16 +4915,18 @@ void oscilloscope_file()  // Пишет в файл
 
 	adcInit((metadata_t*) &block[0]);            // Получение данных об используемых входах
 	pm = (metadata_t*)&block;                    // Получение данных об используемых входах
-
-  for (uint8_t i = 0; i < pm->pinCount; i++)     // Запись входов в файл
-  {
-	if (i) csvStream.putc(',');
-	csvStream.print(F("pin "));
-	csvStream.print(pm->pinNumber[i]);
-  }
-
-  csvStream.println(); 
-  uint32_t tPct = millis();
+	csvStream.println(); 
+	csvStream.print(F("@"));   
+	for (uint8_t i = 0; i < pm->pinCount; i++)     // Запись входов в файл
+		{
+			if (i) csvStream.putc(',');
+			csvStream.print(F("pin "));
+			csvStream.print(pm->pinNumber[i]);
+		}
+	csvStream.println(); 
+	csvStream.println('#');       
+	csvStream.println(); 
+	uint32_t tPct = millis();
 
 
 	// +++++++++++++++++   Начало измерений ++++++++++++++++++++++++
@@ -5360,6 +5365,12 @@ void oscilloscope_file()  // Пишет в файл
 
 	} while (repeat);
 
+	csvStream.println();                       // Признак  5555 окончания данных в файле
+	csvStream.print('5');                      // Признак  5555 окончания данных в файле
+	csvStream.print('5');                      // Признак  5555 окончания данных в файле
+	csvStream.print('5');                      // Признак  5555 окончания данных в файле
+	csvStream.print('5');                      // Признак  5555 окончания данных в файле
+	csvStream.println(); 
 	myGLCD.setFont( BigFont);
 	myGLCD.setColor(VGA_YELLOW);
 	myGLCD.setBackColor(0, 0, 0);
@@ -5882,9 +5893,10 @@ void touch_osc()  //  Нижнее меню осциллографа
 	x_osc=myTouch.getX();
 	y_osc=myTouch.getY();
 	myGLCD.setFont( SmallFont);
-	if ((y_osc>=210) && (y_osc<=239))  //   Нижние кнопки
-	{
-		if ((x_osc>=10) && (x_osc<=60))  //  Вход 0
+
+	if ((y_osc>=210) && (y_osc<=239))                         //   Нижние кнопки
+      {
+		if ((x_osc>=10) && (x_osc<=60))                       //  Вход 0
 			{
 				waitForIt(10, 210, 60, 239);
 
@@ -5917,10 +5929,9 @@ void touch_osc()  //  Нижнее меню осциллографа
 				chench_Channel();
 				MinAnalog0 = 4095;
 				MaxAnalog0 = 0;
-			//	print_set();
 			}
 
-		if ((x_osc>=70) && (x_osc<=120))  //  Вход 1
+		else if ((x_osc>=70) && (x_osc<=120))                    //  Вход 1
 			{
 
 				waitForIt(70, 210, 120, 239);
@@ -5954,9 +5965,8 @@ void touch_osc()  //  Нижнее меню осциллографа
 				chench_Channel();
 				MinAnalog1 = 4095;
 				MaxAnalog1 = 0;
-			//	print_set();
 			}
-		if ((x_osc>=130) && (x_osc<=180))  //  Delay Button
+		else if ((x_osc>=130) && (x_osc<=180))                    //  Вход 2
 			{
 				waitForIt(130, 210, 180, 239);
 
@@ -5988,9 +5998,8 @@ void touch_osc()  //  Нижнее меню осциллографа
 				chench_Channel();
 				MinAnalog2 = 4095;
 				MaxAnalog2 = 0;
-			//	print_set();
 			}
-		if ((x_osc>=190) && (x_osc<=240))  //  Delay Button
+		else if ((x_osc>=190) && (x_osc<=240))                     //  Вход 3
 			{
 				waitForIt(190, 210, 240, 239);
 
@@ -6023,9 +6032,8 @@ void touch_osc()  //  Нижнее меню осциллографа
 				chench_Channel();
 				MinAnalog3 = 4095;
 				MaxAnalog3 = 0;
-			//	print_set();
 			}
-		}
+	}
 }
 
 void switch_trig(int trig_x)
