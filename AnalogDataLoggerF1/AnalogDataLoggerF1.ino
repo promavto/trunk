@@ -4713,7 +4713,7 @@ void oscilloscope_file()  // Пишет в файл
 					if (mode1 == 1){ koeff_h = 3.879*4; myGLCD.print("0.5 ", 275, 110);}
 					if (mode1 == 2){ koeff_h = 1.939*4; myGLCD.print("0.25", 275, 110);}
 					if (mode1 == 3){ koeff_h = 0.969*4; myGLCD.print("0.1 ", 275, 110);}
-				    DrawGrid();
+					DrawGrid();
 
 				 }
 		   }
@@ -4848,7 +4848,7 @@ void oscilloscope_file()  // Пишет в файл
 				timeName[BASE_NAME_SIZE]++;
 			}
 		}
-    // Delete old tmp file.
+	// Delete old tmp file.
 	if (sd.exists(TMP_FILE_NAME)) 
 		{
 		myGLCD.print(txt_info13,LEFT, 135);              //
@@ -5894,7 +5894,7 @@ void touch_osc()  //  Нижнее меню осциллографа
 	myGLCD.setFont( SmallFont);
 
 	if ((y_osc>=210) && (y_osc<=239))                         //   Нижние кнопки
-      {
+	  {
 		if ((x_osc>=10) && (x_osc<=60))                       //  Вход 0
 			{
 				waitForIt(10, 210, 60, 239);
@@ -6787,60 +6787,32 @@ void readFile()
 			data1 = root.parseInt();
 			if (data1 != 5555)                             //  Поиск окончания данных
 				{
-					if (pin_fcount == 0)                   // Начало строчки  
-					{
-						Serial.print("x_pos - ");
-						Serial.print(x_pos_count);
-						Serial.print("   ");
-					}
 
-
-     //          if(Channel0)
-					//{
-					//	PageSample_osc[x_pos_count][Page_count][0] = data1;
-					//}
-     //          if(Channel1)
-					//{
-					//	PageSample_osc[x_pos_count][Page_count][pin_fcount] = data1;
-					//}
-     //          if(Channel2)
-					//{
-
-					//}
-     //          if(Channel3)
-					//{
-
-					//}
-
-
-
-
-				PageSample_osc[x_pos_count][Page_count][chanel_base[pin_fcount]] = data1;
-				Serial.print(PageSample_osc[x_pos_count][Page_count][pin_fcount]);
+				PageSample_osc[x_pos_count][Page_count][chanel_base[pin_fcount]] = data1;   // Записать данные в буфер страниц
 
 				pin_fcount++;
 				step_file++;
 				if (pin_fcount>max_pin_fcount-1)
 					{
 						pin_fcount=0;
-						Serial.println();
 						x_pos_count++;
 						if(x_pos_count > 239)
 							{
-								view_read_file(Page_count);
+								myGLCD.setColor(0, 0, 0);
+								myGLCD.fillRoundRect (1, 1,239, 159);
+								DrawGrid1();
+								myGLCD.setFont(BigFont);
+								myGLCD.setBackColor(0, 0, 0);
+								myGLCD.setColor( 255, 255, 255);
+								myGLCD.printNumI(Page_count, 250, 180);
+								view_read_file(Page_count);    // Вызвать программу отображения информации ??
 								x_pos_count = 0;
 								Page_count++;
-								if(Page_count>9) Page_count = 0;
-								Serial.println();
-								Serial.print("Page_count - ");
-								Serial.println(Page_count);
-								// Вызвать программу отображения информации ??
+								if(Page_count>9) Page_count = 0;  // Не больше 10 страниц
+
+
+
 							}
-						//Вызвать программу отображения текущей информации
-					}
-				else
-					{
-						Serial.print(',');
 					}
 				}
 			else
@@ -6867,7 +6839,7 @@ void view_read_file(int view_page)
 	int ypos_osc2_2;
 	int ypos_osc2_3;
 
-     for (xpos = 0; xpos < 239; xpos++)
+	 for (xpos = 0; xpos < 239; xpos++)
 		 {
 			if (xpos == 0)
 				{
@@ -6881,7 +6853,6 @@ void view_read_file(int view_page)
 						if (xpos == 0)					// определить начальную позицию по Х 
 							{
 								myGLCD.setColor( 255, 255, 255);
-
 								ypos_osc1_0 = 255-(PageSample_osc[xpos][view_page][0]/koeff_h) - hpos;
 								ypos_osc2_0 = 255-(PageSample_osc[xpos][view_page][0]/koeff_h)- hpos;
 								if(ypos_osc1_0 < 0) ypos_osc1_0 = 0;
@@ -6983,16 +6954,11 @@ void view_read_file(int view_page)
 								myGLCD.drawLine (xpos - 1, ypos_osc1_0, xpos, ypos_osc2_0+2);
 							}
 					}
-
-
-
-
-
 		 }
-
-	while (!myTouch.dataAvailable()){}
-	delay(50);
-	while (myTouch.dataAvailable()){}
+		 delay(100);
+	//while (!myTouch.dataAvailable()){}
+	//delay(50);
+	//while (myTouch.dataAvailable()){}
 }
 
 //------------------------------------------------------------------------------
