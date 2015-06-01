@@ -3959,54 +3959,54 @@ void oscilloscope_time()   // В файл не пишет
 			  {
 				 
 				  if ((y_osc>=1) && (y_osc<=40))  // Первая  период -
-				  {
-					waitForIt(250, 1, 318, 40);
-					mode -- ;
-					if (mode < 0) mode = 0;   
-					if (mode == 0) {SAMPLE_INTERVAL_MS = 250;}
-					if (mode == 1) {SAMPLE_INTERVAL_MS = 1500;}
-					if (mode == 2) {SAMPLE_INTERVAL_MS = 3000;}
-					if (mode == 3) {SAMPLE_INTERVAL_MS = 4500;}
-					scale_time();
-				  }
+					  {
+						waitForIt(250, 1, 318, 40);
+						mode -- ;
+						if (mode < 0) mode = 0;   
+						if (mode == 0) {SAMPLE_INTERVAL_MS = 250;}
+						if (mode == 1) {SAMPLE_INTERVAL_MS = 1500;}
+						if (mode == 2) {SAMPLE_INTERVAL_MS = 3000;}
+						if (mode == 3) {SAMPLE_INTERVAL_MS = 4500;}
+						scale_time();
+					  }
 
-			 if ((y_osc>=45) && (y_osc<=85))  // Вторая - усреднение показаний
-				 {
-					waitForIt(250, 45, 318, 85);
-					if(Set_x == true) 
-						{
-							 Set_x = false;
-							 myGLCD.print("     ", 265, 65);
-						}
-						else
-						{
-							Set_x = true;
-							myGLCD.print(" /x  ", 265, 65);
-						}
-				 }
-			 if ((y_osc>=90) && (y_osc<=130))  // Третья - делитель
-				 {
-					waitForIt(250, 90, 318, 130);
-					mode1 -- ;
-					myGLCD.setColor( 0, 0, 0);
-					myGLCD.fillRoundRect (1, 1,239, 159);
-					myGLCD.setColor(VGA_LIME);
-					myGLCD.fillRoundRect (1, 1, 60, 35);
-					myGLCD.setColor (255, 0, 0);
-					myGLCD.setBackColor(VGA_LIME);
-					myGLCD.setFont(BigFont);
-					myGLCD.print("ESC", 6, 9);
-					myGLCD.setColor (255, 255, 255);
-					myGLCD.setBackColor( 0, 0, 255);
-					myGLCD.setFont( SmallFont);
-					if (mode1 < 0) mode1 = 0;   
-					if (mode1 == 0){ koeff_h = 7.759*4; myGLCD.print(" 1  ", 275, 110);}
-					if (mode1 == 1){ koeff_h = 3.879*4; myGLCD.print("0.5 ", 275, 110);}
-					if (mode1 == 2){ koeff_h = 1.939*4; myGLCD.print("0.25", 275, 110);}
-					if (mode1 == 3){ koeff_h = 0.969*4; myGLCD.print("0.1 ", 275, 110);}
-				DrawGrid();
+				 if ((y_osc>=45) && (y_osc<=85))  // Вторая - усреднение показаний
+					 {
+						waitForIt(250, 45, 318, 85);
+						if(Set_x == true) 
+							{
+								 Set_x = false;
+								 myGLCD.print("     ", 265, 65);
+							}
+							else
+							{
+								Set_x = true;
+								myGLCD.print(" /x  ", 265, 65);
+							}
+					 }
+				 if ((y_osc>=90) && (y_osc<=130))  // Третья - делитель
+					 {
+						waitForIt(250, 90, 318, 130);
+						mode1 -- ;
+						myGLCD.setColor( 0, 0, 0);
+						myGLCD.fillRoundRect (1, 1,239, 159);
+						myGLCD.setColor(VGA_LIME);
+						myGLCD.fillRoundRect (1, 1, 60, 35);
+						myGLCD.setColor (255, 0, 0);
+						myGLCD.setBackColor(VGA_LIME);
+						myGLCD.setFont(BigFont);
+						myGLCD.print("ESC", 6, 9);
+						myGLCD.setColor (255, 255, 255);
+						myGLCD.setBackColor( 0, 0, 255);
+						myGLCD.setFont( SmallFont);
+						if (mode1 < 0) mode1 = 0;   
+						if (mode1 == 0){ koeff_h = 7.759*4; myGLCD.print(" 1  ", 275, 110);}
+						if (mode1 == 1){ koeff_h = 3.879*4; myGLCD.print("0.5 ", 275, 110);}
+						if (mode1 == 2){ koeff_h = 1.939*4; myGLCD.print("0.25", 275, 110);}
+						if (mode1 == 3){ koeff_h = 0.969*4; myGLCD.print("0.1 ", 275, 110);}
+					DrawGrid();
 
-				 }
+					 }
 		
 		   }
 				
@@ -6733,6 +6733,7 @@ void readFile()
 	bool start_pin = false;
 	bool start_mod = false;
 	bool stop_mod = false;
+	bool stop_view = true;
 	uint32_t  File_size;
 	Page_count = 0;
 	x_pos_count = 0;
@@ -6744,15 +6745,15 @@ void readFile()
 	char chanel_base[4];
 
 	for (int p = 0; p < 9; p++)
-	{
-		for (int x =0; x < 9; x++)
 		{
-			PageSample_osc[x_pos_count][Page_count][0] = 0;
-			PageSample_osc[x_pos_count][Page_count][1] = 0;
-			PageSample_osc[x_pos_count][Page_count][2] = 0;
-			PageSample_osc[x_pos_count][Page_count][3] = 0;
+			for (int x =0; x < 9; x++)
+			{
+				PageSample_osc[x_pos_count][Page_count][0] = 0;
+				PageSample_osc[x_pos_count][Page_count][1] = 0;
+				PageSample_osc[x_pos_count][Page_count][2] = 0;
+				PageSample_osc[x_pos_count][Page_count][3] = 0;
+			}
 		}
-	}
 
 
 	root = sd.open(list_files_tab[set_files]);
@@ -6761,6 +6762,13 @@ void readFile()
 			Serial.println(F("No current root file"));
 			return;
 		}
+	myGLCD.setFont(BigFont);
+	myGLCD.print("ESC", 260 , 13);
+	myGLCD.print("<=", 265 , 56);
+	myGLCD.print("\x89\x8A""CK", 253 , 102);
+	myGLCD.print("=>", 268 , 147);
+	myGLCD.print("CTO\x89", 253 , 211);
+
 
 	root.rewind();
 	
@@ -6797,54 +6805,109 @@ void readFile()
 						}
 				}
 
-		if	(pin_fcount == 0)
+	//	if	(pin_fcount == 0)
 
 
 		if (data =='#' ) 
-		{
-			start_mod = true;
-			start_pin = false;
-			buttons_channel();                             // Отобразить кнопки переключения входов
-		}
+			{
+				start_mod = true;
+				start_pin = false;
+				buttons_channel();                             // Отобразить кнопки переключения входов
+			}
 
 		if (start_mod == true && stop_mod == false )
-		{
-			data1 = root.parseInt();
-			if (data1 != 5555)                             //  Поиск окончания данных
-				{
-
-				PageSample_osc[x_pos_count][Page_count][chanel_base[pin_fcount]] = data1;   // Записать данные в буфер страниц
-
-				pin_fcount++;
-				step_file++;
-				if (pin_fcount>max_pin_fcount-1)
-					{
-						pin_fcount=0;
-						x_pos_count++;
-						if(x_pos_count > 239)
-							{
-								myGLCD.setColor(0, 0, 0);
-								myGLCD.fillRoundRect (1, 1,239, 159);
-								DrawGrid1();
-								myGLCD.setFont(BigFont);
-								myGLCD.setBackColor(0, 0, 0);
-								myGLCD.setColor( 255, 255, 255);
-								myGLCD.printNumI(Page_count, 250, 180);
-								view_read_file(Page_count);    // Вызвать программу отображения информации ??
-								x_pos_count = 0;
-								Page_count++;
-								if(Page_count>9) Page_count = 0;  // Не больше 10 страниц
-
-
-
-							}
-					}
-				}
-			else
 			{
-				start_mod = false;
+				data1 = root.parseInt();
+				if (data1 != 5555)                             //  Поиск окончания данных
+					{
+						PageSample_osc[x_pos_count][Page_count][chanel_base[pin_fcount]] = data1;   // Записать данные в буфер страниц
+
+						pin_fcount++;
+						step_file++;
+						if (pin_fcount>max_pin_fcount-1)
+							{
+								pin_fcount=0;
+								x_pos_count++;
+								if(x_pos_count > 239)
+									{
+									  if (stop_view == true)
+										{
+											myGLCD.setColor(0, 0, 0);
+											myGLCD.fillRoundRect (1, 1,239, 159);
+											DrawGrid1();
+											myGLCD.setFont(BigFont);
+											myGLCD.setBackColor(0, 0, 0);
+											myGLCD.setColor( 255, 255, 255);
+											myGLCD.printNumI(Page_count, 250, 180);
+
+									//if (stop_view == true)
+									//	{
+
+											view_read_file(Page_count);                    // Вызвать программу отображения информации ??
+									    }
+									x_pos_count = 0;
+									Page_count++;
+									if(Page_count>9) Page_count = 0;              // Не больше 10 страниц
+										//}
+						    		}
+
+								if (myTouch.dataAvailable())
+									{
+										delay(10);
+										myTouch.read();
+										x_osc=myTouch.getX();
+										y_osc=myTouch.getY();
+									if ((x_osc>=250) && (x_osc<=318))  // Боковые кнопки
+										{
+				 
+										if ((y_osc>=1) && (y_osc<=40))  // Первая  "Выход"
+											{
+												waitForIt(250, 1, 318, 40);
+												break;
+											}
+										if ((y_osc>=45) && (y_osc<=85))  // Вторая - "<="
+											{
+												waitForIt(250, 45, 318, 85);
+												Page_count--;
+												myGLCD.printNumI(Page_count, 250, 180);
+											}
+										if ((y_osc>=90) && (y_osc<=130))  // Третья - "Пуск"
+											{
+												waitForIt(250, 90, 318, 130);
+												stop_view = true;
+
+											}
+										if ((y_osc>=135) && (y_osc<=175))  // Четвертая "=>"
+												{
+													waitForIt(250, 135, 318, 175);
+													Page_count++;
+													myGLCD.printNumI(Page_count, 250, 180);
+												}
+
+
+										if ((y_osc>=200) && (y_osc<=239))  //   Нижние кнопки  "Стоп"
+											{
+												waitForIt(250, 200, 318, 238);
+												stop_view = false;
+											}
+
+										}			
+	
+											//delay(20);
+											//while (myTouch.dataAvailable()){stop_view = true; }
+											////stop_view = !stop_view;
+											//myGLCD.printNumI(stop_view, 25, 180);
+											//while (!myTouch.dataAvailable()){stop_view = false; }
+											myGLCD.printNumI(stop_view, 25, 180);
+									}
+								// }
+						}
+					}
+					else
+					{
+						start_mod = false;
+					}
 			}
-		}
 	}
  
 	root.close();
