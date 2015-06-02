@@ -162,6 +162,7 @@ int ret                = 0;                // Признак прерывания операции
 	int Sample_osc[254][4];
 	int OldSample_osc[254][4];
 	int PageSample_osc[240][10][4];
+	unsigned long PageSample_Num[10];
 	int Page_count = 0;
 	int x_pos_count = 0;
 	int YSample_osc[254][4];
@@ -6734,7 +6735,7 @@ void readFile()
 	bool start_mod = false;      //
 	bool stop_mod = false;       //
 	bool stop_view = true;       //
-
+	bool stop_return = false;    // Признак завершения программы
 	uint32_t  File_size;         // переменная хранения размера файла (пока не применяется)
 	Page_count = 0;              // Счетчик страниц (по 240 точек)
 	int Page_count_temp = 0;     // Счетчик страниц (по 240 точек) (Временный)
@@ -6746,15 +6747,17 @@ void readFile()
 	DrawGrid();                  // Отобразить сетку
 	char chanel_base[4];         // База для хранения применяемых входов
 
-	for (int p = 0; p < 9; p++)  // Очистить память хранения страниц 
+	for (int p = 0; p < 10; p++)  // Очистить память хранения страниц 
 		{
-			for (int x =0; x < 9; x++)
+			for (int x = 0; x < 240; x++)
 			{
-				PageSample_osc[x_pos_count][Page_count][0] = 0;
-				PageSample_osc[x_pos_count][Page_count][1] = 0;
-				PageSample_osc[x_pos_count][Page_count][2] = 0;
-				PageSample_osc[x_pos_count][Page_count][3] = 0;
+				PageSample_osc[x][p][0] = 0;
+				PageSample_osc[x][p][1] = 0;
+				PageSample_osc[x][p][2] = 0;
+				PageSample_osc[x][p][3] = 0;
 			}
+
+			PageSample_Num[p] = 0;
 		}
 
 
@@ -6777,134 +6780,147 @@ void readFile()
 	File_size = root.fileSize();               // Получить размер файла 
 
 	while ((data = root.read()) >= 0)
-	{
-		if (data =='@' ) start_pin = true;                   // Определение включенных входов
-			if (start_pin == true && start_mod == false )    // Начало измерения по символу @
-				{                                            // Номера входов записываются в chanel_base[]
-					if (data =='0')                          // По окончании работы программы  max_pin_fcount содержит количество входов
-						{                                    // По окончании работы программы в chanel_base[] прописаны применяемые входа
-							Channel0 = true;
-							chanel_base[max_pin_fcount] = 0;
-							max_pin_fcount ++;
-						}
-					else if (data =='1') 
-						{
-							Channel1 = true;
-							chanel_base[max_pin_fcount] = 1;
-							max_pin_fcount ++;
-						}
-					else if (data =='2') 
-						{
-							Channel2 = true;
-							chanel_base[max_pin_fcount] = 2;
-							max_pin_fcount ++;
-						}
-					else if (data =='3')
-						{
-							Channel3 = true;
-							chanel_base[max_pin_fcount] = 3;
-							max_pin_fcount ++;
-						}
-				}
-
-		if (data =='#' ) 
-			{
-				start_mod = true;                              // Разрешить получение цыфровых данных из файла
-				start_pin = false;                             // Запретить определение используемых входов 
-				buttons_channel();                             // Отобразить кнопки переключения входов
-			}
-
-
-		if (start_mod == true && stop_mod == false )           // Получение разрешено, признак окончания не обнаружен   
-			{
-				data1 = root.parseInt();                       // Получить цыфровые данные 
-				if (data1 != 5555)                             //  Поиск окончания данных, признак окончания данных (5555) не обнаружен
-					{
-						PageSample_osc[x_pos_count][Page_count][chanel_base[pin_fcount]] = data1;   // Записать данные в буфер страниц (один канал)
-						pin_fcount++;                          // Переключить на следующий канал
-				//		step_file++;                           // Не используется
-						if (pin_fcount>max_pin_fcount-1)       // Проверка на достижение последнего канала
+		{
+    		if (data =='@' ) start_pin = true;                   // Определение включенных входов
+				if (start_pin == true && start_mod == false )    // Начало измерения по символу @
+					{                                            // Номера входов записываются в chanel_base[]
+						if (data =='0')                          // По окончании работы программы  max_pin_fcount содержит количество входов
+							{                                    // По окончании работы программы в chanel_base[] прописаны применяемые входа
+								Channel0 = true;
+								chanel_base[max_pin_fcount] = 0;
+								max_pin_fcount ++;
+							}
+						else if (data =='1') 
 							{
-								pin_fcount=0;                  // Установить  в начало первый по очереди канал
-								x_pos_count++;                 // Установить следующую позицию по оси Х
-
-								if(x_pos_count > 239)          // Достигнута последняя позиция, Все данные записаны, Можно отобразить страницу
-									{
-
-                                     do {
-										if (myTouch.dataAvailable())  // Проверить нажатие клавиши
-											{
-												delay(10);
-												myTouch.read();
-												x_osc=myTouch.getX();
-												y_osc=myTouch.getY();
-											if ((x_osc>=250) && (x_osc<=318))                    // Боковые кнопки
-												{
-													if ((y_osc>=1) && (y_osc<=40))               // Первая  "Выход"
-														{
-															waitForIt(250, 1, 318, 40);
-															//return;
-														}
-													if ((y_osc>=45) && (y_osc<=85))              // Вторая - "<="
-														{
-															waitForIt(250, 45, 318, 85);
-															Page_count_temp--;
-
-															if (Page_count_temp < 0) Page_count_temp = 9;
-															myGLCD.printNumI(Page_count_temp, 250, 180);
-															view_read_file(Page_count_temp);             // Вызвать программу отображения информации ??
-														}
-													if ((y_osc>=90) && (y_osc<=130))            // Третья - "Пуск"
-														{
-															waitForIt(250, 90, 318, 130);
-															stop_view = true;
-														}
-													if ((y_osc>=135) && (y_osc<=175))           // Четвертая "=>"
-														{
-															waitForIt(250, 135, 318, 175);
-															Page_count_temp++;
-															if (Page_count_temp > 9) Page_count_temp = 0;
-															myGLCD.printNumI(Page_count_temp, 250, 180);
-															view_read_file(Page_count_temp);             // Вызвать программу отображения информации ??
-														}
-
-
-													if ((y_osc>=200) && (y_osc<=239))          //   Нижние кнопки  "Стоп"
-														{
-															waitForIt(250, 200, 318, 238);
-															stop_view = false;
-														}
-
-												}			
-	
-											}
-
-									  } while (!stop_view);
-
-									  
-									  if (stop_view == true)   // Если просмотр разрешен, начать росмотр страницы
-											{
-												myGLCD.setFont(BigFont);
-												myGLCD.setBackColor(0, 0, 0);
-												myGLCD.setColor( 255, 255, 255);
-												myGLCD.printNumI(Page_count, 250, 180);
-												view_read_file(Page_count);             // Вызвать программу отображения информации ??
-											}
-						    
-										Page_count++;                                   // Установить следующую страницу
-										Page_count_temp = Page_count;                   //
-										if(Page_count>9) Page_count = 0;                // Не больше 10 страниц
-						    		}
-
+								Channel1 = true;
+								chanel_base[max_pin_fcount] = 1;
+								max_pin_fcount ++;
+							}
+						else if (data =='2') 
+							{
+								Channel2 = true;
+								chanel_base[max_pin_fcount] = 2;
+								max_pin_fcount ++;
+							}
+						else if (data =='3')
+							{
+								Channel3 = true;
+								chanel_base[max_pin_fcount] = 3;
+								max_pin_fcount ++;
 							}
 					}
 
-				else
-					{
-						start_mod = false;
-					}
-			}
-	}
+			if (data =='#' ) 
+				{
+					start_mod = true;                              // Разрешить получение цыфровых данных из файла
+					start_pin = false;                             // Запретить определение используемых входов 
+					buttons_channel();                             // Отобразить кнопки переключения входов
+				}
+
+		 	if (stop_return == true) break;
+			if (start_mod == true && stop_mod == false )           // Получение разрешено, признак окончания не обнаружен   
+				{
+				   data1 = root.parseInt();                       // Получить цыфровые данные 
+					if (data1 != 5555)                             //  Поиск окончания данных, признак окончания данных (5555) не обнаружен
+						{
+							PageSample_osc[x_pos_count][Page_count][chanel_base[pin_fcount]] = data1;   // Записать данные в буфер страниц (один канал)
+
+							pin_fcount++;                          // Переключить на следующий канал
+							if (pin_fcount>max_pin_fcount-1)       // Проверка на достижение последнего канала
+								{
+									pin_fcount=0;                  // Установить  в начало первый по очереди канал
+									x_pos_count++;                 // Установить следующую позицию по оси Х
+									PageSample_Num[Page_count] = step_file;  // Координаты страницы в файле
+									step_file++;     
+									if(x_pos_count > 239)          // Достигнута последняя позиция, Все данные записаны, Можно отобразить страницу
+										{
+											x_pos_count = 0;       // Установить в начало 
+											Page_count_temp = Page_count; 
+										do {
+											if (myTouch.dataAvailable())  // Проверить нажатие клавиши
+												{
+													delay(10);
+													myTouch.read();
+													x_osc=myTouch.getX();
+													y_osc=myTouch.getY();
+												if ((x_osc>=250) && (x_osc<=318))                    // Боковые кнопки
+													{
+														if ((y_osc>=1) && (y_osc<=40))               // Первая  "Выход"
+															{
+																waitForIt(250, 1, 318, 40);
+																stop_return = true;                  // Подготовить выход из первого цикла
+																break;                               // Выйти из второго цикла
+															}
+														if ((y_osc>=45) && (y_osc<=85))              // Вторая - "<="
+															{
+																waitForIt(250, 45, 318, 85);
+																Page_count_temp--;
+																if (Page_count_temp < 0) Page_count_temp = 9;
+																myGLCD.printNumI(Page_count_temp, 250, 180);
+																myGLCD.setFont( SmallFont);
+																myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);
+																myGLCD.setFont(BigFont);
+																myGLCD.printNumI(PageSample_Num[Page_count_temp], 100, 180);
+																view_read_file(Page_count_temp);             // Вызвать программу отображения информации ??
+															}
+														if ((y_osc>=90) && (y_osc<=130))            // Третья - "Пуск"
+															{
+																waitForIt(250, 90, 318, 130);
+																stop_view = true;
+															}
+														if ((y_osc>=135) && (y_osc<=175))           // Четвертая "=>"
+															{
+																waitForIt(250, 135, 318, 175);
+																Page_count_temp++;
+																if (Page_count_temp > 9) Page_count_temp = 0;
+																myGLCD.printNumI(Page_count_temp, 250, 180);
+																myGLCD.setFont( SmallFont);
+																myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);
+																myGLCD.setFont(BigFont);
+																myGLCD.printNumI(PageSample_Num[Page_count_temp], 100, 180);
+																view_read_file(Page_count_temp);             // Вызвать программу отображения информации ??
+															}
+
+
+														if ((y_osc>=200) && (y_osc<=239))          //   Нижние кнопки  "Стоп"
+															{
+																waitForIt(250, 200, 318, 238);
+																stop_view = false;
+															}
+
+													}			
+	
+												}
+
+										  } while (!stop_view);
+																	  
+										  if (stop_view == true)   // Если просмотр разрешен, начать росмотр страницы
+												{
+													myGLCD.setFont(BigFont);
+													myGLCD.setBackColor(0, 0, 0);
+													myGLCD.setColor( 255, 255, 255);
+													myGLCD.printNumI(Page_count, 250, 180);
+													myGLCD.setFont( SmallFont);
+													myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);
+													myGLCD.setFont(BigFont);
+													myGLCD.printNumI(PageSample_Num[Page_count], 100, 180);
+													view_read_file(Page_count);             // Вызвать программу отображения информации ??
+												}
+							
+											Page_count++;                                   // Установить следующую страницу
+										//	Page_count_temp = Page_count;                   //
+											if(Page_count>9) Page_count = 0;                // Не больше 10 страниц
+										}
+
+								}
+						}
+
+					else
+						{
+							start_mod = false;
+						}
+				}
+		}
  
 	root.close();
 }
@@ -6925,10 +6941,6 @@ void view_read_file(int view_page)
 	myGLCD.setColor(0, 0, 0);
 	myGLCD.fillRoundRect (1, 1,239, 159);
 	DrawGrid1();
-	//myGLCD.setFont(BigFont);
-	//myGLCD.setBackColor(0, 0, 0);
-	//myGLCD.setColor( 255, 255, 255);
-	//myGLCD.printNumI(Page_count, 250, 180);
 
 	for (xpos = 0; xpos < 239; xpos++)
 		 {
