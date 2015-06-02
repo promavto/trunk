@@ -5066,7 +5066,7 @@ void oscilloscope_file()  // Пишет в файл
 					}
 			}
 
-
+        myGLCD.setBackColor( 0, 0, 0);
 		myGLCD.setFont(BigFont);
 		myGLCD.setColor(VGA_LIME);
 		myGLCD.print(txt_info29,LEFT, 180);    // "Stop->PUSH Disp"; 
@@ -5349,6 +5349,7 @@ void oscilloscope_file()  // Пишет в файл
 
 	csvStream.fclose();  
 	myGLCD.clrScr();
+	myGLCD.setBackColor( 0, 0, 0);
 	myGLCD.setColor(255, 255, 255);
 	myGLCD.print(txt_info6,CENTER, 5);//
 	myGLCD.print(txt_info7,LEFT, 75);//
@@ -6753,6 +6754,7 @@ void readFile()
 
 	while ((data = root.read()) >= 0)
 		{
+			step_file++;  
 			if (data =='@' ) start_pin = true;                   // Определение включенных входов
 				if (start_pin == true && start_mod == false )    // Начало измерения по символу @
 					{                                            // Номера входов записываются в chanel_base[]
@@ -6803,7 +6805,7 @@ void readFile()
 									pin_fcount=0;                  // Установить  в начало первый по очереди канал
 									x_pos_count++;                 // Установить следующую позицию по оси Х
 									PageSample_Num[Page_count] = step_file;  // Координаты страницы в файле
-									step_file++;     
+									//step_file++;     
 									if(x_pos_count > 239)          // Достигнута последняя позиция, Все данные записаны, Можно отобразить страницу
 										{
 											x_pos_count = 0;       // Установить в начало 
@@ -6828,11 +6830,11 @@ void readFile()
 																waitForIt(250, 45, 318, 85);
 																Page_count_temp--;
 																if (Page_count_temp < 0) Page_count_temp = 9;
-																myGLCD.printNumI(Page_count_temp, 250, 180);
+																myGLCD.printNumI(Page_count_temp, 250, 180);                  // Отобразить № страницы
 																myGLCD.setFont( SmallFont);
-																myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);
+																myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);  
 																myGLCD.setFont(BigFont);
-																myGLCD.printNumI(PageSample_Num[Page_count_temp], 100, 180);
+																myGLCD.printNumI(PageSample_Num[Page_count_temp], 100, 180);  // 
 																view_read_file(Page_count_temp);             // Вызвать программу отображения информации ??
 															}
 														if ((y_osc>=90) && (y_osc<=130))            // Третья - "Пуск"
@@ -6861,6 +6863,7 @@ void readFile()
 															}
 													}			
 												}
+		
 
 										  } while (!stop_view);
 																	  
@@ -6889,8 +6892,12 @@ void readFile()
 							start_mod = false;
 						}
 				}
-		}
- 
+
+	}
+	while (!myTouch.dataAvailable()){}
+	delay(50);
+	while (myTouch.dataAvailable()){}
+	delay(50);
 	root.close();
 }
 
