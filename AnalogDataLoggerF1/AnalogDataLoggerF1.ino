@@ -2538,7 +2538,7 @@ void draw_Glav_Menu()
   myGLCD.setBackColor(VGA_WHITE);
   myGLCD.setColor(0, 255, 0);
   myGLCD.setBackColor(0, 0, 0);
-  myGLCD.print("                      ", CENTER, 0); 
+ /* myGLCD.print("                      ", CENTER, 0); 
   switch (m2) 
 	{
 	case 1:
@@ -2556,7 +2556,7 @@ void draw_Glav_Menu()
 		case 5:
 			myGLCD.print(txt_info5, CENTER, 0);
 			break;
-		}
+		}*/
    myButtons.drawButtons();
 }
 void swichMenu() // Тексты меню в строках "txt....."
@@ -2577,7 +2577,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							 AnalogClock();
 							 myGLCD.clrScr();
 							 myButtons.drawButtons();         // Восстановить кнопки
-							 print_up();                      // Восстановить верхнюю строку
+						//	 print_up();                      // Восстановить верхнюю строку
 						  }
 		 
 					 if (pressed_button==but_m1)              // Нажата 1 страница меню
@@ -2592,8 +2592,8 @@ void swichMenu() // Тексты меню в строках "txt....."
 							  myButtons.relabelButton(but4, txt_menu1_4, m2 == 1);
 							  myGLCD.setColor(0, 255, 0);
 							  myGLCD.setBackColor(0, 0, 0);
-							  myGLCD.print("                      ", CENTER, 0); 
-							  myGLCD.print(txt_info1, CENTER, 0);            // "Ввод данных"
+							  //myGLCD.print("                      ", CENTER, 0); 
+							  //myGLCD.print(txt_info1, CENTER, 0);            // "Ввод данных"
 		
 						  }
 					if (pressed_button==but_m2)
@@ -2608,8 +2608,8 @@ void swichMenu() // Тексты меню в строках "txt....."
 							  myButtons.relabelButton(but4, txt_menu2_4 , m2 == 2);
 							  myGLCD.setColor(0, 255, 0);
 							  myGLCD.setBackColor(0, 0, 0);
-							  myGLCD.print("                      ", CENTER, 0); 
-							  myGLCD.print(txt_info2, CENTER, 0);            // Информация
+							  //myGLCD.print("                      ", CENTER, 0); 
+							  //myGLCD.print(txt_info2, CENTER, 0);            // Информация
 						 }
 
 				   if (pressed_button==but_m3)
@@ -2624,8 +2624,8 @@ void swichMenu() // Тексты меню в строках "txt....."
 							  myButtons.relabelButton(but4, txt_menu3_4 , m2 == 3);
 							  myGLCD.setColor(0, 255, 0);
 							  myGLCD.setBackColor(0, 0, 0);
-							  myGLCD.print("                      ", CENTER, 0); 
-							  myGLCD.print(txt_info3, CENTER, 0);            // Информация
+							  //myGLCD.print("                      ", CENTER, 0); 
+							  //myGLCD.print(txt_info3, CENTER, 0);            // Информация
 						}
 				   if (pressed_button==but_m4)
 						{
@@ -2639,8 +2639,8 @@ void swichMenu() // Тексты меню в строках "txt....."
 							  myButtons.relabelButton(but4, txt_menu4_4 , m2 == 4);
 							  myGLCD.setColor(0, 255, 0);
 							  myGLCD.setBackColor(0, 0, 0);
-							  myGLCD.print("                      ", CENTER, 0); 
-							  myGLCD.print(txt_info4, CENTER, 0);            // 
+							  //myGLCD.print("                      ", CENTER, 0); 
+							  //myGLCD.print(txt_info4, CENTER, 0);            // 
 						}
 
 				   if (pressed_button==but_m5)
@@ -2655,30 +2655,28 @@ void swichMenu() // Тексты меню в строках "txt....."
 							  myButtons.relabelButton(but4, txt_menu5_4 , m2 == 5);
 							  myGLCD.setColor(0, 255, 0);
 							  myGLCD.setBackColor(0, 0, 0);
-							  myGLCD.print("                      ", CENTER, 0);  
-							  myGLCD.print(txt_info5, CENTER, 0);            // 
+							  //myGLCD.print("                      ", CENTER, 0);  
+							  //myGLCD.print(txt_info5, CENTER, 0);            // 
 						}
 	
 				   //*****************  Меню №1  **************
 
 				   if (pressed_button==but1 && m2 == 1)
 					   {
-						//   Serial.print("Menu 1-1");
 							 Draw_menu_ADC1();
 							 menu_ADC();
 							 myGLCD.clrScr();
 							 myButtons.drawButtons();;
-							 print_up();
+							// print_up();
 					   }
 	  
 				   if (pressed_button==but2 && m2 == 1)
 					   {
-						  //  Serial.print("Menu 1-2");
 							Draw_menu_Osc();
 							menu_Oscilloscope();
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+							//print_up();
 					   }
 	  
 				   if (pressed_button==but3 && m2 == 1)
@@ -2686,7 +2684,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							oscilloscope_file();
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+							//print_up();
 					   }
 				   if (pressed_button==but4 && m2 == 1)
 					   {
@@ -2694,7 +2692,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							menu_SD();
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					   }
 
 				 //*****************  Меню №2  **************
@@ -2705,7 +2703,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 						//	print_info();
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 
 				  if (pressed_button==but2 && m2 == 2)
@@ -2713,37 +2711,14 @@ void swichMenu() // Тексты меню в строках "txt....."
 						//   info_nomer_user();
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 	  
 				  if (pressed_button==but3 && m2 == 2)
 					  {
-						//	pass_test_start();
-						//	klav123();
-						//if (ret == 1)
-						//   {
-						//	   goto bailout32;
-						//   }
-						//else
-						//   {
-						//	   pass_test();
-						//   }
-						//if ( ( pass2 == 1) || ( pass3 == 1))
-						//	{
-						//		myGLCD.clrScr();
-						//		myGLCD.print(txt_pass_ok, RIGHT, 208);
-						//		delay (500);
-						//		XBee_Setup();
-						//	}
-						// else
-						//	{
-						//		txt_pass_no_all();
-						//	}
-
-							bailout32:
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 				  if (pressed_button==but4 && m2 == 2)
 					  {
@@ -2772,7 +2747,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							bailout42:
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 		
 				//*****************  Меню №3  **************
@@ -2804,7 +2779,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							 bailout13: // Восстановить пункты меню
 							 myGLCD.clrScr();
 							 myButtons.drawButtons();
-							 print_up();
+						//	 print_up();
 					  }
 
 			 //--------------------------------------------------------------
@@ -2837,7 +2812,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 						
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 				   
 					  }
 
@@ -2870,7 +2845,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							bailout33:
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 
 	 //------------------------------------------------------------------
@@ -2905,7 +2880,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							bailout43:
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 
 				   //*****************  Меню №4  **************
@@ -2938,7 +2913,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							bailout14: // Восстановить пункты меню
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 				   
 					  }
 
@@ -2969,7 +2944,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							bailout24:
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 
 				   if (pressed_button==but3 && m2 == 4) // Ввод пароля пользователя
@@ -3004,7 +2979,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							bailout34:
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 				   if (pressed_button==but4 && m2 == 4) // Смена пароля администратора
 					  {
@@ -3039,7 +3014,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 							bailout44:
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 					//*****************  Меню №5  **************
 
@@ -3047,7 +3022,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 					  {
 							myGLCD.clrScr();
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 				   if (pressed_button==but2 && m2 == 5)
 					  {
@@ -3106,7 +3081,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 
 						bailout35:
 							myButtons.drawButtons();
-							print_up();
+							//print_up();
 					  }
 
 				   if (pressed_button==but4 && m2 == 5) // Смена пароля администратора
@@ -3137,14 +3112,14 @@ void swichMenu() // Тексты меню в строках "txt....."
 
 						bailout45:
 							myButtons.drawButtons();
-							print_up();
+						//	print_up();
 					  }
 				  } 
 	   }
 }
 void print_up()                             // Печать верхней строчки над меню
 {
-		myGLCD.setColor(0, 255, 0);
+	/*	myGLCD.setColor(0, 255, 0);
 					myGLCD.setBackColor(0, 0, 0);
 					myGLCD.print("                      ", CENTER, 0); 
 				 switch (m2) 
@@ -3164,7 +3139,7 @@ void print_up()                             // Печать верхней строчки над меню
 					 case 5:
 						  myGLCD.print(txt_info5, CENTER, 0);
 						  break;
-				   }
+				   }*/
 }
 void klav123() // ввод данных с цифровой клавиатуры
 {
@@ -6760,7 +6735,6 @@ void readFile()
 			PageSample_Num[p] = 0;
 		}
 
-
 	root = sd.open(list_files_tab[set_files]);  // Открыть выбранный файл
 	if (!root.isOpen())                         // Прверка на ошибку открытия файла
 		{
@@ -6774,14 +6748,12 @@ void readFile()
 	myGLCD.print("=>", 268 , 147);             // Увеличить номер страницы
 	myGLCD.print("CTO\x89", 253 , 211);        // "Стоп" остановить просмотр
 
-
 	root.rewind();                             // Установить в начало
-	
 	File_size = root.fileSize();               // Получить размер файла 
 
 	while ((data = root.read()) >= 0)
 		{
-    		if (data =='@' ) start_pin = true;                   // Определение включенных входов
+			if (data =='@' ) start_pin = true;                   // Определение включенных входов
 				if (start_pin == true && start_mod == false )    // Начало измерения по символу @
 					{                                            // Номера входов записываются в chanel_base[]
 						if (data =='0')                          // По окончании работы программы  max_pin_fcount содержит количество входов
@@ -6817,7 +6789,7 @@ void readFile()
 					buttons_channel();                             // Отобразить кнопки переключения входов
 				}
 
-		 	if (stop_return == true) break;
+			if (stop_return == true) break;
 			if (start_mod == true && stop_mod == false )           // Получение разрешено, признак окончания не обнаружен   
 				{
 				   data1 = root.parseInt();                       // Получить цыфровые данные 
@@ -6887,9 +6859,7 @@ void readFile()
 																waitForIt(250, 200, 318, 238);
 																stop_view = false;
 															}
-
 													}			
-	
 												}
 
 										  } while (!stop_view);
@@ -6908,7 +6878,6 @@ void readFile()
 												}
 							
 											Page_count++;                                   // Установить следующую страницу
-										//	Page_count_temp = Page_count;                   //
 											if(Page_count>9) Page_count = 0;                // Не больше 10 страниц
 										}
 
