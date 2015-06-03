@@ -207,7 +207,7 @@ int ret                = 0;                // Признак прерывания операции
 	int SampleSize = 0;
 	float SampleTime = 0;
 	float v_const = 0.0008057;
-
+	int x_measure = 0 ;              // Переменная для изменения частоты измерения источника питания
 
 
 
@@ -2567,7 +2567,7 @@ void swichMenu() // Тексты меню в строках "txt....."
 	 while(1) 
 	   {
 		 myButtons.setTextFont(BigFont);                      // Установить Большой шрифт кнопок  
-
+		 measure_power();
 			if (myTouch.dataAvailable() == true)              // Проверить нажатие кнопок
 			  {
 				pressed_button = myButtons.checkButtons();    // Если нажата - проверить что нажато
@@ -5063,7 +5063,7 @@ void oscilloscope_file()  // Пишет в файл
 							}
 					}
 			}
-        if(sled == false)
+		if(sled == false)
 			{
 				myGLCD.setColor (0, 0, 0);
 				myGLCD.fillRoundRect (1, 1, 239, 159);
@@ -7039,6 +7039,37 @@ void view_read_file(int view_page)
 	//while (myTouch.dataAvailable()){}
 }
 
+
+
+void measure_power()
+{                                            // Программа измерения напряжения питания с делителем 1/3 
+	                                         // Установить резистивный делитель +15к общ 10к на разъем питания
+		uint32_t logTime = 0;
+		logTime = millis();
+		if(logTime - StartSample > 500)  //  индикация 
+		  {
+			StartSample = millis();
+			int m_power = 0;
+			float ind_power = 0;
+			ADC_CHER = 0x04;                         // Подключить канал А5, разрядность 12
+			ADC_CR = ADC_START ; 	                 // Запустить преобразование
+			while (!(ADC_ISR_DRDY));                 // Ожидание конца преобразования
+  			m_power =  ADC->ADC_CDR[2];              // Считать данные с канала А5
+			ind_power = m_power * 0.0008056*3;       // Получить напряжение в вольтах
+			myGLCD.setColor(VGA_WHITE);
+			myGLCD.setBackColor(0, 0, 0);
+			myGLCD.setFont(SmallSymbolFont);
+			if (ind_power > 9 ) myGLCD.print( "\x20", 285, 30);  
+			else if (ind_power > 7 && ind_power < 9 )  myGLCD.print( "\x21", 285, 30);  
+			else if (ind_power > 6 && ind_power < 7 )  myGLCD.print( "\x22", 285, 30);  
+			else if (ind_power > 5 && ind_power < 6 )  myGLCD.print( "\x23", 285, 30);  
+			else if (ind_power < 5 )  myGLCD.print( "\x24", 285, 30);  
+			myGLCD.setFont( SmallFont);
+			myGLCD.printNumF(ind_power,1, 280, 50); 
+		}
+}
+
+
 //------------------------------------------------------------------------------
 void setup(void) 
 {
@@ -7093,8 +7124,6 @@ void setup(void)
 	//adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX, ADC_STARTUP_FAST);
 	Timer3.attachInterrupt(firstHandler); // Every 50us
 	Timer4.attachInterrupt(secondHandler).setFrequency(1);
-	//Timer3.attachInterrupt(firstHandler).start(500000); // Every 500ms
-	//Timer4.attachInterrupt(secondHandler).setFrequency(1).start();
 	rtc_clock.init();
 	rtc_clock.set_time(__TIME__);
 	rtc_clock.set_date(__DATE__);
@@ -7108,7 +7137,6 @@ void setup(void)
 //	cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;
 	myGLCD.setBackColor(0, 0, 255);
 	preob_num_str();
-
 	Serial.println(F("Setup Ok!"));
 }
 //------------------------------------------------------------------------------

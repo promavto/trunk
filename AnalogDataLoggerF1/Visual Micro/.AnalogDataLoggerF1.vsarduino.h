@@ -185,6 +185,7 @@ void printDirectory(File dir, int numTabs);
 void view_file();
 void readFile();
 void view_read_file(int view_page);
+void measure_power();
 void setup(void);
 void loop(void);
 void drawUpButton(int x, int y);
