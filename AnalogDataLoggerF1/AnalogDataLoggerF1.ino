@@ -1879,6 +1879,8 @@ void logData()
 							myGLCD.drawRoundRect (40, 40, 200, 120);
 						}
 				}
+		 bool strob_start = digitalRead(strob_pin);
+		 if (!strob_start) break;
 
 		 if (myTouch.dataAvailable())
 			{
@@ -3903,6 +3905,8 @@ void oscilloscope_time()   // Â פאיכ םו ןטרוע
 						}
 				}
 
+		 bool strob_start = digitalRead(strob_pin);
+		 if (!strob_start) break;
 
 		 if (myTouch.dataAvailable())
 			{
@@ -4599,6 +4603,8 @@ void oscilloscope_file()  // Ïטרוע ג פאיכ
 							myGLCD.drawRoundRect (40, 40, 200, 120);
 						}
 				}
+		 bool strob_start = digitalRead(strob_pin);
+		 if (!strob_start) break;
 
 		 if (myTouch.dataAvailable())
 			{
