@@ -4265,8 +4265,6 @@ void oscilloscope_time()   // В файл не пишет
 			}
 
 
-
-
 		for( xpos = 0;	xpos < 240; xpos ++) 
 			{
 			 if (myTouch.dataAvailable())
@@ -4685,9 +4683,9 @@ void oscilloscope_file()  // Пишет в файл
 		   }
 				
 			
-			if ((x_osc>=284) && (x_osc<=318))  // Боковые кнопки
+			if ((x_osc>=284) && (x_osc<=318))                          // Боковые кнопки
 			  {
-				  if ((y_osc>=1) && (y_osc<=40))  // Первая  период  +
+				  if ((y_osc>=1) && (y_osc<=40))                       // Первая  период  +
 				  {
 					waitForIt(250, 1, 318, 40);
 					mode ++ ;
@@ -4699,7 +4697,7 @@ void oscilloscope_file()  // Пишет в файл
 					scale_time();
 				  }
 
-			 if ((y_osc>=45) && (y_osc<=85))  // Вторая - триггер
+			 if ((y_osc>=45) && (y_osc<=85))                           // Вторая - триггер
 				 {
 					waitForIt(250, 45, 318, 85);
 					  if(Set_x == true) 
@@ -4713,7 +4711,7 @@ void oscilloscope_file()  // Пишет в файл
 							myGLCD.print(" /x  ", 265, 65);
 						}
 				 }
-			 if ((y_osc>=90) && (y_osc<=130))  // Третья - делитель
+			 if ((y_osc>=90) && (y_osc<=130))                         // Третья - делитель
 				 {
 					waitForIt(250, 90, 318, 130);
 					mode1 ++ ;
@@ -4740,7 +4738,7 @@ void oscilloscope_file()  // Пишет в файл
 		if ((x_osc>=250) && (x_osc<=318))  
 
 			{
-				 if ((y_osc>=135) && (y_osc<=175))  // Четвертая разрешение
+				 if ((y_osc>=135) && (y_osc<=175))                                   // Четвертая разрешение отображения следа
 				 {
 					waitForIt(250, 135, 318, 175);
 					sled = !sled;
@@ -4929,7 +4927,7 @@ void oscilloscope_file()  // Пишет в файл
 					myGLCD.setBackColor( 0, 0, 255);
 					DrawGrid();
 
-			  for( int xpos = 0; xpos < 239;	xpos ++)
+			  for( int xpos = 0; xpos < 239;	xpos ++)             
 					{
 						if (Channel0)
 							{
@@ -5065,8 +5063,15 @@ void oscilloscope_file()  // Пишет в файл
 							}
 					}
 			}
-
-        myGLCD.setBackColor( 0, 0, 0);
+        if(sled == false)
+			{
+				myGLCD.setColor (0, 0, 0);
+				myGLCD.fillRoundRect (1, 1, 239, 159);
+				myGLCD.setFont( SmallFont);
+				myGLCD.setBackColor( 0, 0, 255);
+				DrawGrid();
+			}
+		myGLCD.setBackColor( 0, 0, 0);
 		myGLCD.setFont(BigFont);
 		myGLCD.setColor(VGA_LIME);
 		myGLCD.print(txt_info29,LEFT, 180);    // "Stop->PUSH Disp"; 
@@ -6588,11 +6593,11 @@ void view_file()
    while (root.read(&buf , 512) == 512) 
 	{
 		if (buf.count == 0) break;
-		if (buf.overrun) 
-			{
-		/*		Serial.print(F("OVERRUN,"));
-				Serial.println(buf.overrun);*/
-			}
+		//if (buf.overrun) 
+		//	{
+		//		Serial.print(F("OVERRUN,"));
+		//		Serial.println(buf.overrun);
+		//	}
 
 		DrawGrid1();
 
@@ -6652,7 +6657,7 @@ void view_file()
 				DrawGrid1();
 				for( int xpos = 0; xpos < 239;	xpos ++)
 					{
-										// Erase previous display Стереть предыдущий экран
+						//  Стереть предыдущий экран
 						myGLCD.setColor( 0, 0, 0);
 						ypos1 = 255-(OldSample[ xpos + 1]/koeff_h) - hpos; 
 						ypos2 = 255-(OldSample[ xpos + 2]/koeff_h) - hpos;
@@ -6663,7 +6668,6 @@ void view_file()
 						if(ypos2>200) ypos2 = 200;
 						myGLCD.drawLine (xpos + 1, ypos1, xpos + 2, ypos2);
 						if (xpos == 0) myGLCD.drawLine (xpos + 1, 1, xpos + 1, 220);
-						//Draw the new data
 						myGLCD.setColor( 255, 255, 255);
 						ypos1 = 255-(Sample[ xpos]/koeff_h) - hpos;
 						ypos2 = 255-(Sample[ xpos + 1]/koeff_h)- hpos;
@@ -6736,30 +6740,30 @@ void readFile()
 			PageSample_Num[p] = 0;
 		}
 
-	root = sd.open(list_files_tab[set_files]);  // Открыть выбранный файл
-	if (!root.isOpen())                         // Прверка на ошибку открытия файла
+	root = sd.open(list_files_tab[set_files]);                                                      // Открыть выбранный файл
+	if (!root.isOpen())                                                                             // Прверка на ошибку открытия файла
 		{
 			Serial.println(F("No current root file"));
 			return;
 		}
-	myGLCD.setFont(BigFont);                   // Подписать кнопки управления просмотром 
-	myGLCD.print("ESC", 260 , 13);             // Выход из просмотра
-	myGLCD.print("<=", 265 , 56);              // Уменьшить номер страницы
-	myGLCD.print("\x89\x8A""CK", 253 , 102);   // "Пуск" Старт просмотра
-	myGLCD.print("=>", 268 , 147);             // Увеличить номер страницы
-	myGLCD.print("CTO\x89", 253 , 211);        // "Стоп" остановить просмотр
+	myGLCD.setFont(BigFont);                                                                       // Подписать кнопки управления просмотром 
+	myGLCD.print("ESC", 260 , 13);                                                                 // Выход из просмотра
+	myGLCD.print("<=", 265 , 56);                                                                  // Уменьшить номер страницы
+	myGLCD.print("\x89\x8A""CK", 253 , 102);                                                       // "Пуск" Старт просмотра
+	myGLCD.print("=>", 268 , 147);                                                                 // Увеличить номер страницы
+	myGLCD.print("CTO\x89", 253 , 211);                                                            // "Стоп" остановить просмотр
 
-	root.rewind();                             // Установить в начало
-	File_size = root.fileSize();               // Получить размер файла 
+	root.rewind();                                                                                 // Установить в начало
+	File_size = root.fileSize();                                                                   // Получить размер файла 
 
-	while ((data = root.read()) >= 0)
+	while ((data = root.read()) >= 0)                                                              //
 		{
 			step_file++;  
-			if (data =='@' ) start_pin = true;                   // Определение включенных входов
-				if (start_pin == true && start_mod == false )    // Начало измерения по символу @
-					{                                            // Номера входов записываются в chanel_base[]
-						if (data =='0')                          // По окончании работы программы  max_pin_fcount содержит количество входов
-							{                                    // По окончании работы программы в chanel_base[] прописаны применяемые входа
+			if (data =='@' ) start_pin = true;                                                     // Определение включенных входов
+				if (start_pin == true && start_mod == false )                                      // Начало измерения по символу @
+					{                                                                              // Номера входов записываются в chanel_base[]
+						if (data =='0')                                                            // По окончании работы программы  max_pin_fcount содержит количество входов
+							{                                                                      // По окончании работы программы в chanel_base[] прописаны применяемые входа
 								Channel0 = true;
 								chanel_base[max_pin_fcount] = 0;
 								max_pin_fcount ++;
@@ -6786,32 +6790,31 @@ void readFile()
 
 			if (data =='#' ) 
 				{
-					start_mod = true;                              // Разрешить получение цыфровых данных из файла
-					start_pin = false;                             // Запретить определение используемых входов 
-					buttons_channel();                             // Отобразить кнопки переключения входов
+					start_mod = true;                                                                 // Разрешить получение цифровых данных из файла
+					start_pin = false;                                                                // Запретить определение используемых входов 
+					buttons_channel();                                                                // Отобразить кнопки переключения входов
 				}
 
 			if (stop_return == true) break;
-			if (start_mod == true && stop_mod == false )           // Получение разрешено, признак окончания не обнаружен   
+			if (start_mod == true && stop_mod == false )                                              // Получение разрешено, признак окончания не обнаружен   
 				{
-				   data1 = root.parseInt();                       // Получить цыфровые данные 
-					if (data1 != 5555)                             //  Поиск окончания данных, признак окончания данных (5555) не обнаружен
+				   data1 = root.parseInt();                                                           // Получить цифровые данные 
+					if (data1 != 5555)                                                                //  Поиск окончания данных, признак окончания данных (5555) не обнаружен
 						{
-							PageSample_osc[x_pos_count][Page_count][chanel_base[pin_fcount]] = data1;   // Записать данные в буфер страниц (один канал)
+							PageSample_osc[x_pos_count][Page_count][chanel_base[pin_fcount]] = data1; // Записать данные в буфер страниц (один канал)
 
-							pin_fcount++;                          // Переключить на следующий канал
-							if (pin_fcount>max_pin_fcount-1)       // Проверка на достижение последнего канала
+							pin_fcount++;                                                             // Переключить на следующий канал
+							if (pin_fcount>max_pin_fcount-1)                                          // Проверка на достижение последнего канала
 								{
-									pin_fcount=0;                  // Установить  в начало первый по очереди канал
-									x_pos_count++;                 // Установить следующую позицию по оси Х
-									PageSample_Num[Page_count] = step_file;  // Координаты страницы в файле
-									//step_file++;     
-									if(x_pos_count > 239)          // Достигнута последняя позиция, Все данные записаны, Можно отобразить страницу
+									pin_fcount=0;                                                     // Установить  в начало первый по очереди канал
+									x_pos_count++;                                                    // Установить следующую позицию по оси Х
+									PageSample_Num[Page_count] = step_file;                           // Координаты страницы в файле
+									if(x_pos_count > 239)                                             // Достигнута последняя позиция, Все данные записаны, Можно отобразить страницу
 										{
-											x_pos_count = 0;       // Установить в начало 
+											x_pos_count = 0;                                          // Установить в начало 
 											Page_count_temp = Page_count; 
 										do {
-											if (myTouch.dataAvailable())  // Проверить нажатие клавиши
+											if (myTouch.dataAvailable())                              // Проверить нажатие клавиши
 												{
 													delay(10);
 													myTouch.read();
@@ -6835,14 +6838,14 @@ void readFile()
 																myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);  
 																myGLCD.setFont(BigFont);
 																myGLCD.printNumI(PageSample_Num[Page_count_temp], 100, 180);  // 
-																view_read_file(Page_count_temp);             // Вызвать программу отображения информации ??
+																view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
 															}
-														if ((y_osc>=90) && (y_osc<=130))            // Третья - "Пуск"
+														if ((y_osc>=90) && (y_osc<=130))                                      // Третья - "Пуск"
 															{
 																waitForIt(250, 90, 318, 130);
 																stop_view = true;
 															}
-														if ((y_osc>=135) && (y_osc<=175))           // Четвертая "=>"
+														if ((y_osc>=135) && (y_osc<=175))                                     // Четвертая "=>"
 															{
 																waitForIt(250, 135, 318, 175);
 																Page_count_temp++;
@@ -6852,41 +6855,37 @@ void readFile()
 																myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);
 																myGLCD.setFont(BigFont);
 																myGLCD.printNumI(PageSample_Num[Page_count_temp], 100, 180);
-																view_read_file(Page_count_temp);             // Вызвать программу отображения информации ??
+																view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
 															}
 
-
-														if ((y_osc>=200) && (y_osc<=239))          //   Нижние кнопки  "Стоп"
+														if ((y_osc>=200) && (y_osc<=239))                                     // Нижние кнопки  "Стоп"
 															{
 																waitForIt(250, 200, 318, 238);
 																stop_view = false;
 															}
 													}			
 												}
-		
-
 										  } while (!stop_view);
 																	  
-										  if (stop_view == true)   // Если просмотр разрешен, начать росмотр страницы
+										  if (stop_view == true)                                                             // Если просмотр разрешен, начать росмотр страницы
 												{
 													myGLCD.setFont(BigFont);
 													myGLCD.setBackColor(0, 0, 0);
-													myGLCD.setColor( 255, 255, 255);
-													myGLCD.printNumI(Page_count, 250, 180);
-													myGLCD.setFont( SmallFont);
+													myGLCD.setColor(255, 255, 255);
+													myGLCD.printNumI(Page_count, 250, 180);                                  // Номер страницы
+													myGLCD.setFont(SmallFont);
 													myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);
 													myGLCD.setFont(BigFont);
-													myGLCD.printNumI(PageSample_Num[Page_count], 100, 180);
-													view_read_file(Page_count);             // Вызвать программу отображения информации ??
+													myGLCD.printNumI(PageSample_Num[Page_count], 100, 180);                  // 
+													view_read_file(Page_count);                                              // Вызвать программу отображения информации ??
 												}
 							
-											Page_count++;                                   // Установить следующую страницу
-											if(Page_count>9) Page_count = 0;                // Не больше 10 страниц
+											Page_count++;                                                                    // Установить следующую страницу
+											if(Page_count>9) Page_count = 0;                                                 // Не больше 10 страниц
 										}
 
 								}
-						}
-
+						}                             // Завершение программы поиска.  Признак окончания данных (5555)  обнаружен
 					else
 						{
 							start_mod = false;
@@ -6894,10 +6893,10 @@ void readFile()
 				}
 
 	}
-	while (!myTouch.dataAvailable()){}
-	delay(50);
-	while (myTouch.dataAvailable()){}
-	delay(50);
+	//while (!myTouch.dataAvailable()){}
+	//delay(50);
+	//while (myTouch.dataAvailable()){}
+	//delay(50);
 	root.close();
 }
 
