@@ -321,6 +321,7 @@ AH_AD9850 AD9850(CLK, FQUP, BitData, RESET);// настройка звукового генератора
 //#define ADC_CDR0 * (volatile unsigned int *) (0x400C0050) /*ADC Channel Только чтение */
 //#define ADC_ISR_EOC0 0x00000001
 
+#define strob_pin A4    // Вход для запуска измерения
 
 uint32_t ulChannel;
 
@@ -7058,14 +7059,15 @@ void measure_power()
 			ind_power = m_power * 0.0008056*3;       // Получить напряжение в вольтах
 			myGLCD.setColor(VGA_WHITE);
 			myGLCD.setBackColor(0, 0, 0);
+            myGLCD.drawRoundRect (279,149, 319, 189);
 			myGLCD.setFont(SmallSymbolFont);
-			if (ind_power > 9 ) myGLCD.print( "\x20", 285, 30);  
-			else if (ind_power > 7 && ind_power < 9 )  myGLCD.print( "\x21", 285, 30);  
-			else if (ind_power > 6 && ind_power < 7 )  myGLCD.print( "\x22", 285, 30);  
-			else if (ind_power > 5 && ind_power < 6 )  myGLCD.print( "\x23", 285, 30);  
-			else if (ind_power < 5 )  myGLCD.print( "\x24", 285, 30);  
+			if (ind_power > 9 ) myGLCD.print( "\x20", 295, 155);  
+			else if (ind_power > 7 && ind_power < 9 )  myGLCD.print( "\x21", 295, 155);  
+			else if (ind_power > 6 && ind_power < 7 )  myGLCD.print( "\x22", 295, 155);  
+			else if (ind_power > 5 && ind_power < 6 )  myGLCD.print( "\x23", 295, 155);  
+			else if (ind_power < 5 )  myGLCD.print( "\x24", 295, 155);  
 			myGLCD.setFont( SmallFont);
-			myGLCD.printNumF(ind_power,1, 280, 50); 
+			myGLCD.printNumF(ind_power,1, 289, 172); 
 		}
 }
 
@@ -7137,6 +7139,8 @@ void setup(void)
 //	cout << pstr("SdFat version: ") << SD_FAT_VERSION << endl;
 	myGLCD.setBackColor(0, 0, 255);
 	preob_num_str();
+	pinMode(strob_pin, INPUT);
+	digitalWrite(strob_pin, HIGH);
 	Serial.println(F("Setup Ok!"));
 }
 //------------------------------------------------------------------------------
