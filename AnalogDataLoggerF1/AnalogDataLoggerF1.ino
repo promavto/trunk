@@ -3918,25 +3918,25 @@ void oscilloscope_time()   // В файл не пишет
 				myGLCD.setColor (255, 255,255);
 				myGLCD.setFont( SmallFont);
 
-				if ((x_osc>=1) && (x_osc<=60))  //  Выход 
+				if ((x_osc>=1) && (x_osc<=60))                         //  Выход 
 					{
-						if ((y_osc>=1) && (y_osc<=35))  // Delay row
+						if ((y_osc>=1) && (y_osc<=35))                 // Delay row
 						{
 							waitForIt(1, 1, 60, 35);
 							return;
 						} 
 					}
 
-				if ((x_osc>=40) && (x_osc<=200))  //  Выход из ожидания, Старт
+				if ((x_osc>=40) && (x_osc<=200))                       //  Выход из ожидания, Старт
 					{
-						if ((y_osc>=40) && (y_osc<=120))  // Delay row
+						if ((y_osc>=40) && (y_osc<=120))               // Delay row
 						{
 							waitForIt(40, 40, 200, 120);
 							break;
 						} 
 					}
 
-			if ((x_osc>=250) && (x_osc<=284))  // Боковые кнопки
+			if ((x_osc>=250) && (x_osc<=284))                           // Боковые кнопки
 			  {
 				 
 				  if ((y_osc>=1) && (y_osc<=40))  // Первая  период -
@@ -3951,7 +3951,7 @@ void oscilloscope_time()   // В файл не пишет
 						scale_time();
 					  }
 
-				 if ((y_osc>=45) && (y_osc<=85))  // Вторая - усреднение показаний
+				 if ((y_osc>=45) && (y_osc<=85))                          // Вторая - усреднение показаний
 					 {
 						waitForIt(250, 45, 318, 85);
 						if(Set_x == true) 
@@ -3965,7 +3965,7 @@ void oscilloscope_time()   // В файл не пишет
 								myGLCD.print(" /x  ", 265, 65);
 							}
 					 }
-				 if ((y_osc>=90) && (y_osc<=130))  // Третья - делитель
+				 if ((y_osc>=90) && (y_osc<=130))                           // Третья - делитель
 					 {
 						waitForIt(250, 90, 318, 130);
 						mode1 -- ;
@@ -4079,7 +4079,7 @@ void oscilloscope_time()   // В файл не пишет
 				}
 		  }
 
-			 if ((y_osc>=205) && (y_osc<=239))  // Нижние кнопки переключения входов
+			 if ((y_osc>=205) && (y_osc<=239))                             // Нижние кнопки переключения входов
 					{
 						 touch_osc();
 					}
@@ -6748,8 +6748,8 @@ void readFile()
 			PageSample_Num[p] = 0;
 		}
 
-	root = sd.open(list_files_tab[set_files]);                                                      // Открыть выбранный файл
-	if (!root.isOpen())                                                                             // Прверка на ошибку открытия файла
+	root = sd.open(list_files_tab[set_files]);                                                     // Открыть выбранный файл
+	if (!root.isOpen())                                                                            // Прверка на ошибку открытия файла
 		{
 			Serial.println(F("No current root file"));
 			return;
@@ -6759,17 +6759,17 @@ void readFile()
 	myGLCD.print("<=", 265 , 56);                                                                  // Уменьшить номер страницы
 	myGLCD.print("\x89\x8A""CK", 253 , 102);                                                       // "Пуск" Старт просмотра
 	myGLCD.print("=>", 268 , 147);                                                                 // Увеличить номер страницы
-	myGLCD.print("CTO\x89", 253 , 211);                                                            // "Стоп" остановить просмотр
+//	myGLCD.print("CTO\x89", 253 , 211);                                                            // "Стоп" остановить просмотр
 
 	root.rewind();                                                                                 // Установить в начало
 	File_size = root.fileSize();                                                                   // Получить размер файла 
 
 	myGLCD.setFont( SmallFont);
-	myGLCD.print("Pa\x9C\xA1""ep \xA5""a\x9E\xA0""a", 5, 168);  
-	myGLCD.print("\x89o\x9C. \x97 \xA5""a\x9E\xA0""e             ", 5, 183);  
+	myGLCD.print("Pa\x9C\xA1""ep \xA5""a\x9E\xA0""a", 5, 168);                                     // "Размер файла"
+	myGLCD.print("\x89o\x9C. \x97 \xA5""a\x9E\xA0""e             ", 5, 183);                       // "Поз. в файле"
 	myGLCD.setFont(BigFont);
-	myGLCD.printNumI(File_size, 105, 165);  // 
-	myGLCD.print("C\xA4p", 270, 180);
+	myGLCD.printNumI(File_size, 105, 165);                                                         //  Отобразить размер файла
+	myGLCD.print("C\xA4p", 270, 180);                                                              // "Стр"
 
 	while ((data = root.read()) >= 0)                                                              //
 		{
@@ -6828,7 +6828,6 @@ void readFile()
 										{
 											x_pos_count = 0;                                          // Установить в начало 
 											Page_count_temp = Page_count; 
-//--------------------------
 
 										do {
 											if (myTouch.dataAvailable())                              // Проверить нажатие клавиши
@@ -6851,9 +6850,9 @@ void readFile()
 																Page_count_temp--;
 																if (Page_count_temp < 0) Page_count_temp = 9;
 																myGLCD.printNumI(Page_count_temp, 250, 180);                  // Отобразить № страницы
-															//	myGLCD.setFont( SmallFont);
-															////	myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);  
-															//	myGLCD.setFont(BigFont);
+																myGLCD.setColor(0, 0, 0);
+			                                                    myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
+																myGLCD.setColor(255, 255, 255);
 																myGLCD.printNumI(PageSample_Num[Page_count_temp], 105, 180);  // 
 																view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
 															}
@@ -6868,19 +6867,27 @@ void readFile()
 																Page_count_temp++;
 																if (Page_count_temp > 9) Page_count_temp = 0;
 																myGLCD.printNumI(Page_count_temp, 250, 180);
-															/*	myGLCD.setFont( SmallFont);
-																myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);
-																myGLCD.setFont(BigFont);*/
+																myGLCD.setColor(0, 0, 0);
+			                                                    myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
+																myGLCD.setColor(255, 255, 255);
 																myGLCD.printNumI(PageSample_Num[Page_count_temp], 105, 180);
 																view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
 															}
 
-														if ((y_osc>=200) && (y_osc<=239))                                     // Нижние кнопки  "Стоп"
+														//if ((y_osc>=200) && (y_osc<=239))                                     // Нижние кнопки  "Стоп"
+														//	{
+														//		waitForIt(250, 200, 318, 238);
+														//		stop_view = false;
+														//	}
+													}	
+													if ((x_osc>=2) && (x_osc<=240))                                           //  Область экрана
+														{
+															if ((y_osc>=1) && (y_osc<=160))                                   // Delay row
 															{
-																waitForIt(250, 200, 318, 238);
 																stop_view = false;
-															}
-													}			
+															} 
+														}
+
 												}
 										  } while (!stop_view);
 											
@@ -6892,9 +6899,9 @@ void readFile()
 													myGLCD.setBackColor(0, 0, 0);
 													myGLCD.setColor(255, 255, 255);
 													myGLCD.printNumI(Page_count, 250, 180);                                  // Номер страницы
-								/*					myGLCD.setFont(SmallFont);
-													myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);
-													myGLCD.setFont(BigFont);*/
+													myGLCD.setColor(0, 0, 0);
+													myGLCD.fillRoundRect (105, 180, 200, 195);                               // Очистить зону вывода
+													myGLCD.setColor(255, 255, 255);
 													myGLCD.printNumI(PageSample_Num[Page_count], 105, 180);                  // 
 													view_read_file(Page_count);                                              // Вызвать программу отображения информации ??
 												}
@@ -6902,18 +6909,14 @@ void readFile()
 											Page_count++;                                                                    // Установить следующую страницу
 											if(Page_count>9) Page_count = 0;                                                 // Не больше 10 страниц
 										}
-
 								}
-						}                             // Завершение программы поиска.  Признак окончания данных (5555)  обнаружен
+						}                                          // Завершение программы поиска.  Признак окончания данных (5555)  обнаружен
 					else
 						{
 							start_mod = false;
 						}
-
 				}
-
 	     }
-
 
     myGLCD.setColor (0, 0, 0);                                     // Стереть надписи неиспользованных кнопок
 	myGLCD.print("\x89\x8A""CK", 253 , 102);                       // "Пуск" Старт просмотра
@@ -6949,9 +6952,9 @@ void readFile()
 							Page_count_temp--;
 							if (Page_count_temp < 0) Page_count_temp = 9;
 							myGLCD.printNumI(Page_count_temp, 250, 180);                  // Отобразить № страницы
-					/*		myGLCD.setFont( SmallFont);
-							myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);  
-							myGLCD.setFont(BigFont);*/
+							myGLCD.setColor(0, 0, 0);
+			                myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
+							myGLCD.setColor(255, 255, 255);
 							myGLCD.printNumI(PageSample_Num[Page_count_temp], 105, 180);  // 
 							view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
 						}
@@ -6962,13 +6965,12 @@ void readFile()
 							Page_count_temp++;
 							if (Page_count_temp > 9) Page_count_temp = 0;
 							myGLCD.printNumI(Page_count_temp, 250, 180);
-				/*			myGLCD.setFont( SmallFont);
-							myGLCD.print("\x89o\x9C \x97 \xA5""a\x9E\xA0""e             ", 5, 180);
-							myGLCD.setFont(BigFont);*/
+							myGLCD.setColor(0, 0, 0);
+			                myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
+							myGLCD.setColor(255, 255, 255);
 							myGLCD.printNumI(PageSample_Num[Page_count_temp], 105, 180);
 							view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
 						}
-
 				}			
 			}
 		}
@@ -7219,7 +7221,7 @@ void setup(void)
 	AD9850.reset();                    //reset module
 	delay(1000);
 	AD9850.powerDown();                //set signal output to LOW
-	AD9850.set_frequency(0,0,1000);    //set power=UP, phase=0, 1kHz frequency 
+	AD9850.set_frequency(0,0,500);    //set power=UP, phase=0, 1kHz frequency 
 
 	chench_Channel();
 
