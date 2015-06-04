@@ -2143,6 +2143,7 @@ void logData()
 										myGLCD.setColor(255,255,255);
 										myGLCD.drawCircle(227,12,10);
 									}
+								myGLCD.setColor(255,255,255);
 							break;
 						}
 				}
@@ -3859,7 +3860,7 @@ void oscilloscope_time()   // В файл не пишет
 	int sec_osc = 0;
 	int min_osc = 0;
 	bool ind_start = false;
- 	StartSample = 0; 
+	StartSample = 0; 
 	uint32_t logTime = 0;
 	uint32_t SAMPLE_INTERVAL_MS = 250;
 	int32_t diff;
@@ -4318,6 +4319,7 @@ void oscilloscope_time()   // В файл не пишет
 								break;
 							}
 					}
+
 
 			 if (myTouch.dataAvailable())
 				{
@@ -5123,7 +5125,7 @@ void oscilloscope_file()  // Пишет в файл
 				myGLCD.setFont( SmallFont);
 				myGLCD.setBackColor( 0, 0, 255);
 				DrawGrid();
-	            myGLCD.setFont( BigFont);
+				myGLCD.setFont( BigFont);
 			}
 		myGLCD.setBackColor( 0, 0, 0);
 		myGLCD.setFont(BigFont);
@@ -5148,6 +5150,7 @@ void oscilloscope_file()  // Пишет в файл
 										myGLCD.setColor(255,255,255);
 										myGLCD.drawCircle(227,12,10);
 									}
+								myGLCD.setColor(255,255,255);
 							break;
 						}
 				}
@@ -5777,6 +5780,7 @@ void DrawGrid()
 			myGLCD.setColor(255,255,255);
 			myGLCD.drawCircle(227,12,10);
 		}
+	myGLCD.setColor(255,255,255);
 
 }
 void DrawGrid1()
@@ -5802,7 +5806,7 @@ void DrawGrid1()
 			myGLCD.setColor(255,255,255);
 			myGLCD.drawCircle(227,12,10);
 		}
-
+	myGLCD.setColor(255,255,255);
 }
 
 void Draw_menu_SD()
@@ -6939,7 +6943,7 @@ void readFile()
 																if (Page_count_temp < 0) Page_count_temp = 9;
 																myGLCD.printNumI(Page_count_temp, 250, 180);                  // Отобразить № страницы
 																myGLCD.setColor(0, 0, 0);
-			                                                    myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
+																myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
 																myGLCD.setColor(255, 255, 255);
 																myGLCD.printNumI(PageSample_Num[Page_count_temp], 105, 180);  // 
 																view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
@@ -6956,7 +6960,7 @@ void readFile()
 																if (Page_count_temp > 9) Page_count_temp = 0;
 																myGLCD.printNumI(Page_count_temp, 250, 180);
 																myGLCD.setColor(0, 0, 0);
-			                                                    myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
+																myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
 																myGLCD.setColor(255, 255, 255);
 																myGLCD.printNumI(PageSample_Num[Page_count_temp], 105, 180);
 																view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
@@ -6996,9 +7000,9 @@ void readFile()
 							start_mod = false;
 						}
 				}
-	     }
+		 }
 
-    myGLCD.setColor (0, 0, 0);                                     // Стереть надписи неиспользованных кнопок
+	myGLCD.setColor (0, 0, 0);                                     // Стереть надписи неиспользованных кнопок
 	myGLCD.print("\x89\x8A""CK", 253 , 102);                       // "Пуск" Старт просмотра
 	myGLCD.print("CTO\x89", 253 , 211);                            // "Стоп" остановить просмотр
 
@@ -7033,7 +7037,7 @@ void readFile()
 							if (Page_count_temp < 0) Page_count_temp = 9;
 							myGLCD.printNumI(Page_count_temp, 250, 180);                  // Отобразить № страницы
 							myGLCD.setColor(0, 0, 0);
-			                myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
+							myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
 							myGLCD.setColor(255, 255, 255);
 							myGLCD.printNumI(PageSample_Num[Page_count_temp], 105, 180);  // 
 							view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
@@ -7046,7 +7050,7 @@ void readFile()
 							if (Page_count_temp > 9) Page_count_temp = 0;
 							myGLCD.printNumI(Page_count_temp, 250, 180);
 							myGLCD.setColor(0, 0, 0);
-			                myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
+							myGLCD.fillRoundRect (105, 180, 200, 195);                    // Очистить зону вывода
 							myGLCD.setColor(255, 255, 255);
 							myGLCD.printNumI(PageSample_Num[Page_count_temp], 105, 180);
 							view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
@@ -7198,7 +7202,7 @@ void view_read_file(int view_page)
 }
 void measure_power()
 {                                            // Программа измерения напряжения питания с делителем 1/3 
-	                                         // Установить резистивный делитель +15к общ 10к на разъем питания
+											 // Установить резистивный делитель +15к общ 10к на разъем питания
 		uint32_t logTime = 0;
 		logTime = millis();
 		if(logTime - StartSample > 500)  //  индикация 
@@ -7209,45 +7213,45 @@ void measure_power()
 			ADC_CHER = 0x04;                         // Подключить канал А5, разрядность 12
 			ADC_CR = ADC_START ; 	                 // Запустить преобразование
 			while (!(ADC_ISR_DRDY));                 // Ожидание конца преобразования
-  			m_power =  ADC->ADC_CDR[2];              // Считать данные с канала А5
+			m_power =  ADC->ADC_CDR[2];              // Считать данные с канала А5
 			ind_power = m_power * 0.0008056*3;       // Получить напряжение в вольтах
 			myGLCD.setBackColor(0, 0, 0);
- 			myGLCD.setFont(SmallSymbolFont);
+			myGLCD.setFont(SmallSymbolFont);
 			if (ind_power > 8 )
 				{
 					myGLCD.setColor(VGA_LIME);
 					myGLCD.drawRoundRect (279,149, 319, 189);
 					myGLCD.setColor(VGA_WHITE);
 					myGLCD.print( "\x20", 295, 155);  
-			    }
+				}
 			else if (ind_power > 7 && ind_power < 8 ) 
 				{
 					myGLCD.setColor(VGA_LIME);
 					myGLCD.drawRoundRect (279,149, 319, 189);
 					myGLCD.setColor(VGA_WHITE);
 					myGLCD.print( "\x21", 295, 155);  
-			    }
+				}
 			else if (ind_power > 6 && ind_power < 7 )
 				{
 					myGLCD.setColor(VGA_WHITE);
 					myGLCD.drawRoundRect (279,149, 319, 189);
 					myGLCD.setColor(VGA_WHITE);
 					myGLCD.print( "\x22", 295, 155);  
-			    }
+				}
 			else if (ind_power > 5 && ind_power < 6 )
 				{
 					myGLCD.setColor(VGA_YELLOW);
 					myGLCD.drawRoundRect (279,149, 319, 189);
 					myGLCD.setColor(VGA_WHITE);
 					myGLCD.print( "\x23", 295, 155); 
-			    }
+				}
 			else if (ind_power < 5 )
 				{
 					myGLCD.setColor(VGA_RED);
 					myGLCD.drawRoundRect (279,149, 319, 189);
 					myGLCD.setColor(VGA_WHITE);
 					myGLCD.print( "\x24", 295, 155);  
-			    }
+				}
 			myGLCD.setFont( SmallFont);
 			myGLCD.setColor(VGA_WHITE);
 			myGLCD.printNumF(ind_power,1, 289, 172); 
