@@ -208,7 +208,7 @@ int ret                = 0;                // Признак прерывания операции
 	float SampleTime = 0;
 	float v_const = 0.0008057;
 	int x_measure = 0 ;              // Переменная для изменения частоты измерения источника питания
-
+	bool strob_start = true;
 
 
 
@@ -1879,7 +1879,7 @@ void logData()
 							myGLCD.drawRoundRect (40, 40, 200, 120);
 						}
 				}
-		 bool strob_start = digitalRead(strob_pin);
+		 strob_start = digitalRead(strob_pin);
 		 if (!strob_start) break;
 
 		 if (myTouch.dataAvailable())
@@ -2127,6 +2127,26 @@ void logData()
 			{
 			  error("Missed timer event - rate too high");
 			}
+		if (!strob_start)
+				{
+					strob_start = digitalRead(strob_pin);                      // Проверка входа внешнего запуска 
+						if (strob_start)
+						{
+							repeat = false;
+								if (!strob_start) 
+									{
+										myGLCD.setColor(VGA_RED);
+										myGLCD.fillCircle(227,12,10);
+									}
+								else
+									{
+										myGLCD.setColor(255,255,255);
+										myGLCD.drawCircle(227,12,10);
+									}
+							break;
+						}
+				}
+
 		if (myTouch.dataAvailable()) 
 			{
 				myGLCD.setColor(VGA_YELLOW);
@@ -3813,6 +3833,7 @@ Trigger = 0;
 myGLCD.setFont( BigFont);
 while (myTouch.dataAvailable()){}
 }
+
 void oscilloscope_time()   // В файл не пишет 
 {
 	uint32_t bgnBlock, endBlock;
@@ -3838,14 +3859,13 @@ void oscilloscope_time()   // В файл не пишет
 	int sec_osc = 0;
 	int min_osc = 0;
 	bool ind_start = false;
-
-	StartSample = 0; 
+ 	StartSample = 0; 
 	uint32_t logTime = 0;
 	uint32_t SAMPLE_INTERVAL_MS = 250;
 	int32_t diff;
 	count_repeat = 0;
 
-	for( xpos = 0; xpos < 239;	xpos ++) // Стереть старые данные
+	for( xpos = 0; xpos < 239;	xpos ++)                    // Стереть старые данные
 
 		{
 			OldSample_osc[xpos][0] = 0;
@@ -3905,7 +3925,12 @@ void oscilloscope_time()   // В файл не пишет
 						}
 				}
 
-		 bool strob_start = digitalRead(strob_pin);
+		 strob_start = digitalRead(strob_pin);                      // Проверка входа внешнего запуска 
+		  //if (!strob_start) 
+			 //{
+				// myGLCD.setColor(VGA_RED);
+				// myGLCD.fillCircle(230,10,20);
+			 //}
 		 if (!strob_start) break;
 
 		 if (myTouch.dataAvailable())
@@ -3927,7 +3952,7 @@ void oscilloscope_time()   // В файл не пишет
 						} 
 					}
 
-				if ((x_osc>=40) && (x_osc<=200))                       //  Выход из ожидания, Старт
+				if ((x_osc>=40) && (x_osc<=200))                       //  Выход из ожидания, Старт измерения
 					{
 						if ((y_osc>=40) && (y_osc<=120))               // Delay row
 						{
@@ -4006,7 +4031,7 @@ void oscilloscope_time()   // В файл не пишет
 					scale_time();
 				  }
 
-			 if ((y_osc>=45) && (y_osc<=85))  // Вторая - триггер
+			 if ((y_osc>=45) && (y_osc<=85))  // Вторая 
 				 {
 					waitForIt(250, 45, 318, 85);
 					  if(Set_x == true) 
@@ -4093,6 +4118,8 @@ void oscilloscope_time()   // В файл не пишет
 	// +++++++++++++++++   Начало измерений ++++++++++++++++++++++++
 
 	myGLCD.setBackColor( 0, 0, 0);
+	myGLCD.setColor(255,255,255);
+	myGLCD.drawCircle(230,10,20);
 	myGLCD.setFont( BigFont);
 	myGLCD.print("     ", 80, 72);
 	myGLCD.setColor(VGA_LIME);
@@ -4272,6 +4299,26 @@ void oscilloscope_time()   // В файл не пишет
 
 		for( xpos = 0;	xpos < 240; xpos ++) 
 			{
+				if (!strob_start)
+					{
+						strob_start = digitalRead(strob_pin);                      // Проверка входа внешнего запуска 
+							if (strob_start)
+							{
+								repeat = false;
+									if (!strob_start) 
+										{
+											myGLCD.setColor(VGA_RED);
+											myGLCD.fillCircle(227,12,10);
+										}
+									else
+										{
+											myGLCD.setColor(255,255,255);
+											myGLCD.drawCircle(227,12,10);
+										}
+								break;
+							}
+					}
+
 			 if (myTouch.dataAvailable())
 				{
 					delay(10);
@@ -4279,9 +4326,9 @@ void oscilloscope_time()   // В файл не пишет
 					x_osc=myTouch.getX();
 					y_osc=myTouch.getY();
 				
-					if ((x_osc>=2) && (x_osc<=240))  //  Delay Button
+					if ((x_osc>=2) && (x_osc<=240))                     //  Останов измерения
 						{
-							if ((y_osc>=1) && (y_osc<=160))  // Delay row
+							if ((y_osc>=1) && (y_osc<=160))             // Delay row
 							{
 								waitForIt(2, 1, 240, 160);
 								myGLCD.setBackColor( 0, 0, 0);
@@ -4536,7 +4583,6 @@ void oscilloscope_file()  // Пишет в файл
 	uint16_t min_osc = 0;
 	bool ind_start = false;
 	char str_file[10];
-
 	StartSample = 0; 
 	uint32_t logTime = 0;
 	uint32_t SAMPLE_INTERVAL_MS = 250;
@@ -4603,7 +4649,7 @@ void oscilloscope_file()  // Пишет в файл
 							myGLCD.drawRoundRect (40, 40, 200, 120);
 						}
 				}
-		 bool strob_start = digitalRead(strob_pin);
+		 strob_start = digitalRead(strob_pin);                      // Проверка входа внешнего запуска 
 		 if (!strob_start) break;
 
 		 if (myTouch.dataAvailable())
@@ -4798,6 +4844,7 @@ void oscilloscope_file()  // Пишет в файл
 	myGLCD.setColor( 255,255,255);
 	myGLCD.setBackColor( 0, 0, 0);
 	preob_num_str();
+
    // Create a new CSV file.
 	if (BASE_NAME_SIZE > 6) 
 		{
@@ -4924,7 +4971,6 @@ void oscilloscope_file()  // Пишет в файл
 			ADC_CHER = Channel_x;    // this is (1<<7) | (1<<6) for adc 7= A0, 6=A1 , 5=A2, 4 = A3  Установить аналоговые входа.  
 	 do
 	  {
-
 		if (sled == true & count_repeat > 0)  // Нарисовать след от предыдущего измерения
 			{
 
@@ -5077,6 +5123,7 @@ void oscilloscope_file()  // Пишет в файл
 				myGLCD.setFont( SmallFont);
 				myGLCD.setBackColor( 0, 0, 255);
 				DrawGrid();
+	            myGLCD.setFont( BigFont);
 			}
 		myGLCD.setBackColor( 0, 0, 0);
 		myGLCD.setFont(BigFont);
@@ -5085,6 +5132,25 @@ void oscilloscope_file()  // Пишет в файл
 
 		for( xpos = 0;	xpos < 240; xpos ++)   //  Старт измерения
 			{
+			if (!strob_start)
+				{
+					strob_start = digitalRead(strob_pin);                      // Проверка входа внешнего запуска 
+						if (strob_start)
+						{
+							repeat = false;
+								if (!strob_start) 
+									{
+										myGLCD.setColor(VGA_RED);
+										myGLCD.fillCircle(227,12,10);
+									}
+								else
+									{
+										myGLCD.setColor(255,255,255);
+										myGLCD.drawCircle(227,12,10);
+									}
+							break;
+						}
+				}
 
 			 if (myTouch.dataAvailable())      // Выход из программы измерения
 				{
@@ -5701,6 +5767,16 @@ void DrawGrid()
 			myGLCD.print("0,1", 226, 114);
 			myGLCD.print("0", 241, 152);
 		}
+	if (!strob_start) 
+		{
+			myGLCD.setColor(VGA_RED);
+			myGLCD.fillCircle(227,12,10);
+		}
+	else
+		{
+			myGLCD.setColor(255,255,255);
+			myGLCD.drawCircle(227,12,10);
+		}
 
 }
 void DrawGrid1()
@@ -5715,6 +5791,18 @@ void DrawGrid1()
 	myGLCD.drawLine( 200, 0, 200, 160);
 	myGLCD.drawLine( 240, 0, 240, 160);
 	//myGLCD.setColor(255, 255, 255);           // Белая окантовка
+
+	if (!strob_start) 
+		{
+			myGLCD.setColor(VGA_RED);
+			myGLCD.fillCircle(227,12,10);
+		}
+	else
+		{
+			myGLCD.setColor(255,255,255);
+			myGLCD.drawCircle(227,12,10);
+		}
+
 }
 
 void Draw_menu_SD()
@@ -6873,25 +6961,17 @@ void readFile()
 																myGLCD.printNumI(PageSample_Num[Page_count_temp], 105, 180);
 																view_read_file(Page_count_temp);                              // Вызвать программу отображения информации ??
 															}
-
-														//if ((y_osc>=200) && (y_osc<=239))                                     // Нижние кнопки  "Стоп"
-														//	{
-														//		waitForIt(250, 200, 318, 238);
-														//		stop_view = false;
-														//	}
 													}	
-													if ((x_osc>=2) && (x_osc<=240))                                           //  Область экрана
+													if ((x_osc>=2) && (x_osc<=240))                                           //  Область экрана кнопки  "Стоп"
 														{
-															if ((y_osc>=1) && (y_osc<=160))                                   // Delay row
+															if ((y_osc>=1) && (y_osc<=160))                                   // 
 															{
 																stop_view = false;
 															} 
 														}
-
 												}
 										  } while (!stop_view);
 											
-
 										//----------------------------------------
 										  if (stop_view == true)                                                             // Если просмотр разрешен, начать росмотр страницы
 												{
