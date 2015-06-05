@@ -199,6 +199,7 @@ byte calcDOW(byte d, byte m, int y);
 void waitForTouchRelease();
 
 #include <AnalogDataLoggerF1.ino>
+#include <AnalogBinLogger.h>
 #include <setTimeDateDUE.ino>
 #include <utils.ino>
 #endif
