@@ -424,7 +424,8 @@ void sdError_F(const __FlashStringHelper* str) {
 }
 //------------------------------------------------------------------------------
 #if DEBUG_PRINT
-void debugPrint() {
+void debugPrint() 
+{
   cout << F("FreeRam: ") << FreeRam() << endl;
   cout << F("partStart: ") << relSector << endl;
   cout << F("partSize: ") << partSize << endl;
@@ -2478,8 +2479,6 @@ void draw_Glav_Menu()
 void swichMenu() // Тексты меню в строках "txt....."
 	
 {
-	
-	// m2=1;                                                    // Устанивить первую странице меню
 	 while(1) 
 	   {
 		 myButtons.setTextFont(BigFont);                      // Установить Большой шрифт кнопок  
@@ -3030,6 +3029,7 @@ void oscilloscope()  // просмотр в реальном времени на большой скорости
 koeff_h = 7.759*4;
 mode1 = 0;
 Trigger = 0;
+StartSample = millis();
 myGLCD.setFont( BigFont);
 while (myTouch.dataAvailable()){}
 }
@@ -3752,6 +3752,7 @@ void oscilloscope_time()   // В файл не пишет
 	mode1 = 0;
 	Trigger = 0;
 	count_repeat = 0;
+	StartSample = millis();
 	myGLCD.setFont( BigFont);
 	while (!myTouch.dataAvailable()){}
 	delay(50);
@@ -4644,6 +4645,7 @@ void oscilloscope_file()  // Пишет в файл
 	mode1 = 0;
 	Trigger = 0;
 	count_repeat = 0;
+	StartSample = millis();
 	myGLCD.setFont( BigFont);
 	while (!myTouch.dataAvailable()){}
 	delay(50);
@@ -6430,9 +6432,9 @@ void view_read_file(int view_page)
 void measure_power()
 {                                            // Программа измерения напряжения питания с делителем 1/3 
 											 // Установить резистивный делитель +15к общ 10к на разъем питания
-		uint32_t logTime = 0;
-		logTime = millis();
-		if(logTime - StartSample > 500)  //  индикация 
+		uint32_t logTime1 = 0;
+		logTime1 = millis();
+		if(logTime1 - StartSample > 500)  //  индикация 
 		  {
 			StartSample = millis();
 			int m_power = 0;
