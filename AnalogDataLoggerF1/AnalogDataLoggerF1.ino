@@ -33,7 +33,6 @@ SdBaseFile binFile;
 Sd2Card card;
 
 // Declare which fonts we will be using
-//UTFT myGLCD(ITDB32S,25,26,27,28);
 
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
@@ -77,9 +76,6 @@ char str2[10];
 char list_files_tab[200][13];
 uint32_t size_files_tab[200] ;
 int set_files = 0;
-//char str_kamIn[10];
-
-
 
 //**************************  Меню прибора ***************************************
 
@@ -106,22 +102,6 @@ int flag_time = 0;
 
 int hh,mm,ss,dow,dd,mon,yyyy;
 
-
-
-//*********************** Переменные для цифровой клавиатуры**********************************
-int x, y, z;
-char stCurrent[20]     ="";                // Переменная хранения введенной строки 
-//char stCurrent1[20];                       // Переменная хранения введенной строки 
-int stCurrentLen       = 0;                // Переменная хранения длины введенной строки 
-int stCurrentLen1      = 0;                // Переменная временного хранения длины введенной строки  
-//int stCurrentLen_user  = 0;                // Переменная  хранения длины введенной строки пароля пользователя
-//int stCurrentLen_telef = 0;                // Переменная  хранения длины введенной строки пароля пользователя
-//int stCurrentLen_admin = 0;                // Переменная  хранения длины введенной строки пароля администратора
-char stLast[20]        ="";                // Данные в введенной строке строке.
-//char stLast1[20]       ="";                // Данные в введенной строке строке.
-int ret                = 0;                // Признак прерывания операции
-
-//-----------------------------------------------------------------------------------------------------
 
 //******************Назначение переменных для хранения № опций меню (клавиш)****************************
 
@@ -198,22 +178,6 @@ char  txt_menu1_1[]          = "PE\x81\x86""CTPATOP";                           
 char  txt_menu1_2[]          = "CAMO\x89\x86""CE\x8C";                                                      // "САМОПИСЕЦ"
 char  txt_menu1_3[]          = "PE\x81\x86""CT.+ CAMO\x89.";                                                // "РЕГИСТ. + САМОП."
 char  txt_menu1_4[]          = "PA\x80OTA c SD";                                                            // "РАБОТА с SD"
-//char  txt_menu2_1[]          = "MENU 2-1";//"\x86H\x8BO C\x8D""ET\x8D\x86KOB";                              // ИНФО СЧЕТЧИКОВ
-//char  txt_menu2_2[]          = "MENU 2-2";//"\x86H\x8BO N \xA3o\xA0\xAC\x9C.";                              //
-//char  txt_menu2_3[]          = "MENU 2-3";//                                                   //
-//char  txt_menu2_4[]          = "MENU 2-4";//                                                    //
-//char  txt_menu3_1[]          = "MENU 3-1";//"CTEPET\x92 \x8B""A\x87\x89\x91";                               //
-//char  txt_menu3_2[]          = "MENU 3-2";//"\x8A""c\xA4.N ""\xA4""e\xA0""e\xA5o\xA2""a";                   // Уст. № телефона
-//char  txt_menu3_3[]          = "MENU 3-3";//"\x8A""c\xA4.Level Gaz";                                        //
-//char  txt_menu3_4[]          = "MENU 3-4";//"\x8A""c\xA4.Level Temp";                                       //
-//char  txt_menu4_1[]          = "MENU 4-1";//"C\x96poc \x99""a""\xA2\xA2\xABx";                              // Сброс данных
-//char  txt_menu4_2[]          = "MENU 4-2";//"\x8A""c\xA4.N \xA3o\xA0\xAC\x9C.";                             // Уст. № польз
-//char  txt_menu4_3[]          = "MENU 4-3";//"\x89""apo\xA0\xAC \xA3o\xA0\xAC\x9C.";                         // Пароль польз.
-//char  txt_menu4_4[]          = "MENU 4-4";//"\x89""apo\xA0\xAC a\x99\xA1\x9D\xA2.";                         // Пароль админ.
-//char  txt_menu5_1[]          = "MENU 5-1";//"\x86H\x8BO ZigBee";                                            // Инфо ZigBee
-//char  txt_menu5_2[]          = "MENU 5-2";//"";                                              //
-//char  txt_menu5_3[]          = "MENU 5-3";//"Set Adr Coord L";                                              // 
-//char  txt_menu5_4[]          = "MENU 5-4";//"Set Adr Network";                                              // 
 
 char  txt_ADC_menu1[]        = "\x85""a\xA3\x9D""c\xAC \x99""a\xA2\xA2\xABx";                                                               //
 char  txt_ADC_menu2[]        = "\x89poc\xA1o\xA4p \xA5""a\x9E\xA0""a";                                                                    //
