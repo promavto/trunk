@@ -5653,7 +5653,7 @@ void printDirectory(File dir, int numTabs)
 						if (icount != count_files-1)
 						{
 						   myGLCD.setColor(0, 0, 0);
-						   myGLCD.fillRoundRect (3, 3, 130, 185);
+						   myGLCD.fillRoundRect (3, 3, 140, 185);
 						   count_string = 0;
 						   count_str = 1;
 						   count_page++;
@@ -5883,7 +5883,7 @@ void printDirectory(File dir, int numTabs)
 								if (max_count_files > count_files ) max_count_files = count_files-1;
 								count_string = 0;
 								myGLCD.setColor(0, 0, 0);
-								myGLCD.fillRoundRect (3, 3, 130, 185);
+								myGLCD.fillRoundRect (3, 3, 140, 185);
 								for( icount = min_count_files+1; icount < max_count_files+1; icount++)
 								   {
 									   myGLCD.setBackColor(0, 0, 0);
@@ -6610,7 +6610,7 @@ void print_serial(File dir, int numTabs)
 						if (icount != count_files-1)
 						{
 						   myGLCD.setColor(0, 0, 0);
-						   myGLCD.fillRoundRect (3, 3, 130, 185);
+						   myGLCD.fillRoundRect (3, 3, 140, 185);
 						   count_string = 0;
 						   count_str = 1;
 						   count_page++;
@@ -6820,7 +6820,7 @@ void print_serial(File dir, int numTabs)
 								if (max_count_files > count_files ) max_count_files = count_files-1;
 								count_string = 0;
 								myGLCD.setColor(0, 0, 0);
-								myGLCD.fillRoundRect (3, 3, 130, 185);
+								myGLCD.fillRoundRect (3, 3, 140, 185);
 								for( icount = min_count_files+1; icount < max_count_files+1; icount++)
 								   {
 									   myGLCD.setBackColor(0, 0, 0);

@@ -20,9 +20,6 @@
     <None Include="utils.ino" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AnalogBinLogger.h">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="Visual Micro\.AnalogDataLoggerF1.vsarduino.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
